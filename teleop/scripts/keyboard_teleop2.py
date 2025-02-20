@@ -33,6 +33,7 @@ class teleop_application:
         self.dy2 = 0  # Y-axis movement for arm2
         self.dz2 = 0  # Z-axis movement for arm2
         self.joint_deltas = numpy.zeros(6)  # Assuming the robot has 6 joints
+        self.jaw_delta = 0  # Jaw movement
 
         print('Initialising teleop system for {} and {}'.format(self.arm1_name, self.arm2_name))
         print('Using Control Type: {}'.format(self.control_type))
@@ -81,8 +82,13 @@ class teleop_application:
     def move_joint(self):
         # Move joints
         current_joint_positions = self.arm1.setpoint_jp()
+        current_jaw_position = self.arm1.jaw.setpoint_jp()
+
         new_joint_positions = current_joint_positions + self.joint_deltas
+        new_jaw_position = current_jaw_position + self.jaw_delta
+
         self.arm1.servo_jp(new_joint_positions)
+        self.arm1.jaw.servo_jp(new_jaw_position)
 
 
     # Keyboard event handlers
@@ -133,11 +139,11 @@ class teleop_application:
             # Jaw control
             elif key.char == '[':
                 print('Pressed [: Opening Jaw of Arm1')
-                self.arm1.jaw.open().wait(is_busy = True)
-                self.arm.insert_jp(0.1).wait()
+                self.arm1.jaw.open()#.wait(is_busy = True)
+                # self.arm.insert_jp(0.1).wait()
             elif key.char == ']':
                 print('Pressed ]: Closing Jaw of Arm1')
-                self.arm1.jaw.close().wait(is_busy = True)
+                self.arm1.jaw.close()#.wait(is_busy = True)
                 
             # Joint control
             elif key.char == '1':
@@ -158,6 +164,9 @@ class teleop_application:
             elif key.char == '6':
                 print('Pressed 6: Increasing joint 6')
                 self.joint_deltas[5] = self.joint_step_size
+            elif key.char == '7':
+                print('Pressed 7: Increasing joint 7')
+                self.jaw_delta = self.joint_step_size
             elif key.char == '!':
                 print('Pressed Shift+1: Decreasing joint 1')
                 self.joint_deltas[0] = -self.joint_step_size
@@ -176,6 +185,9 @@ class teleop_application:
             elif key.char == '^':
                 print('Pressed Shift+6: Decreasing joint 6')
                 self.joint_deltas[5] = -self.joint_step_size
+            elif key.char == '&':
+                print('Pressed Shift+7: Decreasing joint 7')
+                self.jaw_delta = -self.joint_step_size
         except AttributeError:
             pass
 
@@ -196,8 +208,9 @@ class teleop_application:
             elif key.char in ['q', 'e']:
                 self.dz2 = 0
 
-            elif key.char in '123456!@#$%^':
+            elif key.char in '1234567!@#$%^&':
                 self.joint_deltas.fill(0)
+                self.jaw_delta = 0
         except AttributeError:
             pass
 
