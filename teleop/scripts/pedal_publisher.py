@@ -4,9 +4,10 @@ import rospy
 from sensor_msgs.msg import Joy
 from pynput import keyboard
 import threading
+import argparse
 
 class KeyboardPublisher:
-    def __init__(self):
+    def __init__(self,config_dict):
         # Initialize the ROS node
         rospy.init_node('pedal_publisher', anonymous=True)
         
@@ -19,7 +20,10 @@ class KeyboardPublisher:
         self.joy_msg.buttons = [1]  # Initialize with button not pressed
 
         # Start the keyboard listener
-        self.listener = keyboard.Listener(on_press=self.on_press, on_release=self.on_release)
+        if config_dict["on_release"]==False:
+            self.listener = keyboard.Listener(on_press=self.on_press)
+        else:
+            self.listener = keyboard.Listener(on_press=self.on_press, on_release=self.on_release)
         self.listener.start()
 
         # Start the publishing thread
@@ -59,8 +63,13 @@ class KeyboardPublisher:
         self.publish_thread.start()
         
 if __name__ == '__main__':
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-r','--onrelease',type=bool,default=False)
+    args = parser.parse_args()
+    config_dict = {"on_release":args.onrelease}
     try:
-        keyboard_publisher = KeyboardPublisher()
+        keyboard_publisher = KeyboardPublisher(config_dict)
         keyboard_publisher.run()
     except rospy.ROSInterruptException:
         pass

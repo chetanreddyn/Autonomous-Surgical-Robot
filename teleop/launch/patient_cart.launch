@@ -74,7 +74,7 @@
   </include>
 
   <!-- rviz -->
-  <node name="rviz"
+  <node name="rviz_patient_cart"
         pkg="rviz"
         type="rviz"
         args="-d $(find teleop)/rviz/patient_cart_teleop.rviz"/>
