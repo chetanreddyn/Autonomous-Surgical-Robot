@@ -4,6 +4,7 @@ import rospy
 from sensor_msgs.msg import JointState
 from geometry_msgs.msg import PoseStamped
 from omni_msgs.msg import OmniButtonEvent
+import numpy as np
 
 import dvrk
 import numpy
@@ -17,7 +18,9 @@ class MimicPose:
         self.arm = dvrk.psm(ral, arm_name)
 
         # Subscribe to the /joint_states topic
-        rospy.Subscriber(config_dict['pose_topic'], PoseStamped, self.pose_callback)
+        self.pose_topic = config_dict['pose_topic']
+
+        rospy.Subscriber(self.pose_topic , PoseStamped, self.pose_callback)
         rospy.Subscriber('phantom/button', OmniButtonEvent, self.button_callback)
     
         self.phantom_orientation = None
@@ -27,9 +30,14 @@ class MimicPose:
         # The grey button must be pressed once to start
         self.was_in_clutch = True
         self.clutch = True 
+        self.enabled = False
+        self.open_jaw = False
+        self.was_in_open_jaw = False
         
         self.scale = config_dict["scale"]
         self.jaw_step_size = config_dict["jaw_step_size"]
+        self.jaw_open_angle = config_dict["jaw_open_angle"]
+        self.jaw_close_angle = config_dict["jaw_close_angle"]
 
     def pose_callback(self, msg):
         self.phantom_orientation = msg.pose.orientation # quaternion
@@ -49,7 +57,12 @@ class MimicPose:
         elif msg.grey_button == 0:
             self.clutch = False
 
-
+        if msg.white_button == 1:
+            self.open_jaw = True
+        
+        elif msg.white_button == 0:
+            self.open_jaw = False
+             
         # TODO: Callback code to handle the jaw using white button
         # if msg.grey_button == 1:
         #     self.current_jaw_pose += self.jaw_step_size
@@ -70,7 +83,7 @@ class MimicPose:
         - We use arm.move_cp instead of servo_cp here
         '''
         if self.phantom_position is None or self.phantom_orientation is None:
-            print('No Phantom Omni Pose received yet')
+            print('No Phantom Omni Pose received yet, subscribed to: ',self.pose_topic )
             return
         
         rospy.loginfo('Clutch Released: Matching Phantom Omni Orientation')
@@ -90,13 +103,13 @@ class MimicPose:
         # print('Using move_cp to align the arm: Takes less than a minute | Please wait')
         self.arm.move_cp(goal).wait(True)
 
-        self.initalised_teleop = True
+        self.enabled = True
         # print('Initialisation complete')
 
 
     def move_cartesian(self):
-        if self.phantom_position is None or self.phantom_orientation is None:
-            print('No Phantom Omni Pose received yet')
+        if self.phantom_position is None or self.phantom_orientation is None and self.enabled:
+            print('No Phantom Omni Pose received yet, subscribed to: ',self.pose_topic )
             return
 
         # Create a PyKDL.Frame object for the goal pose
@@ -108,17 +121,19 @@ class MimicPose:
 
         goal.p = self.initial_arm_position + self.scale*phantom_translation
         # Convert the quaternion to a PyKDL.Rotation
+
         q = [self.phantom_orientation.x, self.phantom_orientation.y, self.phantom_orientation.z, self.phantom_orientation.w]
+
         goal.M = PyKDL.Rotation.Quaternion(q[0],q[1],q[2],q[3])
 
         # Move the arm to the goal pose
         self.arm.move_cp(goal).wait(True)
 
         # Reinitialise the phantom position and orientation
-        self.initial_arm_pose = self.arm.setpoint_cp()
-        self.current_jaw_pose = self.arm.jaw.setpoint_jp()
-        self.initial_arm_position = self.initial_arm_pose.p
-        self.initial_phantom_position = PyKDL.Vector(self.phantom_position.x, self.phantom_position.y, self.phantom_position.z)
+        # self.initial_arm_pose = self.arm.setpoint_cp()
+        # self.current_jaw_pose = self.arm.jaw.setpoint_jp()
+        # self.initial_arm_position = self.initial_arm_pose.p
+        # self.initial_phantom_position = PyKDL.Vector(self.phantom_position.x, self.phantom_position.y, self.phantom_position.z)
 
         # self.arm.servo_cp(goal)
 
@@ -144,6 +159,22 @@ class MimicPose:
             elif self.clutch:
                 self.was_in_clutch = True
 
+            if self.open_jaw:
+                self.arm.jaw.move_jp(np.array([self.jaw_open_angle]))
+                self.was_in_open_jaw = True
+
+            elif not self.open_jaw:
+                if self.was_in_open_jaw:
+                    self.arm.jaw.move_jp(np.array([self.jaw_close_angle])) # Closes the Jaw
+                    self.was_in_open_jaw = False
+                
+
+
+            
+
+            
+                
+
             rospy.sleep(0.1)
         # rospy.spin()
 
@@ -165,7 +196,9 @@ if __name__ == '__main__':
 
     config_dict = {"scale":args.scale,
                    "jaw_step_size":args.jaw_step_size,
-                   "pose_topic":args.pose_topic}
+                   "pose_topic":args.pose_topic,
+                   "jaw_open_angle":np.pi/3,
+                   "jaw_close_angle":0}
     
     ral = crtk.ral('mimic_pose')
     mimic_pose = MimicPose(ral, args.arm,config_dict)
