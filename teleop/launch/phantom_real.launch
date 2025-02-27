@@ -4,6 +4,7 @@
   <arg name="publish_rate" default="1000"/>
   <arg name="omni_name" default="phantom"/>
   
+  <!--In the omni_state.cpp File, for joint 6, make a change from - -state->thetas[6] - M_PI to + state->thetas[6] + M_PI;-->
   <node name="omni_state" pkg="omni_common" type="omni_state" output="screen"> 
     <param name="omni_name" value="$(arg omni_name)"/>
     <param name="publish_rate" value="$(arg publish_rate)"/>
@@ -16,5 +17,6 @@
     <remap from="/joint_states" to="/phantom/joint_states"/>
    </node>
 
-  <!-- <node name="rviz_phantom" pkg="rviz" type="rviz" args="-d $(find teleop)/rviz/phantom.rviz" required="true" /> -->
+  <node name="rviz_phantom" pkg="rviz" type="rviz" args="-d $(find teleop)/rviz/phantom.rviz" required="true" />
+  <!-- <node name="map_to_base_node" pkg="tf2_ros" type="static_transform_publisher" args = "0 0 0 1 0 0 0 map base"/> -->
 </launch>
