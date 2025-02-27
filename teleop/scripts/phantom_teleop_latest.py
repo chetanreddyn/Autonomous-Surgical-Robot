@@ -13,11 +13,11 @@ import argparse
 import PyKDL
 
 class MimicPose:
-    def __init__(self, ral, arm_name):
+    def __init__(self, ral, arm_name,config_dict):
         self.arm = dvrk.psm(ral, arm_name)
 
         # Subscribe to the /joint_states topic
-        rospy.Subscriber('phantom/pose', PoseStamped, self.pose_callback)
+        rospy.Subscriber('phantom/pose_surgeon_console', PoseStamped, self.pose_callback)
         rospy.Subscriber('phantom/button', OmniButtonEvent, self.button_callback)
     
         self.phantom_orientation = None
@@ -25,8 +25,8 @@ class MimicPose:
         self.current_jaw_pose = None
         
         self.initalised_teleop = False
-        self.scale = 1.0
-        self.jaw_step_size = 0.1
+        self.scale = config_dict["scale"]
+        self.jaw_step_size = config_dict["jaw_step_size"]
 
     def pose_callback(self, msg):
         self.phantom_orientation = msg.pose.orientation # quaternion
@@ -96,6 +96,13 @@ class MimicPose:
 
         # Move the arm to the goal pose
         self.arm.move_cp(goal).wait(True)
+
+        # Reinitialise the phantom position and orientation
+        self.initial_arm_pose = self.arm.setpoint_cp()
+        self.current_jaw_pose = self.arm.jaw.setpoint_jp()
+        self.initial_arm_position = self.initial_arm_pose.p
+        self.initial_phantom_position = PyKDL.Vector(self.phantom_position.x, self.phantom_position.y, self.phantom_position.z)
+
         # self.arm.servo_cp(goal)
 
         #.wait()
@@ -120,8 +127,15 @@ if __name__ == '__main__':
     parser.add_argument('-a', '--arm', type=str, default='PSM1',
                         choices=['ECM', 'MTML', 'MTMR', 'PSM1', 'PSM2', 'PSM3'],
                         help='arm name corresponding to ROS topics without namespace. Use __ns:= to specify the namespace')
+    parser.add_argument('-s', '--scale', type=float, default=1.0,
+                        help='Scale for Translation')
+    parser.add_argument('-j', '--jaw_step_size', type=float, default=0.1,
+                    help='Jaw Step Size')
     args = parser.parse_args(argv)
 
+    config_dict = {"scale":args.scale,
+                   "jaw_step_size":args.jaw_step_size}
+    
     ral = crtk.ral('mimic_pose')
-    mimic_pose = MimicPose(ral, args.arm)
+    mimic_pose = MimicPose(ral, args.arm,config_dict)
     ral.spin_and_execute(mimic_pose.run)

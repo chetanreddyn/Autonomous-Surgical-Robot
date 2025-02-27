@@ -1,5 +1,19 @@
 #!/usr/bin/env python
 
+
+'''
+Author: Chetan Reddy Narayanaswamy
+
+This script is used to control the arms of the da vinci using the keyboard input
+Left, Right, Up, Down, Page Up, Page Down: Controls Arm 1 in Cartesian Space (X,Y,Z axes)
+W,A,S,D,Q,E: Controls Arm 2 in Cartisian Space
+1,2,3,4,5,6: Increases the corresponding joint value
+Shift + (1,2,3,4,5,6): Decreases the correspoinding value
+7 : Increases the Jaw Opening
+Shift + 7 : Decreases the Jaw Opening
+
+'''
+
 # Import required libraries
 import argparse
 import sys

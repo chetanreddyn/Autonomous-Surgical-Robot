@@ -33,7 +33,7 @@ def callback_pose(data):
     gamma = euler[2]*180/3.141
 
     # Print the position and orientation
-    print("Position: x={:.3f}, y={:.3f}, z={:.3f} | Orientation: alpha={:.3f}, beta={:.3f}, gamma={:.3f}".format(x, y, z, alpha, beta, gamma))
+    print("p: x={:.3f}, y={:.3f}, z={:.3f} | M: alpha={:.3f}, beta={:.3f}, gamma={:.3f}".format(x, y, z, alpha, beta, gamma))
 
 
 
