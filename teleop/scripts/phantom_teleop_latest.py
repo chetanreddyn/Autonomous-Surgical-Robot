@@ -143,6 +143,7 @@ class MimicPose:
         # while not self.initalised_teleop:
         #     self.initialise_phantom_teleop()
         #     rospy.sleep(0.1)
+        self.transition_to_enabled()
         rospy.loginfo("Hold the Pen in Position, Hold and Release the Grey Button Once to Start")
         while not rospy.is_shutdown():
             
@@ -191,7 +192,7 @@ if __name__ == '__main__':
                         help='Scale for Translation')
     parser.add_argument('-j', '--jaw_step_size', type=float, default=0.1,
                     help='Jaw Step Size')
-    parser.add_argument('-p','--pose_topic',type=str,default="/phantom/pose",help="The pose to mimic")
+    parser.add_argument('-p','--pose_topic',type=str,default="/phantom/pose_assistant_perspective",help="The pose to mimic")
     args = parser.parse_args(argv)
 
     config_dict = {"scale":args.scale,

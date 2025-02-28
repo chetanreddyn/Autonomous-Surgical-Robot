@@ -9,25 +9,28 @@ import rospy
 import numpy as np
 import tf
 from geometry_msgs.msg import PoseStamped
-from geometry_msgs.msg import TransformStamped
 
 
 class PoseTransformer:
-    def __init__(self):
+    def __init__(self,config_dict):
         # Initialize the ROS node
         rospy.init_node('omni_pose_transform', anonymous=True)
 
+
+        self.target_topic = config_dict["target_topic"]
+        self.theta = config_dict["theta"]
         # Define the static transformation matrix sc_T_po
         self.sc_T_po = np.array([[-1, 0, 0, 0],
-                                 [0, 0, -1, 0],
-                                 [0, -1, 0, 0],
+                                 [0, np.sin(self.theta), -np.cos(self.theta), 0],
+                                 [0, -np.cos(self.theta), -np.sin(self.theta), 0],
                                  [0, 0, 0, 1]]) # It is a transform from surgeon console or assistant perspective to phantom omni
 
         # Create a tf listener
         self.listener = tf.TransformListener()
+        
 
         # Create a publisher to the /phantom/pose_surgeon_console topic
-        self.publisher = rospy.Publisher('/phantom/pose_assistant_perspective', PoseStamped, queue_size=10)
+        self.publisher = rospy.Publisher(self.target_topic, PoseStamped, queue_size=10)
 
         # Set the rate at which to check for the transform
         self.rate = rospy.Rate(10.0)  # 10 Hz
@@ -78,6 +81,7 @@ class PoseTransformer:
                 transformed_msg.header.frame_id = 'base'
                 transformed_msg.pose = transformed_pose
 
+                rospy.loginfo("Published to :{}".format(self.target_topic))
                 # Publish the transformed PoseStamped message
                 self.publisher.publish(transformed_msg)
 
@@ -89,7 +93,9 @@ class PoseTransformer:
 if __name__ == '__main__':
     try:
         # Create an instance of the PoseTransformer class
-        transformer = PoseTransformer()
+        config_dict = {"target_topic":"/phantom/pose_assistant_perspective",
+                       "theta":-np.pi/6} # Zero means parallel to horizontal, 30 degrees means our line of sight is 30 degrees below the horizon
+        transformer = PoseTransformer(config_dict)
 
         # Run the transformer
         transformer.run()

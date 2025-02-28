@@ -1,7 +1,0 @@
-<launch>
-    <arg name="bag_file" default="yaw_pitch_roll.bag" />
-    <param name="robot_description" command="cat $(find omni_description)/urdf/omni.urdf" />
-    <node name="rviz_phantom" pkg="rviz" type="rviz" args="-d $(find omni_common)/launch/omni.rviz" required="true" />
-    <node name="play_bag" pkg="rosbag" type="play" args="$(find teleop)/bag_files/$(arg bag_file)" required="true" output="screen"/>
-
-</launch>
