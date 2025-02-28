@@ -20,10 +20,14 @@ class PoseTransformer:
         self.target_topic = config_dict["target_topic"]
         self.theta = config_dict["theta"]
         # Define the static transformation matrix sc_T_po
-        self.sc_T_po = np.array([[-1, 0, 0, 0],
-                                 [0, np.sin(self.theta), -np.cos(self.theta), 0],
-                                 [0, -np.cos(self.theta), -np.sin(self.theta), 0],
-                                 [0, 0, 0, 1]]) # It is a transform from surgeon console or assistant perspective to phantom omni
+        # self.sc_T_po = np.array([[-1, 0, 0, 0],
+        #                          [0, -np.sin(self.theta), -np.cos(self.theta), 0],
+        #                          [0, -np.cos(self.theta), np.sin(self.theta), 0],
+        #                          [0, 0, 0, 1]]) # It is a transform from surgeon console or assistant perspective to phantom omni
+        self.sc_T_po = np.array([[-1,0,0,0],
+                                 [0,0,-1,0],
+                                 [0,-1,0,0],
+                                 [0,0,0,1]])
 
         # Create a tf listener
         self.listener = tf.TransformListener()
@@ -94,7 +98,7 @@ if __name__ == '__main__':
     try:
         # Create an instance of the PoseTransformer class
         config_dict = {"target_topic":"/phantom/pose_assistant_perspective",
-                       "theta":-np.pi/6} # Zero means parallel to horizontal, 30 degrees means our line of sight is 30 degrees below the horizon
+                       "theta":np.pi/4} # Zero means parallel to horizontal, 30 degrees means our line of sight is 30 degrees below the horizon
         transformer = PoseTransformer(config_dict)
 
         # Run the transformer
