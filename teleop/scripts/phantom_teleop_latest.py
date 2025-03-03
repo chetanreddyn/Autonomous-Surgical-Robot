@@ -167,15 +167,7 @@ class MimicPose:
             elif not self.open_jaw:
                 if self.was_in_open_jaw:
                     self.arm.jaw.move_jp(np.array([self.jaw_close_angle])) # Closes the Jaw
-                    self.was_in_open_jaw = False
-                
-
-
-            
-
-            
-                
-
+                    self.was_in_open_jaw = False    
             rospy.sleep(0.1)
         # rospy.spin()
 
