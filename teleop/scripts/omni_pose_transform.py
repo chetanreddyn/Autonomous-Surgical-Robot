@@ -24,8 +24,8 @@ class PoseTransformer:
         #                          [0, -np.sin(self.theta), -np.cos(self.theta), 0],
         #                          [0, -np.cos(self.theta), np.sin(self.theta), 0],
         #                          [0, 0, 0, 1]]) # It is a transform from surgeon console or assistant perspective to phantom omni
-        self.sc_T_po = np.array([[-1,0,0,0],
-                                 [0,0,-1,0],
+        self.sc_T_po = np.array([[1,0,0,0],
+                                 [0,0,1,0],
                                  [0,-1,0,0],
                                  [0,0,0,1]])
 

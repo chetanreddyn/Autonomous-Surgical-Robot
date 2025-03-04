@@ -34,7 +34,6 @@ class teleop_application:
         self.expected_interval = config_dict['expected_interval']
         self.arm1_name = config_dict['arm1_name']
         self.arm2_name = config_dict['arm2_name']
-        self.num_arms = config_dict['num_arms']
         self.step_size = config_dict['step_size'] #  Step size for movement (in meters)
         self.joint_step_size = config_dict['joint_step_size'] # Step size for joint movement
         self.control_type = config_dict['control_type']
@@ -56,23 +55,13 @@ class teleop_application:
     # Homing the arms
     def home(self):
         self.arm1.check_connections()
-
+        self.arm2.check_connections()
         print('Starting enable')
-        if not self.arm1.enable(10):
+        if not self.arm1.enable(10) or not self.arm2.enable(10):
             sys.exit('Failed to enable within 10 seconds')
         print('Starting home')
-        if not self.arm1.home(10):
+        if not self.arm1.home(10) or not self.arm2.home(10):
             sys.exit('Failed to home within 10 seconds')
-
-        if self.num_arms == 2: # If there is a second arm activated
-            self.arm2.check_connections()
-            
-            if not self.arm2.enable(10):
-                sys.exit('Failed to enable within 10 seconds')
-
-            if not self.arm2.home(10):
-                sys.exit('Failed to home within 10 seconds')
-
         print('Homing complete')
 
     # Move the arm's tip incrementally in Cartesian coordinates
@@ -91,19 +80,18 @@ class teleop_application:
         elif self.control_type == 'm':
             self.arm1.move_cp(goal1).wait()
 
-        if self.num_arms == 2:
-            current_pose2 = self.arm2.setpoint_cp()
-            goal2 = PyKDL.Frame()
-            goal2.p = current_pose2.p
-            goal2.M = current_pose2.M
-            goal2.p[0] += self.dx2 * self.step_size
-            goal2.p[1] += self.dy2 * self.step_size
-            goal2.p[2] += self.dz2 * self.step_size
+        current_pose2 = self.arm2.setpoint_cp()
+        goal2 = PyKDL.Frame()
+        goal2.p = current_pose2.p
+        goal2.M = current_pose2.M
+        goal2.p[0] += self.dx2 * self.step_size
+        goal2.p[1] += self.dy2 * self.step_size
+        goal2.p[2] += self.dz2 * self.step_size
 
-            if self.control_type == 's':
-                self.arm2.servo_cp(goal2)
-            elif self.control_type == 'm':
-                self.arm2.move_cp(goal2).wait()
+        if self.control_type == 's':
+            self.arm2.servo_cp(goal2)
+        elif self.control_type == 'm':
+            self.arm2.move_cp(goal2).wait()
 
     def move_joint(self):
         # Move joints
@@ -142,88 +130,80 @@ class teleop_application:
             elif key == keyboard.Key.page_down:
                 print('Pressed PageDown: Moving Arm1 Along -z axis')
                 self.dz1 = -1
-
-
+            # Control PSM2 with WASD keys
+            elif key.char == 'w':
+                print('Pressed W: Moving Arm2 Along +y axis')
+                self.dy2 = 1
+            elif key.char == 's':
+                print('Pressed S: Moving Arm2 Along -y axis')
+                self.dy2 = -1
+            elif key.char == 'a':
+                print('Pressed A: Moving Arm2 Along -x axis')
+                self.dx2 = -1
+            elif key.char == 'd':
+                print('Pressed D: Moving Arm2 Along +x axis')
+                self.dx2 = 1
+            elif key.char == 'q':
+                print('Pressed Q: Moving Arm2 Along +z axis')
+                self.dz2 = 1
+            elif key.char == 'e':
+                print('Pressed E: Moving Arm2 Along -z axis')
+                self.dz2 = -1
+            
             # Jaw control
-            if hasattr(key, 'char'):
-                if key.char == '[':
-                    print('Pressed [: Opening Jaw of Arm1')
-                    self.arm1.jaw.open()#.wait(is_busy = True)
-                    # self.arm.insert_jp(0.1).wait()
-                elif key.char == ']':
-                    print('Pressed ]: Closing Jaw of Arm1')
-                    self.arm1.jaw.close()#.wait(is_busy = True)
-                    
-                # Joint control
-                elif key.char == '1':
-                    print('Pressed 1: Increasing joint 1')
-                    self.joint_deltas[0] = self.joint_step_size  # Adjust the increment value as needed
-                elif key.char == '2':
-                    print('Pressed 2: Increasing joint 2')
-                    self.joint_deltas[1] = self.joint_step_size
-                elif key.char == '3':
-                    print('Pressed 3: Increasing joint 3')
-                    self.joint_deltas[2] = self.joint_step_size
-                elif key.char == '4':
-                    print('Pressed 4: Increasing joint 4')
-                    self.joint_deltas[3] = self.joint_step_size
-                elif key.char == '5':
-                    print('Pressed 5: Increasing joint 5')
-                    self.joint_deltas[4] = self.joint_step_size
-                elif key.char == '6':
-                    print('Pressed 6: Increasing joint 6')
-                    self.joint_deltas[5] = self.joint_step_size
-                elif key.char == '7':
-                    print('Pressed 7: Increasing joint 7')
-                    self.jaw_delta = self.joint_step_size
-                elif key.char == '!':
-                    print('Pressed Shift+1: Decreasing joint 1')
-                    self.joint_deltas[0] = -self.joint_step_size
-                elif key.char == '@':
-                    print('Pressed Shift+2: Decreasing joint 2')
-                    self.joint_deltas[1] = -self.joint_step_size
-                elif key.char == '#':
-                    print('Pressed Shift+3: Decreasing joint 3')
-                    self.joint_deltas[2] = -self.joint_step_size
-                elif key.char == '$':
-                    print('Pressed Shift+4: ecreasing joint 4')
-                    self.joint_deltas[3] = -self.joint_step_size
-                elif key.char == '%':
-                    print('Pressed Shift+5: Decreasing joint 5')
-                    self.joint_deltas[4] = -self.joint_step_size
-                elif key.char == '^':
-                    print('Pressed Shift+6: Decreasing joint 6')
-                    self.joint_deltas[5] = -self.joint_step_size
-                elif key.char == '&':
-                    print('Pressed Shift+7: Decreasing joint 7')
-                    self.jaw_delta = -self.joint_step_size
-
-
-
-                if self.num_arms == 2:
-                    # Control arm2 with WASD keys
-                    if key.char == 'w':
-                        print('Pressed W: Moving Arm2 Along +y axis')
-                        self.dy2 = 1
-                    elif key.char == 's':
-                        print('Pressed S: Moving Arm2 Along -y axis')
-                        self.dy2 = -1
-                    elif key.char == 'a':
-                        print('Pressed A: Moving Arm2 Along -x axis')
-                        self.dx2 = -1
-                    elif key.char == 'd':
-                        print('Pressed D: Moving Arm2 Along +x axis')
-                        self.dx2 = 1
-                    elif key.char == 'q':
-                        print('Pressed Q: Moving Arm2 Along +z axis')
-                        self.dz2 = 1
-                    elif key.char == 'e':
-                        print('Pressed E: Moving Arm2 Along -z axis')
-                        self.dz2 = -1
+            elif key.char == '[':
+                print('Pressed [: Opening Jaw of Arm1')
+                self.arm1.jaw.open()#.wait(is_busy = True)
+                # self.arm.insert_jp(0.1).wait()
+            elif key.char == ']':
+                print('Pressed ]: Closing Jaw of Arm1')
+                self.arm1.jaw.close()#.wait(is_busy = True)
                 
-
-        except Exception as e:
-            print('ERROR WHEN Pressing KEY | Key: {} | Exception: {}'.format(key,e))
+            # Joint control
+            elif key.char == '1':
+                print('Pressed 1: Increasing joint 1')
+                self.joint_deltas[0] = self.joint_step_size  # Adjust the increment value as needed
+            elif key.char == '2':
+                print('Pressed 2: Increasing joint 2')
+                self.joint_deltas[1] = self.joint_step_size
+            elif key.char == '3':
+                print('Pressed 3: Increasing joint 3')
+                self.joint_deltas[2] = self.joint_step_size
+            elif key.char == '4':
+                print('Pressed 4: Increasing joint 4')
+                self.joint_deltas[3] = self.joint_step_size
+            elif key.char == '5':
+                print('Pressed 5: Increasing joint 5')
+                self.joint_deltas[4] = self.joint_step_size
+            elif key.char == '6':
+                print('Pressed 6: Increasing joint 6')
+                self.joint_deltas[5] = self.joint_step_size
+            elif key.char == '7':
+                print('Pressed 7: Increasing joint 7')
+                self.jaw_delta = self.joint_step_size
+            elif key.char == '!':
+                print('Pressed Shift+1: Decreasing joint 1')
+                self.joint_deltas[0] = -self.joint_step_size
+            elif key.char == '@':
+                print('Pressed Shift+2: Decreasing joint 2')
+                self.joint_deltas[1] = -self.joint_step_size
+            elif key.char == '#':
+                print('Pressed Shift+3: Decreasing joint 3')
+                self.joint_deltas[2] = -self.joint_step_size
+            elif key.char == '$':
+                print('Pressed Shift+4: ecreasing joint 4')
+                self.joint_deltas[3] = -self.joint_step_size
+            elif key.char == '%':
+                print('Pressed Shift+5: Decreasing joint 5')
+                self.joint_deltas[4] = -self.joint_step_size
+            elif key.char == '^':
+                print('Pressed Shift+6: Decreasing joint 6')
+                self.joint_deltas[5] = -self.joint_step_size
+            elif key.char == '&':
+                print('Pressed Shift+7: Decreasing joint 7')
+                self.jaw_delta = -self.joint_step_size
+        except AttributeError:
+            pass
 
     def on_release(self, key):
         try:
@@ -234,25 +214,19 @@ class teleop_application:
                 self.dx1 = 0
             elif key in [keyboard.Key.page_up, keyboard.Key.page_down]:
                 self.dz1 = 0
+            # Control PSM2 with WASD keys
+            elif key.char in ['w', 's']:
+                self.dy2 = 0
+            elif key.char in ['a', 'd']:
+                self.dx2 = 0
+            elif key.char in ['q', 'e']:
+                self.dz2 = 0
 
-            if hasattr(key, 'char'):
-                if key.char in '1234567!@#$%^&': # Joint Control
-                    self.joint_deltas.fill(0)
-                    self.jaw_delta = 0
-
-            if self.num_arms == 2:
-                if hasattr(key, 'char'):
-
-                    # Control arm2 with WASD keys
-                    if key.char in ['w', 's']:
-                        self.dy2 = 0
-                    elif key.char in ['a', 'd']:
-                        self.dx2 = 0
-                    elif key.char in ['q', 'e']:
-                        self.dz2 = 0
-
-        except Exception as e:
-            print('ERROR WHEN RELEASING KEY | Key: {} | Exception: {}'.format(key,e))
+            elif key.char in '1234567!@#$%^&':
+                self.joint_deltas.fill(0)
+                self.jaw_delta = 0
+        except AttributeError:
+            pass
 
     # Main method
     def run(self):
@@ -277,10 +251,9 @@ if __name__ == '__main__':
     parser.add_argument('-a2', '--arm2', type=str, default='PSM2',
                         choices=['ECM', 'MTML', 'MTMR', 'PSM1', 'PSM2', 'PSM3'],
                         help='arm2 name corresponding to ROS topics without namespace. Use __ns:= to specify the namespace')
-    parser.add_argument('-n', '--num_arms', type=float, default=2)
-    parser.add_argument('-i', '--interval', type=float, default=0.005,
+    parser.add_argument('-i', '--interval', type=float, default=0.01,
                         help='expected interval in seconds between messages sent by the device')
-    parser.add_argument('-s', '--step_size', type=float, default=0.0001,
+    parser.add_argument('-s', '--step_size', type=float, default=0.001,
                         help='step size for movement in meters')
     parser.add_argument('-j', '--joint_step_size', type=float, default=0.005,
                         help='step size for movement in meters')
@@ -288,10 +261,8 @@ if __name__ == '__main__':
                         help='s - servo_cp, m - move_cp, i - interpolate_cp')
     args = parser.parse_args(argv)
 
-
     config_dict = {'arm1_name':args.arm1,
                    'arm2_name':args.arm2,
-                   'num_arms':args.num_arms,
                    'expected_interval':args.interval,
                    'step_size':args.step_size,
                    'joint_step_size':args.joint_step_size,

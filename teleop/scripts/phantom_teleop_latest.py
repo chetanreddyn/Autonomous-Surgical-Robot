@@ -180,7 +180,7 @@ if __name__ == '__main__':
     parser.add_argument('-a', '--arm', type=str, default='PSM1',
                         choices=['ECM', 'MTML', 'MTMR', 'PSM1', 'PSM2', 'PSM3'],
                         help='arm name corresponding to ROS topics without namespace. Use __ns:= to specify the namespace')
-    parser.add_argument('-s', '--scale', type=float, default=1.0,
+    parser.add_argument('-s', '--scale', type=float, default=0.1,
                         help='Scale for Translation')
     parser.add_argument('-j', '--jaw_step_size', type=float, default=0.1,
                     help='Jaw Step Size')
