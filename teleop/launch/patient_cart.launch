@@ -2,7 +2,7 @@
 
 <launch>
   <arg name="generation"
-        default="Classic"/>
+        default="Si"/>
   <arg name="simulated"
        default="True"/>
 
@@ -77,7 +77,7 @@
   <node name="rviz_patient_cart"
         pkg="rviz"
         type="rviz"
-        args="-d $(find teleop)/rviz/patient_cart_teleop.rviz"/>
+        args="-d $(find teleop)/rviz/patient_cart_si.rviz"/>
 
 
   <node name="dvrk_patient_cart_node"
