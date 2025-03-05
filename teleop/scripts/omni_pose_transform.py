@@ -18,16 +18,20 @@ class PoseTransformer:
 
 
         self.target_topic = config_dict["target_topic"]
-        self.theta = config_dict["theta"]
-        # Define the static transformation matrix sc_T_po
-        # self.sc_T_po = np.array([[-1, 0, 0, 0],
-        #                          [0, -np.sin(self.theta), -np.cos(self.theta), 0],
-        #                          [0, -np.cos(self.theta), np.sin(self.theta), 0],
-        #                          [0, 0, 0, 1]]) # It is a transform from surgeon console or assistant perspective to phantom omni
-        self.sc_T_po = np.array([[1,0,0,0],
-                                 [0,0,1,0],
-                                 [0,-1,0,0],
-                                 [0,0,0,1]])
+        self.camera_theta = config_dict["camera_theta"]
+        self.eye_theta = config_dict["eye_theta"]
+
+        self.eye_T_po = np.array([[1,0,0,0],
+                                  [0,-np.sin(self.eye_theta),np.cos(self.eye_theta),0],
+                                  [0,-np.cos(self.eye_theta),-np.sin(self.eye_theta),0],
+                                  [0,0,0,1]])
+        
+        self.ecm_T_camera = np.array([[1,0,0,0],
+                                      [0,np.cos(self.camera_theta),np.sin(self.camera_theta),0], 
+                                      [0,-np.sin(self.camera_theta),np.cos(self.camera_theta),0],
+                                      [0,0,0,1]])
+        
+        # self.camera_T_po = self.camera_T_ecm@self.ecm_T_po
 
         # Create a tf listener
         self.listener = tf.TransformListener()
@@ -70,14 +74,14 @@ class PoseTransformer:
                 # Look up the transform from base to stylus
                 (trans, rot) = self.listener.lookupTransform('base', 'stylus', rospy.Time(0))
 
-                # Convert the transform to a 4x4 transformation matrix po_T_pen
-                po_T_pen = self.transform_to_matrix(trans, rot)
+                # Convert the transform to a 4x4 transformation matrix po_T_stylus
+                po_T_stylus = self.transform_to_matrix(trans, rot)
 
-                # Compute the resulting transformation matrix sc_T_pen
-                sc_T_pen = np.dot(self.sc_T_po, po_T_pen)
+                # Compute the resulting transformation matrix camera_T_stylus
+                camera_T_stylus = self.ecm_T_camera@self.eye_T_po@po_T_stylus
 
                 # Convert the resulting matrix back to position and orientation
-                transformed_pose = self.matrix_to_pose(sc_T_pen)
+                transformed_pose = self.matrix_to_pose(camera_T_stylus)
 
                 # Create a new PoseStamped message
                 transformed_msg = PoseStamped()
@@ -98,7 +102,9 @@ if __name__ == '__main__':
     try:
         # Create an instance of the PoseTransformer class
         config_dict = {"target_topic":"/phantom/pose_assistant_perspective",
-                       "theta":np.pi/4} # Zero means parallel to horizontal, 30 degrees means our line of sight is 30 degrees below the horizon
+                       "camera_theta":40*np.pi/180,
+                       "eye_theta":30*np.pi/180} # Zero means parallel to horizontal, 30 degrees means our line of sight is 30 degrees below the horizon
+
         transformer = PoseTransformer(config_dict)
 
         # Run the transformer
