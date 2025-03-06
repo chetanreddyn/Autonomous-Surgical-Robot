@@ -8,7 +8,8 @@ This Script Listens to the transform from base to stylus and transforms it to a 
 import rospy
 import numpy as np
 import tf
-from geometry_msgs.msg import PoseStamped
+from geometry_msgs.msg import PoseStamped, TransformStamped
+import tf2_ros
 
 
 class PoseTransformer:
@@ -31,6 +32,11 @@ class PoseTransformer:
                                       [0,-np.sin(self.camera_theta),np.cos(self.camera_theta),0],
                                       [0,0,0,1]])
         
+        self.tip_T_psm = np.array([[1,0,0,0],
+                                   [0,0,1,0],
+                                   [0,-1,0,0],
+                                    [0,0,0,1]])
+        
         # self.camera_T_po = self.camera_T_ecm@self.ecm_T_po
 
         # Create a tf listener
@@ -42,6 +48,28 @@ class PoseTransformer:
 
         # Set the rate at which to check for the transform
         self.rate = rospy.Rate(10.0)  # 10 Hz
+        self.publish_static_transform()
+
+
+    def publish_static_transform(self):
+        broadcaster = tf2_ros.StaticTransformBroadcaster()
+        static_transform_stamped = TransformStamped()
+
+        static_transform_stamped.header.stamp = rospy.Time.now()
+        static_transform_stamped.header.frame_id = "ECM"
+        static_transform_stamped.child_frame_id = "camera"
+
+        static_transform_stamped.transform.translation.x = self.ecm_T_camera[0, 3]
+        static_transform_stamped.transform.translation.y = self.ecm_T_camera[1, 3]
+        static_transform_stamped.transform.translation.z = self.ecm_T_camera[2, 3]
+
+        quat = tf.transformations.quaternion_from_matrix(self.ecm_T_camera)
+        static_transform_stamped.transform.rotation.x = quat[0]
+        static_transform_stamped.transform.rotation.y = quat[1]
+        static_transform_stamped.transform.rotation.z = quat[2]
+        static_transform_stamped.transform.rotation.w = quat[3]
+
+        broadcaster.sendTransform(static_transform_stamped)
 
     def transform_to_matrix(self, trans, rot):
         # Create the homogeneous transformation matrix from translation and rotation
@@ -78,10 +106,10 @@ class PoseTransformer:
                 po_T_stylus = self.transform_to_matrix(trans, rot)
 
                 # Compute the resulting transformation matrix camera_T_stylus
-                camera_T_stylus = self.ecm_T_camera@self.eye_T_po@po_T_stylus
+                ecm_T_psm = self.ecm_T_camera@self.eye_T_po@po_T_stylus@self.tip_T_psm
 
                 # Convert the resulting matrix back to position and orientation
-                transformed_pose = self.matrix_to_pose(camera_T_stylus)
+                transformed_pose = self.matrix_to_pose(ecm_T_psm)
 
                 # Create a new PoseStamped message
                 transformed_msg = PoseStamped()

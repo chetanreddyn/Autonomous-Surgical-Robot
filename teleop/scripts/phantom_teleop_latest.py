@@ -191,7 +191,7 @@ if __name__ == '__main__':
                    "jaw_step_size":args.jaw_step_size,
                    "pose_topic":args.pose_topic,
                    "jaw_open_angle":np.pi/3,
-                   "jaw_close_angle":0}
+                   "jaw_close_angle":np.pi/8}
     
     ral = crtk.ral('mimic_pose')
     mimic_pose = MimicPose(ral, args.arm,config_dict)

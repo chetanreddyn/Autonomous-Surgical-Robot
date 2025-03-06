@@ -18,6 +18,10 @@
         args="-j /home/stanford/catkin_ws/src/dvrk/dvrk_config_stanford/console-SUJ-ECM-PSM1-PSM2.json -p 0.005"
         output="screen"/>
 
+
+<node pkg="tf2_ros" type="static_transform_publisher" name="ecm_to_camera_tf"
+      args="0 0 0 0 0 -0.5236 ECM camera" />
+
   <!-- added fixed tf to make sure dVRK console TF are defined wrt world -->
   <!-- <node name="tf_world_to_cart"
         pkg="tf2_ros"
