@@ -7,6 +7,8 @@
         default="console-MTML-Phantom-Teleop.json"/>
 <arg name="launch_rviz"
             default="true"/>
+<arg name="ros_period"
+            default="0.005"/>
 
 
   <!-- rviz -->
@@ -20,7 +22,7 @@
   <node name="dvrk_patient_cart_node"
         pkg="dvrk_robot"
         type="dvrk_console_json"
-        args="-j /home/stanford/catkin_ws/src/dvrk/dvrk_config_stanford/$(arg json_file) -p 0.005"
+        args="-j /home/stanford/catkin_ws/src/dvrk/dvrk_config_stanford/$(arg json_file) -p $(arg ros_period)"
         output="screen"/>
 
 <node pkg="tf2_ros" type="static_transform_publisher" name="ECM_to_camera_tf"
