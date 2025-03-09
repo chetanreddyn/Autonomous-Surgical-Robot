@@ -47,7 +47,7 @@ class PoseTransformer:
         self.publisher = rospy.Publisher(self.target_topic, PoseStamped, queue_size=10)
 
         # Set the rate at which to check for the transform
-        self.rate = rospy.Rate(10.0)  # 10 Hz
+        self.rate = rospy.Rate(200.0)  # 10 Hz
         self.publish_static_transform()
 
 

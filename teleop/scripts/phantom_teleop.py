@@ -23,6 +23,7 @@ class MimicPose:
         rospy.Subscriber(self.pose_topic , PoseStamped, self.pose_callback)
         rospy.Subscriber('phantom/button', OmniButtonEvent, self.button_callback)
     
+        self.ros_frequency = config_dict["ros_frequency"]
         self.phantom_orientation = None
         self.phantom_position = None
         self.current_jaw_pose = None
@@ -150,6 +151,7 @@ class MimicPose:
         # while not self.initalised_teleop:
         #     self.initialise_phantom_teleop()
         #     rospy.sleep(0.1)
+        rate = rospy.Rate(self.ros_frequency)
         self.transition_to_enabled()
         while not self.stylus_pos_received:
             rospy.loginfo("Waiting for Phantom Omni Pose")
@@ -179,7 +181,7 @@ class MimicPose:
                 if self.was_in_open_jaw:
                     self.arm.jaw.move_jp(np.array([self.jaw_close_angle])) # Closes the Jaw
                     self.was_in_open_jaw = False    
-            rospy.sleep(0.1)
+            rate.sleep()
         # rospy.spin()
 
 if __name__ == '__main__':
@@ -195,14 +197,16 @@ if __name__ == '__main__':
                         help='Scale for Translation')
     parser.add_argument('-j', '--jaw_step_size', type=float, default=0.1,
                     help='Jaw Step Size')
-    parser.add_argument('-p','--pose_topic',type=str,default="/phantom/pose_assistant_perspective",help="The pose to mimic")
+    parser.add_argument('-pt','--pose_topic',type=str,default="/phantom/pose_assistant_perspective",help="The pose to mimic")
+    parser.add_argument('-p','--ros_period',type=float,default=0.005,help="Indicates the time period (must match the dvrk_console_json -p flag")
     args = parser.parse_args(argv)
 
     config_dict = {"scale":args.scale,
                    "jaw_step_size":args.jaw_step_size,
                    "pose_topic":args.pose_topic,
                    "jaw_open_angle":np.pi/3,
-                   "jaw_close_angle":np.pi/16}
+                   "jaw_close_angle":np.pi/10,
+                   "ros_frequency":1/args.ros_period}
     
     ral = crtk.ral('mimic_pose')
     mimic_pose = MimicPose(ral, args.arm,config_dict)

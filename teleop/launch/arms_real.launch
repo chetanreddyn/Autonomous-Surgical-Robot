@@ -4,7 +4,7 @@
   <arg name="generation"
         default="Si"/>
 <arg name="json_file"
-        default="console-PSM2.json"/>
+        default="console-MTML-Phantom-Teleop.json"/>
 <arg name="launch_rviz"
             default="true"/>
 
