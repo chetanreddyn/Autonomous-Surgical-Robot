@@ -28,11 +28,13 @@ class MimicPose:
         self.current_jaw_pose = None
 
         # The grey button must be pressed once to start
-        self.was_in_clutch = True
-        self.clutch = True 
+        self.was_in_mono = False
+        self.mono = False
+
         self.enabled = False
         self.open_jaw = False
         self.was_in_open_jaw = False
+        self.stylus_pos_received = False
         
         self.scale = config_dict["scale"]
         self.jaw_step_size = config_dict["jaw_step_size"]
@@ -40,22 +42,27 @@ class MimicPose:
         self.jaw_close_angle = config_dict["jaw_close_angle"]
 
     def pose_callback(self, msg):
+        self.stylus_pos_received = True
         self.phantom_orientation = msg.pose.orientation # quaternion
         self.phantom_position = msg.pose.position # position
 
     def button_callback(self, msg):
 
-        # As long as the grey button is pressed continuously, self.clutch will be true
+        # As long as the grey button is pressed continuously, self.mono will be true
         if msg.grey_button == 1:
 
-            if self.was_in_clutch==False:
-                rospy.loginfo("Clutch Pressed")
-            self.clutch = True
+            # if self.was_in_clutch==False:
+            #     rospy.loginfo("Clutch Pressed")
+            # self.clutch = True
+            if self.was_in_mono == False:
+                rospy.loginfo("Mono Button Pressed")
+            self.mono = True
         
         # When the grey button is released, a message is passed msg.grey_button=0 
         # self.clutch will be set to false
         elif msg.grey_button == 0:
-            self.clutch = False
+            # self.clutch = False
+            self.mono = False
 
         if msg.white_button == 1:
             self.open_jaw = True
@@ -144,21 +151,25 @@ class MimicPose:
         #     self.initialise_phantom_teleop()
         #     rospy.sleep(0.1)
         self.transition_to_enabled()
-        rospy.loginfo("Hold the Pen in Position, Hold and Release the Grey Button Once to Start")
+        while not self.stylus_pos_received:
+            rospy.loginfo("Waiting for Phantom Omni Pose")
+            rospy.sleep(0.1)
+
+        rospy.loginfo("Received! Hold the Pen in Position, Hold the Grey Button Once to Start")
         while not rospy.is_shutdown():
             
-            # When clutch is not pressed
-            if not self.clutch:
+            # When mono is pressed
+            if self.mono:
 
-                if self.was_in_clutch:
+                if not self.was_in_mono:
                     self.transition_to_enabled()
-                    self.was_in_clutch = False 
+                    self.was_in_mono = True 
 
                 self.move_cartesian()
 
-            # When Clutch is pressed
-            elif self.clutch:
-                self.was_in_clutch = True
+            # When Mono is not pressed
+            elif not self.mono:
+                self.was_in_mono = False
 
             if self.open_jaw:
                 self.arm.jaw.move_jp(np.array([self.jaw_open_angle]))
@@ -180,7 +191,7 @@ if __name__ == '__main__':
     parser.add_argument('-a', '--arm', type=str, default='PSM1',
                         choices=['ECM', 'MTML', 'MTMR', 'PSM1', 'PSM2', 'PSM3'],
                         help='arm name corresponding to ROS topics without namespace. Use __ns:= to specify the namespace')
-    parser.add_argument('-s', '--scale', type=float, default=0.1,
+    parser.add_argument('-s', '--scale', type=float, default=0.5,
                         help='Scale for Translation')
     parser.add_argument('-j', '--jaw_step_size', type=float, default=0.1,
                     help='Jaw Step Size')
@@ -191,7 +202,7 @@ if __name__ == '__main__':
                    "jaw_step_size":args.jaw_step_size,
                    "pose_topic":args.pose_topic,
                    "jaw_open_angle":np.pi/3,
-                   "jaw_close_angle":np.pi/8}
+                   "jaw_close_angle":np.pi/16}
     
     ral = crtk.ral('mimic_pose')
     mimic_pose = MimicPose(ral, args.arm,config_dict)

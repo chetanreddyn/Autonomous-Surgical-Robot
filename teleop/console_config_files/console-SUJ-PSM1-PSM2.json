@@ -1,0 +1,37 @@
+/* -*- Mode: Javascript; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+{
+    "io":
+    {
+        "footpedals": "io/sawRobotIO1394-MTMR-foot-pedals-DQLA.xml"
+        // , "firewire-protocol": "sequential-read-write" // for debugging
+    }
+    ,
+    "arms":
+    [
+        {
+            "name": "SUJ",
+            "type": "SUJ_Si",
+            "arm": "suj-si.json"
+        }
+        ,
+        {
+            "name": "PSM1",
+            "type": "PSM",
+            "serial": "809610",
+            "base-frame": {
+                "component": "SUJ",
+                "interface": "PSM1"
+            }
+        }
+        ,
+        {
+            "name": "PSM2",
+            "type": "PSM",
+            "serial": "299976",
+            "base-frame": {
+                "component": "SUJ",
+                "interface": "PSM2"
+            }
+        }
+    ]
+}

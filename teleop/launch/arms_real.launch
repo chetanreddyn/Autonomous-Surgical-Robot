@@ -3,10 +3,15 @@
 <launch>
   <arg name="generation"
         default="Si"/>
+<arg name="json_file"
+        default="console-PSM2.json"/>
+<arg name="launch_rviz"
+            default="true"/>
 
 
   <!-- rviz -->
   <node name="rviz_patient_cart"
+      if="$(arg launch_rviz)"
         pkg="rviz"
         type="rviz"
         args="-d $(find teleop)/rviz/arms_real_rviz.rviz"/>
@@ -15,12 +20,14 @@
   <node name="dvrk_patient_cart_node"
         pkg="dvrk_robot"
         type="dvrk_console_json"
-        args="-j /home/stanford/catkin_ws/src/dvrk/dvrk_config_stanford/console-SUJ-ECM-PSM1-PSM2.json -p 0.005"
+        args="-j /home/stanford/catkin_ws/src/dvrk/dvrk_config_stanford/$(arg json_file) -p 0.005"
         output="screen"/>
 
-
-<node pkg="tf2_ros" type="static_transform_publisher" name="ecm_to_camera_tf"
+<node pkg="tf2_ros" type="static_transform_publisher" name="ECM_to_camera_tf"
       args="0 0 0 0 0 -0.5236 ECM camera" />
+
+<node pkg="tf2_ros" type="static_transform_publisher" name="PSM1_to_camera_tf"
+      args="0 0 0 0 0 -1.57079 PSM1 tool_tip" />
 
   <!-- added fixed tf to make sure dVRK console TF are defined wrt world -->
   <!-- <node name="tf_world_to_cart"

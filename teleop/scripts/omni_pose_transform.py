@@ -117,7 +117,7 @@ class PoseTransformer:
                 transformed_msg.header.frame_id = 'base'
                 transformed_msg.pose = transformed_pose
 
-                rospy.loginfo("Published to :{}".format(self.target_topic))
+                # rospy.loginfo("Published to :{}".format(self.target_topic))
                 # Publish the transformed PoseStamped message
                 self.publisher.publish(transformed_msg)
 

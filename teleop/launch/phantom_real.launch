@@ -18,5 +18,9 @@
    </node>
 
   <node name="rviz_phantom" pkg="rviz" type="rviz" args="-d $(find teleop)/rviz/phantom.rviz" required="true" />
-  <!-- <node name="map_to_base_node" pkg="tf2_ros" type="static_transform_publisher" args = "0 0 0 1 0 0 0 map base"/> -->
+
+  <node name="omni_pose_transform" pkg="teleop" type="omni_pose_transform.py" output="screen"/>
+  
+  <!-- <node name="omni_teleop" pkg="teleop" type="phantom_teleop.py" output="screen"/> -->
+
 </launch>
