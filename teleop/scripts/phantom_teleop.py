@@ -49,38 +49,21 @@ class MimicPose:
 
     def button_callback(self, msg):
 
-        # As long as the grey button is pressed continuously, self.mono will be true
         if msg.grey_button == 1:
-
-            # if self.was_in_clutch==False:
-            #     rospy.loginfo("Clutch Pressed")
-            # self.clutch = True
-            if self.was_in_mono == False:
-                rospy.loginfo("Mono Button Pressed")
-            self.mono = True
-        
-        # When the grey button is released, a message is passed msg.grey_button=0 
-        # self.clutch will be set to false
-        elif msg.grey_button == 0:
             # self.clutch = False
-            self.mono = False
+            self.mono = not self.mono # Toggle the mono flag every time the grey button is pressed and RELEASED
+            if self.mono:
+                rospy.loginfo("Phantom Teleop Switched On")
+            else:
+                rospy.loginfo("Phantom Teleop Switched Off | Press the Grey Button to Switch on/off")
 
-        if msg.white_button == 1:
-            self.open_jaw = True
-        
-        elif msg.white_button == 0:
-            self.open_jaw = False
-             
-        # TODO: Callback code to handle the jaw using white button
-        # if msg.grey_button == 1:
-        #     self.current_jaw_pose += self.jaw_step_size
-        #     print("Opening Jaw")
-        # elif msg.white_button == 1:
-        #     self.current_jaw_pose -= self.jaw_step_size
-        #     print("Closing Jaw")
-        
-        # self.arm.jaw.move_jp(self.current_jaw_pose)
-
+        # When the grey button is not pressed i.e grey_button=0, The functionality is focused on the white button/jaw
+        else:
+            if msg.white_button == 1:
+                self.open_jaw = True
+            
+            elif msg.white_button == 0:
+                self.open_jaw = False
 
 
     def transition_to_enabled(self):
@@ -94,7 +77,7 @@ class MimicPose:
             print('No Phantom Omni Pose received yet, subscribed to: ',self.pose_topic )
             return
         
-        rospy.loginfo('Clutch Released: Matching Phantom Omni Orientation')
+        rospy.loginfo('Transitioning to ENABLED: Matching Phantom Omni Orientation')
         goal = PyKDL.Frame()
         self.initial_arm_pose = self.arm.setpoint_cp()
         self.current_jaw_pose = self.arm.jaw.setpoint_jp()
@@ -147,6 +130,16 @@ class MimicPose:
 
         #.wait()
 
+    def move_jaw(self):
+        if self.open_jaw:
+            self.arm.jaw.move_jp(np.array([self.jaw_open_angle]))
+            self.was_in_open_jaw = True
+
+        elif not self.open_jaw:
+            if self.was_in_open_jaw:
+                self.arm.jaw.move_jp(np.array([self.jaw_close_angle])) # Closes the Jaw
+                self.was_in_open_jaw = False  
+
     def run(self):
         # while not self.initalised_teleop:
         #     self.initialise_phantom_teleop()
@@ -168,19 +161,13 @@ class MimicPose:
                     self.was_in_mono = True 
 
                 self.move_cartesian()
+                self.move_jaw()
 
             # When Mono is not pressed
             elif not self.mono:
                 self.was_in_mono = False
 
-            if self.open_jaw:
-                self.arm.jaw.move_jp(np.array([self.jaw_open_angle]))
-                self.was_in_open_jaw = True
-
-            elif not self.open_jaw:
-                if self.was_in_open_jaw:
-                    self.arm.jaw.move_jp(np.array([self.jaw_close_angle])) # Closes the Jaw
-                    self.was_in_open_jaw = False    
+  
             rate.sleep()
         # rospy.spin()
 
@@ -205,7 +192,7 @@ if __name__ == '__main__':
                    "jaw_step_size":args.jaw_step_size,
                    "pose_topic":args.pose_topic,
                    "jaw_open_angle":np.pi/3,
-                   "jaw_close_angle":np.pi/10,
+                   "jaw_close_angle":0,
                    "ros_frequency":1/args.ros_period}
     
     ral = crtk.ral('mimic_pose')
