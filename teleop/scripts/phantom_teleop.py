@@ -37,7 +37,7 @@ class MimicPose:
         self.open_jaw = False
         self.was_in_open_jaw = False
         self.jaw_angle = 0
-        self.jaw_step_size = config_dict["jaw_step_size"]
+        self.jaw_step_size = config_dict["jaw_step_size_per_second"]/self.ros_frequency
         self.jaw_control_active = False
 
         self.stylus_pos_received = False
@@ -143,10 +143,14 @@ class MimicPose:
             if self.open_jaw:
                 # Opening the jaw
                 self.jaw_angle += self.jaw_step_size
-                rospy.loginfo("Opening Jaw")
+                self.jaw_angle = min(self.jaw_angle,self.jaw_open_angle)
+
+                rospy.loginfo("Opening Jaw | Jaw Angle: {:.2f}".format(self.jaw_angle*180/np.pi))
             else: # Closing the jaw
                 self.jaw_angle -= self.jaw_step_size
-                rospy.loginfo("Closing Jaw")
+                self.jaw_angle = max(self.jaw_angle,self.jaw_close_angle)
+
+                rospy.loginfo("Closing Jaw | Jaw Angle: {:.2f}".format(self.jaw_angle*180/np.pi))
             self.arm.jaw.move_jp(np.array([self.jaw_angle]))
 
 
@@ -192,16 +196,16 @@ if __name__ == '__main__':
                         help='arm name corresponding to ROS topics without namespace. Use __ns:= to specify the namespace')
     parser.add_argument('-s', '--scale', type=float, default=0.5,
                         help='Scale for Translation')
-    parser.add_argument('-js', '--jaw_step_size', type=float, default=0.1,
+    parser.add_argument('-js', '--jaw_step_size_per_second', type=float, default=10,
                     help='Jaw Step Size in degrees')
-    parser.add_argument('-jo','--jaw_open_angle',type=float,default=60,help="Jaw Angle when Open in degrees")
+    parser.add_argument('-jo','--jaw_open_angle',type=float,default=90,help="Jaw Angle when Open in degrees")
     parser.add_argument('-jc','--jaw_close_angle',type=float,default=0,help="Jaw Angle when Closed in degrees")
     parser.add_argument('-pt','--pose_topic',type=str,default="/phantom/pose_assistant_perspective",help="The pose to mimic")
     parser.add_argument('-p','--ros_period',type=float,default=0.005,help="Indicates the time period (must match the dvrk_console_json -p flag")
     args = parser.parse_args(argv)
 
     config_dict = {"scale":args.scale,
-                   "jaw_step_size":args.jaw_step_size*np.pi/180,
+                   "jaw_step_size_per_second":args.jaw_step_size_per_second*np.pi/180,
                    "pose_topic":args.pose_topic,
                    "jaw_open_angle":args.jaw_open_angle*np.pi/180,
                    "jaw_close_angle":args.jaw_close_angle*np.pi/180,
