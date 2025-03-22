@@ -29,10 +29,10 @@
       args="0 0 0 0 0 -0.5236 ECM camera" />
 
 <node pkg="tf2_ros" type="static_transform_publisher" name="PSM1_to_tool_tip1"
-      args="0 0 0 0 0 -1.57079 PSM1 tool_tip1" />
+      args="0 0 0 0.7071 0 0 0.7071 PSM1 tool_tip1" />
 
 <node pkg="tf2_ros" type="static_transform_publisher" name="PSM2ros_to_tool_tip2"
-      args="0 0 0 0 0 -1.57079 PSM2 tool_tip2" />
+      args="0 0 0 0.7071 0 0 0.7071 PSM2 tool_tip2" />
 
 
   <!-- added fixed tf to make sure dVRK console TF are defined wrt world -->

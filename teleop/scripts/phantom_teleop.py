@@ -194,9 +194,9 @@ if __name__ == '__main__':
     parser.add_argument('-a', '--arm', type=str, default='PSM1',
                         choices=['ECM', 'MTML', 'MTMR', 'PSM1', 'PSM2', 'PSM3'],
                         help='arm name corresponding to ROS topics without namespace. Use __ns:= to specify the namespace')
-    parser.add_argument('-s', '--scale', type=float, default=0.5,
+    parser.add_argument('-s', '--scale', type=float, default=0.3,
                         help='Scale for Translation')
-    parser.add_argument('-js', '--jaw_step_size_per_second', type=float, default=10,
+    parser.add_argument('-js', '--jaw_step_size_per_second', type=float, default=50,
                     help='Jaw Step Size in degrees')
     parser.add_argument('-jo','--jaw_open_angle',type=float,default=90,help="Jaw Angle when Open in degrees")
     parser.add_argument('-jc','--jaw_close_angle',type=float,default=0,help="Jaw Angle when Closed in degrees")
