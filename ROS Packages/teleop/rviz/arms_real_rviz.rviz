@@ -29,7 +29,7 @@ Panels:
   - Class: rviz/Time
     Name: Time
     SyncMode: 0
-    SyncSource: Image
+    SyncSource: ""
 Preferences:
   PromptSaveOnExit: true
 Toolbars:
@@ -69,11 +69,11 @@ Visualization Manager:
         ECM_base:
           Value: false
         HRSV:
-          Value: false
+          Value: true
         MTML:
-          Value: false
+          Value: true
         MTMR:
-          Value: false
+          Value: true
         PSM1:
           Value: false
         PSM1_base:
@@ -84,11 +84,25 @@ Visualization Manager:
           Value: false
         PSM3_base:
           Value: false
+        base:
+          Value: true
         camera:
+          Value: true
+        lower_arm:
+          Value: true
+        stylus:
+          Value: true
+        tip:
           Value: true
         tool_tip1:
           Value: true
         tool_tip2:
+          Value: true
+        torso:
+          Value: true
+        upper_arm:
+          Value: true
+        wrist:
           Value: true
       Marker Alpha: 1
       Marker Scale: 0.30000001192092896
@@ -120,6 +134,14 @@ Visualization Manager:
             {}
           MTMR:
             {}
+        base:
+          torso:
+            upper_arm:
+              lower_arm:
+                wrist:
+                  tip:
+                    stylus:
+                      {}
       Update Interval: 0
       Value: true
     - Class: rviz/Image
@@ -162,7 +184,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 3.344758987426758
+      Distance: 3.2965943813323975
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
