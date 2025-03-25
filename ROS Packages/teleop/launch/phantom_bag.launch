@@ -1,0 +1,10 @@
+<launch>
+    <arg name="bag_file" default="omni_state.bag" />
+    <param name="robot_description" command="cat $(find omni_description)/urdf/omni.urdf" />
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher">
+        <remap from="/joint_states" to="/phantom/joint_states"/>
+    </node>
+    <!-- <node name="rviz_phantom" pkg="rviz" type="rviz" args="-d $(find teleop)/rviz/phantom_bag.rviz" required="true" /> -->
+    <node name="play_bag" pkg="rosbag" type="play" args="$(find teleop)/bag_files/$(arg bag_file)" required="true" output="screen"/>
+
+</launch>

@@ -1,0 +1,26 @@
+<launch>
+  <arg name="reference_frame" default="/map"/>
+  <arg name="units" default="mm"/>
+  <arg name="publish_rate" default="1000"/>
+  <arg name="omni_name" default="phantom"/>
+  
+  <!--In the omni_state.cpp File, for joint 6, make a change from - -state->thetas[6] - M_PI to + state->thetas[6] + M_PI;-->
+  <node name="omni_state" pkg="omni_common" type="omni_state" output="screen"> 
+    <param name="omni_name" value="$(arg omni_name)"/>
+    <param name="publish_rate" value="$(arg publish_rate)"/>
+    <param name="reference_frame" value="$(arg reference_frame)"/>
+    <param name="units" value="$(arg units)"/>
+  </node>
+
+  <param name="robot_description" command="cat $(find omni_description)/urdf/omni.urdf" />
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher">
+    <remap from="/joint_states" to="/phantom/joint_states"/>
+   </node>
+
+  <node name="rviz_phantom" pkg="rviz" type="rviz" args="-d $(find teleop)/rviz/phantom.rviz" required="true" />
+
+  <node name="omni_pose_transform" pkg="teleop" type="omni_pose_transform.py" output="screen"/>
+  
+  <!-- <node name="omni_teleop" pkg="teleop" type="phantom_teleop.py" output="screen"/> -->
+
+</launch>
