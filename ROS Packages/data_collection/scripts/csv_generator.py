@@ -10,6 +10,10 @@ import tf.transformations as tf_trans
 import cv2
 import os
 from cv_bridge import CvBridge
+import csv
+import argparse
+import sys
+import crtk
 
 
 
@@ -18,32 +22,73 @@ class MessageSynchronizer:
         rospy.init_node('csv_generator', anonymous=True)
 
         self.queue_size = 10
-        self.slop = 1
+        self.slop = 0.1
         self.time_prev = time.time()
         self.topics = config_dict["topics"]
         self.time_format = config_dict["time_format"]
-        self.image_save_folder = config_dict["image_save_folder"]
+        self.logging_folder = config_dict["logging_folder"]
+        self.logging_description = config_dict["logging_description"]
+        
+        self.csv_file = None
+        self.image_save_folder = None
+        self.csv_save_folder = None
+
         self.csv_columns = self.generate_csv_columns()
         self.frame_number = 0
         self.bridge = CvBridge()
 
+        self.prev_time = time.time() # Time Stamp is the ROS time stamp uses the same reference as the system time
+        self.time_sec = 0
         print(self.csv_columns)
 
-        # Create subscribers for each topic
-        self.subscribers = []
-        for topic, msg_type in self.topics:
-            self.subscribers.append(Subscriber(topic, msg_type))
+        self.create_subscribers()
 
         # Synchronize the topics
         self.ats = ApproximateTimeSynchronizer(self.subscribers, queue_size=self.queue_size, slop=self.slop)
         self.ats.registerCallback(self.callback)
 
+        self.create_logging_folders()
+        self.initialise_csv()
+
+    def create_subscribers(self):
+        '''
+        Creates subscribers for each topic
+        '''
+        self.subscribers = []
+        for topic, msg_type in self.topics:
+            self.subscribers.append(Subscriber(topic, msg_type))
+
+    def create_logging_folders(self):
+        '''
+        Creates the logging folders if they do not exist
+        '''
+       
+        self.final_logging_folder = os.path.join(self.logging_folder, self.logging_description)
+        self.image_save_folder = os.path.join(self.logging_folder, self.logging_description, "images")
+        self.csv_save_folder = os.path.join(self.logging_folder, self.logging_description, "csv")
+       
+        if os.path.exists(self.final_logging_folder):
+            raise Exception(f"Logging folder {self.final_logging_folder} already exists. Please delete it or choose a different folder.")
+        
+        os.makedirs(self.image_save_folder, exist_ok=True)
+        os.makedirs(self.csv_save_folder, exist_ok=True)
+        self.csv_file = os.path.join(self.csv_save_folder, "data.csv")
+
+
+    def initialise_csv(self):
+        '''
+        Initialises the CSV file
+        '''
+        with open(self.csv_file, 'w', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow(self.csv_columns)
+
     def callback(self, *msgs):
         # Process synchronized messages here
-        rospy.loginfo("Synchronized messages received")
-        # self.duration = time.time() - self.time_prev
-        # self.time_prev = time.time()
-        # rospy.loginfo("Time elapsed: {:.0f}".format(1/self.duration))
+        # rospy.loginfo("Synchronized messages received")
+        self.duration = time.time() - self.time_prev
+        self.time_prev = time.time()
+        rospy.loginfo("Time elapsed: {:.2f}".format(self.time_sec))
         # for msg in msgs:
         #     rospy.loginfo("Message timestamp: %s", msg.header.stamp.nsecs)
         # Add your processing code here
@@ -55,8 +100,8 @@ class MessageSynchronizer:
         Processes the time stamp of the message
         '''
         message_time = datetime.fromtimestamp(time_stamp.to_sec())
-        formatted_time = message_time.strftime(self.time_format)
-        return formatted_time
+        epoch_time_formatted = message_time.strftime(self.time_format)
+        return epoch_time_formatted
     
     def process_messages(self, msgs):
         '''
@@ -65,14 +110,15 @@ class MessageSynchronizer:
         pass
 
         # Safety hold for now
-        if self.frame_number > 50:
-            return 
+        # if self.frame_number > 50:
+        #     return 
         
         time_stamp = msgs[0].header.stamp
-        formatted_time = self.process_timestamp(time_stamp)
+        self.time_sec = time_stamp.to_sec() - self.prev_time
+        epoch_time_formatted = self.process_timestamp(time_stamp)
 
-        print(formatted_time)
-        row = [formatted_time,self.frame_number]
+        print(epoch_time_formatted)
+        row = [epoch_time_formatted,self.time_sec,self.frame_number]
 
         for i,(topic_name,topic_type) in enumerate(self.topics):
             if "cp" in topic_name:
@@ -86,7 +132,8 @@ class MessageSynchronizer:
             elif "image" in topic_name:
                 row.extend(self.process_image_msg(topic_name,msgs[i]))
 
-        # print(row)
+        # print(len(row))
+        self.write_csv_row(row)
         self.frame_number += 1
 
 
@@ -122,10 +169,17 @@ class MessageSynchronizer:
         Processes messages of type Image
         Saves the image and returns the path
         '''
+        if "left" in topic_name:
+            camera_name = "camera_left"
+        elif "right" in topic_name:
+            camera_name = "camera_right"
+
         cv_image = self.bridge.imgmsg_to_cv2(msg, desired_encoding='bgr8')
         timestamp = self.process_timestamp(msg.header.stamp)
-        image_path = os.path.join(self.image_save_folder, f'image_{timestamp}.png')
-        cv2.imwrite(image_path, cv_image)
+        image_path = os.path.join(self.image_save_folder, f'{camera_name}_{timestamp}.png')
+        cv_image_reshaped = cv2.resize(cv_image, None, fx=0.2,fy=0.2)
+        cv2.imwrite(image_path, cv_image_reshaped)
+        # print(cv_image.shape)
         # rospy.loginfo("Saved image to %s", image_path)
         return [image_path]
 
@@ -143,7 +197,7 @@ class MessageSynchronizer:
         'PSM2_orientation_matrix_[3,1]', 'PSM2_orientation_matrix_[3,2]', 'PSM2_orientation_matrix_[3,3]', 
         'camera_right_image_path', 'camera_left_image_path']
         '''
-        columns = ["Time","Frame Number"]
+        columns = ["Epoch Time","Time (Seconds)","Frame Number"]
 
         for arm_name in ["PSM1", "PSM2"]:
             for i in range(1,7):
@@ -159,11 +213,31 @@ class MessageSynchronizer:
 
         return columns
 
+    def write_csv_row(self, row):
+        '''
+        Writes a row to the CSV file
+        '''
+        with open(self.csv_file, 'a', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow(row)
+
     def run(self):
         rospy.spin()
 
 if __name__ == '__main__':
     # List of topics and their message types
+    argv = crtk.ral.parse_argv(sys.argv[1:])  # Skip argv[0], script name
+
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument('-d','--logging_description',type=str,default="Sample",
+                        help='Description of the data collection')
+    
+    parser.add_argument('-n','--logging_folder',type=str,default="/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Initial Samples",
+                        help='Logging Folder')
+    
+    args = parser.parse_args(argv)
+
     topics = [
         ("/PSM1/setpoint_cp", PoseStamped),
         ("/PSM1/setpoint_js", JointState),
@@ -176,13 +250,12 @@ if __name__ == '__main__':
         ("/camera_right/image_raw", Image),
         ("/camera_left/image_raw", Image)
     ]
-
-    
   
     config_dict = {
         "topics": topics,
         "time_format":"%Y-%m-%d %H:%M:%S.%f",
-        "image_save_folder":"/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot/ROS Packages/data_collection/logs/images_tmp"
+        "logging_description":args.logging_description,
+        "logging_folder":args.logging_folder
     }
     synchronizer = MessageSynchronizer(config_dict)
     synchronizer.run()
