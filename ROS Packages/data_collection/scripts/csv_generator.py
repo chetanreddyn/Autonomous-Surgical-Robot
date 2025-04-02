@@ -121,8 +121,10 @@ class MessageSynchronizer:
         row = [epoch_time_formatted,self.time_sec,self.frame_number]
 
         for i,(topic_name,topic_type) in enumerate(self.topics):
+            print(msgs[i].header.stamp.to_sec())
             if "cp" in topic_name:
                 row.extend(self.process_pose_msg(topic_name, msgs[i]))
+                
             elif "js" in topic_name:
                 if "jaw" in topic_name:
                     row.extend(self.process_jaw_msg(topic_name,msgs[i]))

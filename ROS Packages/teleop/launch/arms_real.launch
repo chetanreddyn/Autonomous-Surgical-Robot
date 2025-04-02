@@ -16,7 +16,7 @@
       if="$(arg launch_rviz)"
         pkg="rviz"
         type="rviz"
-        args="-d $(find teleop)/rviz/arms_real_rviz.rviz"/>
+        args="-d '$(find teleop)/rviz/arms_real_rviz.rviz'"/>
 
 
   <node name="dvrk_patient_cart_node"
