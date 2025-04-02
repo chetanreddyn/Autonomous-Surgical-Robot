@@ -11,4 +11,8 @@
         <param name="camera_name" value="camera_left" />
         <param name="frame_id" value="camera" />
     </node>
+
+    <node pkg="image_view" type="image_view" name="image_view_left" args="image:=/camera_left/image_raw" output="screen" />
+    <node pkg="image_view" type="image_view" name="image_view_right" args="image:=/camera_right/image_raw" output="screen" />
+
 </launch>

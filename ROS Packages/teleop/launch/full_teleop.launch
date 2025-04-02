@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<launch>
+  <arg name="generation"
+        default="Si"/>
+<arg name="json_file"
+        default="console-SUJ-ECM-MTMR-PSM1-MTML-PSM2-Teleop.json"/>
+<arg name="launch_rviz"
+            default="true"/>
+<arg name="ros_period"
+            default="0.005"/>
+
+
+  <!-- rviz -->
+  <node name="rviz_patient_cart"
+      if="$(arg launch_rviz)"
+        pkg="rviz"
+        type="rviz"
+        args="-d '$(find teleop)/rviz/arms_real_rviz.rviz'"/>
+
+
+  <node name="dvrk_patient_cart_node"
+        pkg="dvrk_robot"
+        type="dvrk_console_json"
+        args="-j /home/stanford/catkin_ws/src/dvrk/dvrk_config_stanford/$(arg json_file) -p $(arg ros_period)"
+        output="screen"/>
+
+<node pkg="image_view" type="image_view" name="image_view_left" args="image:=/camera_left/image_raw" output="screen" />
+<node pkg="image_view" type="image_view" name="image_view_right" args="image:=/camera_right/image_raw" output="screen" />
+
+
+<node pkg="tf2_ros" type="static_transform_publisher" name="ECM_to_camera_tf"
+      args="0 0 0 0 0 -0.5236 ECM camera" />
+
+<node pkg="tf2_ros" type="static_transform_publisher" name="PSM1_to_tool_tip1"
+      args="0 0 0 0.7071 0 0 0.7071 PSM1 tool_tip1" />
+
+<node pkg="tf2_ros" type="static_transform_publisher" name="PSM2ros_to_tool_tip2"
+      args="0 0 0 0.7071 0 0 0.7071 PSM2 tool_tip2" />
+
+</launch>
