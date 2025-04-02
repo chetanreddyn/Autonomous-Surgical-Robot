@@ -39,7 +39,10 @@ class teleop_application:
         self.joint_step_size = config_dict['joint_step_size'] # Step size for joint movement
         self.control_type = config_dict['control_type']
         self.arm1 = dvrk.psm(ral, self.arm1_name)
-        self.arm2 = dvrk.psm(ral, self.arm2_name)
+
+        if self.num_arms == 2:
+            self.arm2 = dvrk.psm(ral, self.arm2_name)
+            
         self.running = False
         self.dx1 = 0  # X-axis movement for arm1
         self.dy1 = 0  # Y-axis movement for arm1

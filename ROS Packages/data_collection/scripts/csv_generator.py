@@ -14,6 +14,8 @@ import csv
 import argparse
 import sys
 import crtk
+import shutil
+
 
 
 
@@ -23,7 +25,7 @@ class MessageSynchronizer:
 
         self.queue_size = 10
         self.slop = 0.1
-        self.time_prev = time.time()
+        # self.time_prev = time.time()
         self.topics = config_dict["topics"]
         self.time_format = config_dict["time_format"]
         self.logging_folder = config_dict["logging_folder"]
@@ -38,17 +40,19 @@ class MessageSynchronizer:
         self.bridge = CvBridge()
 
         self.prev_time = time.time() # Time Stamp is the ROS time stamp uses the same reference as the system time
+        self.prev_time_milli = 0
         self.time_sec = 0
         print(self.csv_columns)
 
         self.create_subscribers()
 
         # Synchronize the topics
-        self.ats = ApproximateTimeSynchronizer(self.subscribers, queue_size=self.queue_size, slop=self.slop)
-        self.ats.registerCallback(self.callback)
 
         self.create_logging_folders()
         self.initialise_csv()
+
+        self.ats = ApproximateTimeSynchronizer(self.subscribers, queue_size=self.queue_size, slop=self.slop)
+        self.ats.registerCallback(self.callback)
 
     def create_subscribers(self):
         '''
@@ -64,12 +68,21 @@ class MessageSynchronizer:
         '''
        
         self.final_logging_folder = os.path.join(self.logging_folder, self.logging_description)
-        self.image_save_folder = os.path.join(self.logging_folder, self.logging_description, "images")
-        self.csv_save_folder = os.path.join(self.logging_folder, self.logging_description, "csv")
+        self.image_save_folder = os.path.join(self.final_logging_folder, "images")
+        self.csv_save_folder = os.path.join(self.final_logging_folder, "csv")
        
         if os.path.exists(self.final_logging_folder):
-            raise Exception(f"Logging folder {self.final_logging_folder} already exists. Please delete it or choose a different folder.")
-        
+            overwrite = input("Logging file already exists. Do you want to overwrite it? (y/n): ")
+            if overwrite.lower() == 'y':
+                print("Deleting the folder now")
+                shutil.rmtree(self.final_logging_folder)
+                rospy.loginfo(f"Logging folder {self.final_logging_folder} deleted")
+                rospy.sleep(2)
+            else:
+                rospy.loginfo("rerun the script with a different logging description")
+                sys.exit(0)
+
+
         os.makedirs(self.image_save_folder, exist_ok=True)
         os.makedirs(self.csv_save_folder, exist_ok=True)
         self.csv_file = os.path.join(self.csv_save_folder, "data.csv")
@@ -86,9 +99,12 @@ class MessageSynchronizer:
     def callback(self, *msgs):
         # Process synchronized messages here
         # rospy.loginfo("Synchronized messages received")
-        self.duration = time.time() - self.time_prev
-        self.time_prev = time.time()
-        rospy.loginfo("Time elapsed: {:.2f}".format(self.time_sec))
+        # self.duration = time.time() - self.time_prev
+        # self.time_prev = time.time()
+        self.time_milli = self.time_sec*1000
+        duration = self.time_milli - self.prev_time_milli
+        rospy.loginfo("Time elapsed in milliseconds: {:.0f} | Duration: {:.0f}".format(self.time_milli,duration))
+        self.prev_time_milli = self.time_sec*1000
         # for msg in msgs:
         #     rospy.loginfo("Message timestamp: %s", msg.header.stamp.nsecs)
         # Add your processing code here
@@ -117,11 +133,11 @@ class MessageSynchronizer:
         self.time_sec = time_stamp.to_sec() - self.prev_time
         epoch_time_formatted = self.process_timestamp(time_stamp)
 
-        print(epoch_time_formatted)
+        # print(epoch_time_formatted)
         row = [epoch_time_formatted,self.time_sec,self.frame_number]
 
         for i,(topic_name,topic_type) in enumerate(self.topics):
-            print(msgs[i].header.stamp.to_sec())
+            # print(self.process_timestamp(msgs[i].header.stamp))
             if "cp" in topic_name:
                 row.extend(self.process_pose_msg(topic_name, msgs[i]))
                 
@@ -179,7 +195,7 @@ class MessageSynchronizer:
         cv_image = self.bridge.imgmsg_to_cv2(msg, desired_encoding='bgr8')
         timestamp = self.process_timestamp(msg.header.stamp)
         image_path = os.path.join(self.image_save_folder, f'{camera_name}_{timestamp}.png')
-        cv_image_reshaped = cv2.resize(cv_image, None, fx=0.2,fy=0.2)
+        cv_image_reshaped = cv2.resize(cv_image, None, fx=0.4,fy=0.4)
         cv2.imwrite(image_path, cv_image_reshaped)
         # print(cv_image.shape)
         # rospy.loginfo("Saved image to %s", image_path)
@@ -189,7 +205,7 @@ class MessageSynchronizer:
     def generate_csv_columns(self):
         '''
         Generates the columns of the CSV file
-        ['Time', 'Frame Number', 'PSM1_joint_1', 'PSM1_joint_2', 'PSM1_joint_3', 'PSM1_joint_4', 'PSM1_joint_5', 'PSM1_joint_6', 'PSM1_jaw', 
+        ['Epoch Time', 'Time (Seconds)', 'Frame Number', 'PSM1_joint_1', 'PSM1_joint_2', 'PSM1_joint_3', 'PSM1_joint_4', 'PSM1_joint_5', 'PSM1_joint_6', 'PSM1_jaw', 
         'PSM1_orientation_matrix_[1,1]', 'PSM1_orientation_matrix_[1,2]', 'PSM1_orientation_matrix_[1,3]', 
         'PSM1_orientation_matrix_[2,1]', 'PSM1_orientation_matrix_[2,2]', 'PSM1_orientation_matrix_[2,3]', 
         'PSM1_orientation_matrix_[3,1]', 'PSM1_orientation_matrix_[3,2]', 'PSM1_orientation_matrix_[3,3]', 
@@ -232,7 +248,7 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('-d','--logging_description',type=str,default="Sample",
+    parser.add_argument('-d','--logging_description',type=str,required=True,
                         help='Description of the data collection')
     
     parser.add_argument('-n','--logging_folder',type=str,default="/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Initial Samples",

@@ -20,5 +20,5 @@
   <node name="rviz_phantom" pkg="rviz" type="rviz" args="-d '$(find teleop)/rviz/phantom.rviz'" required="true" />
   <!-- <node name="rviz_phantom" pkg="rviz" type="rviz" args="-d '/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot/ROS Packages/teleop/rviz/phantom.rviz'" required="true" /> -->
 
-  <!-- <node name="omni_pose_transform" pkg="teleop" type="omni_pose_transform.py" output="screen"/> -->
+  <node name="omni_pose_transform" pkg="teleop" type="omni_pose_transform.py" output="screen"/>
 </launch>

@@ -155,12 +155,10 @@ class MimicPose:
 
 
     def run(self):
-        # while not self.initalised_teleop:
-        #     self.initialise_phantom_teleop()
-        #     rospy.sleep(0.1)
+
         rate = rospy.Rate(self.ros_frequency)
         self.transition_to_enabled()
-        while not self.stylus_pos_received:
+        while not self.stylus_pos_received and not rospy.is_shutdown():
             rospy.loginfo("Waiting for Phantom Omni Pose")
             rospy.sleep(0.1)
 
