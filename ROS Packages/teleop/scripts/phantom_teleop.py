@@ -40,6 +40,8 @@ class MimicPose:
         self.jaw_step_size = config_dict["jaw_step_size_per_second"]/self.ros_frequency
         self.jaw_control_active = False
 
+        self.jaw_mode_switch_ctr = 0 # When the button is pressed once followed by the usual long press, the jaw mode is switched
+
         self.stylus_pos_received = False
         
         self.scale = config_dict["scale"]
@@ -65,10 +67,17 @@ class MimicPose:
         else:
             if msg.white_button == 1:
                 self.jaw_control_active = True
+                self.jaw_mode_switch_ctr += 1
 
             
             elif msg.white_button == 0:
-                self.open_jaw = not self.open_jaw
+                # rospy.loginfo(self.jaw_mode_switch_ctr)
+
+                
+                if self.jaw_mode_switch_ctr == 2:
+                    self.open_jaw = not self.open_jaw
+                    self.jaw_mode_switch_ctr = 0
+
                 self.jaw_control_active = False
 
                 
@@ -140,17 +149,26 @@ class MimicPose:
     def move_jaw(self):
 
         if self.jaw_control_active:
+            
+                
             if self.open_jaw:
-                # Opening the jaw
-                self.jaw_angle += self.jaw_step_size
-                self.jaw_angle = min(self.jaw_angle,self.jaw_open_angle)
 
-                rospy.loginfo("Opening Jaw | Jaw Angle: {:.2f}".format(self.jaw_angle*180/np.pi))
+                if self.jaw_mode_switch_ctr==1:
+                    rospy.loginfo("Jaw Mode Switched to Open Jaw")
+                else:
+                    # Opening the jaw
+                    self.jaw_angle += self.jaw_step_size
+                    self.jaw_angle = min(self.jaw_angle,self.jaw_open_angle)
+
+                # rospy.loginfo("Opening Jaw | Jaw Angle: {:.2f}".format(self.jaw_angle*180/np.pi))
             else: # Closing the jaw
-                self.jaw_angle -= self.jaw_step_size
-                self.jaw_angle = max(self.jaw_angle,self.jaw_close_angle)
+                if self.jaw_mode_switch_ctr==1:
+                    rospy.loginfo("Jaw Mode Switched to Close Jaw")
+                else:
+                    self.jaw_angle -= self.jaw_step_size
+                    self.jaw_angle = max(self.jaw_angle,self.jaw_close_angle)
 
-                rospy.loginfo("Closing Jaw | Jaw Angle: {:.2f}".format(self.jaw_angle*180/np.pi))
+                # rospy.loginfo("Closing Jaw | Jaw Angle: {:.2f}".format(self.jaw_angle*180/np.pi))
             self.arm.jaw.move_jp(np.array([self.jaw_angle]))
 
 

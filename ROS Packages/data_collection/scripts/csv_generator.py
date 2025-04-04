@@ -30,6 +30,8 @@ class MessageSynchronizer:
         self.time_format = config_dict["time_format"]
         self.logging_folder = config_dict["logging_folder"]
         self.logging_description = config_dict["logging_description"]
+
+        self.arm_names = config_dict["arm_names"]
         
         self.csv_file = None
         self.image_save_folder = None
@@ -217,7 +219,7 @@ class MessageSynchronizer:
         '''
         columns = ["Epoch Time","Time (Seconds)","Frame Number"]
 
-        for arm_name in ["PSM1", "PSM2"]:
+        for arm_name in self.arm_names:
             for i in range(1,7):
                 columns.append(f"{arm_name}_joint_{i}")
             columns.append(f"{arm_name}_jaw")
@@ -261,9 +263,9 @@ if __name__ == '__main__':
         ("/PSM1/setpoint_js", JointState),
         ("/PSM1/jaw/setpoint_js", JointState),
     
-        ("/PSM2/setpoint_cp", PoseStamped),
-        ("/PSM2/setpoint_js", JointState),
-        ("/PSM2/jaw/setpoint_js", JointState),
+        ("/PSM3/setpoint_cp", PoseStamped),
+        ("/PSM3/setpoint_js", JointState),
+        ("/PSM3/jaw/setpoint_js", JointState),
 
         ("/camera_right/image_raw", Image),
         ("/camera_left/image_raw", Image)
@@ -273,7 +275,8 @@ if __name__ == '__main__':
         "topics": topics,
         "time_format":"%Y-%m-%d %H:%M:%S.%f",
         "logging_description":args.logging_description,
-        "logging_folder":args.logging_folder
+        "logging_folder":args.logging_folder,
+        "arm_names": ["PSM1", "PSM3"]
     }
     synchronizer = MessageSynchronizer(config_dict)
     synchronizer.run()

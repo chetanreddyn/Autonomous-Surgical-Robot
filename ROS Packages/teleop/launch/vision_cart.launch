@@ -12,7 +12,10 @@
         <param name="frame_id" value="camera" />
     </node>
 
-    <node pkg="image_view" type="image_view" name="image_view_left" args="image:=/camera_left/image_raw" output="screen" />
-    <node pkg="image_view" type="image_view" name="image_view_right" args="image:=/camera_right/image_raw" output="screen" />
+    <arg name="console" default="false" />
+
+    <!-- Conditionally launch image_view nodes based on the console argument -->
+    <node pkg="image_view" type="image_view" name="image_view_left" args="image:=/camera_left/image_raw" output="screen" if="$(arg console)" />
+    <node pkg="image_view" type="image_view" name="image_view_right" args="image:=/camera_right/image_raw" output="screen" if="$(arg console)" />
 
 </launch>

@@ -280,7 +280,7 @@ if __name__ == '__main__':
     parser.add_argument('-a2', '--arm2', type=str, default='PSM2',
                         choices=['ECM', 'MTML', 'MTMR', 'PSM1', 'PSM2', 'PSM3'],
                         help='arm2 name corresponding to ROS topics without namespace. Use __ns:= to specify the namespace')
-    parser.add_argument('-n', '--num_arms', type=float, default=2)
+    parser.add_argument('-n', '--num_arms', type=float, default=1)
     parser.add_argument('-i', '--interval', type=float, default=0.005,
                         help='expected interval in seconds between messages sent by the device')
     parser.add_argument('-s', '--step_size', type=float, default=0.0001,

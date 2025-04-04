@@ -3,8 +3,13 @@
 <launch>
   <arg name="generation"
         default="Si"/>
+<!-- <arg name="json_file"
+        default="console-MTML-Phantom-Teleop.json"/> -->
+
+<!-- <arg name="json_file"
+        default="console-SUJ-ECM-MTMR-PSM1-MTML-PSM2-PSM3-Teleop.json"/> -->
 <arg name="json_file"
-        default="console-MTML-Phantom-Teleop.json"/>
+        default="console-MTML-Phantom-Teleop-PSM2-PSM3.json"/>
 <arg name="launch_rviz"
             default="true"/>
 <arg name="ros_period"

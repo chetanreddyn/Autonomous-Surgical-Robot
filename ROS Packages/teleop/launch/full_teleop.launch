@@ -25,8 +25,7 @@
         args="-j /home/stanford/catkin_ws/src/dvrk/dvrk_config_stanford/$(arg json_file) -p $(arg ros_period)"
         output="screen"/>
 
-<node pkg="image_view" type="image_view" name="image_view_left" args="image:=/camera_left/image_raw" output="screen" />
-<node pkg="image_view" type="image_view" name="image_view_right" args="image:=/camera_right/image_raw" output="screen" />
+
 
 
 <node pkg="tf2_ros" type="static_transform_publisher" name="ECM_to_camera_tf"
