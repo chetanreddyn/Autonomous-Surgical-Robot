@@ -67,9 +67,21 @@ Visualization Manager:
           Value: false
         ECM_base:
           Value: false
+        HRSV:
+          Value: true
+        MTML:
+          Value: true
+        MTMR:
+          Value: true
         PSM1:
           Value: false
+        PSM1_base:
+          Value: false
         PSM2:
+          Value: false
+        PSM2_base:
+          Value: false
+        PSM3_base:
           Value: false
         base:
           Value: true
@@ -78,7 +90,7 @@ Visualization Manager:
         lower_arm:
           Value: false
         stylus:
-          Value: false
+          Value: true
         tip:
           Value: false
         tool_tip1:
@@ -98,17 +110,28 @@ Visualization Manager:
       Show Axes: true
       Show Names: true
       Tree:
-        ECM:
-          camera:
+        HRSV:
+          MTML:
             {}
-        PSM1:
-          tool_tip1:
-            {}
-        PSM2:
-          tool_tip2:
+          MTMR:
             {}
         base:
           Cart:
+            ECM:
+              PSM1:
+                tool_tip1:
+                  {}
+              PSM1_base:
+                {}
+              PSM2:
+                tool_tip2:
+                  {}
+              PSM2_base:
+                {}
+              PSM3_base:
+                {}
+              camera:
+                {}
             ECM_base:
               {}
           torso:

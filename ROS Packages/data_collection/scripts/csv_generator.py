@@ -15,6 +15,7 @@ import argparse
 import sys
 import crtk
 import shutil
+import json
 
 
 class MessageSynchronizer:
@@ -28,6 +29,7 @@ class MessageSynchronizer:
         self.time_format = config_dict["time_format"]
         self.logging_folder = config_dict["logging_folder"]
         self.logging_description = config_dict["logging_description"]
+        self.duration = config_dict["duration"]
 
         self.arm_names = config_dict["arm_names"]
         
@@ -42,7 +44,6 @@ class MessageSynchronizer:
         self.prev_time = time.time() # Time Stamp is the ROS time stamp uses the same reference as the system time
         self.prev_time_milli = 0
         self.time_sec = 0
-        print(self.csv_columns)
 
         self.create_subscribers()
 
@@ -69,7 +70,7 @@ class MessageSynchronizer:
        
         self.final_logging_folder = os.path.join(self.logging_folder, self.logging_description)
         self.image_save_folder = os.path.join(self.final_logging_folder, "images")
-        self.csv_save_folder = os.path.join(self.final_logging_folder, "csv")
+        # self.csv_save_folder = os.path.join(self.final_logging_folder, "csv")
        
         if os.path.exists(self.final_logging_folder):
             overwrite = input("Logging file already exists. Do you want to overwrite it? (y/n): ")
@@ -84,8 +85,8 @@ class MessageSynchronizer:
 
 
         os.makedirs(self.image_save_folder, exist_ok=True)
-        os.makedirs(self.csv_save_folder, exist_ok=True)
-        self.csv_file = os.path.join(self.csv_save_folder, "data.csv")
+        self.csv_file = os.path.join(self.final_logging_folder, "data.csv")
+        self.meta_file = os.path.join(self.final_logging_folder, "experiment_config.json")
 
 
     def initialise_csv(self):
@@ -105,7 +106,12 @@ class MessageSynchronizer:
         duration = self.time_milli - self.prev_time_milli
         rospy.loginfo("Time elapsed in milliseconds: {:.0f} | Duration: {:.0f}".format(self.time_milli,duration))
         self.prev_time_milli = self.time_sec*1000
-        # for msg in msgs:
+
+        if self.time_sec>self.duration:
+            rospy.loginfo("Experiment Duration Completed. Stopping the logging.")
+            rospy.signal_shutdown("Duration exceeded")
+            return
+                    # for msg in msgs:
         #     rospy.loginfo("Message timestamp: %s", msg.header.stamp.nsecs)
         # Add your processing code here
         
@@ -125,10 +131,6 @@ class MessageSynchronizer:
         '''
         pass
 
-        # Safety hold for now
-        # if self.frame_number > 50:
-        #     return 
-        
         time_stamp = msgs[0].header.stamp
         self.time_sec = time_stamp.to_sec() - self.prev_time
         epoch_time_formatted = self.process_timestamp(time_stamp)
@@ -239,8 +241,37 @@ class MessageSynchronizer:
             writer = csv.writer(file)
             writer.writerow(row)
 
+    def save_dict(self, data_dict):
+        with open(self.meta_file, "w") as file:
+            json.dump(data_dict, file, indent=4)
+
     def run(self):
         rospy.spin()
+
+# class MetaFileGenerator:
+#     def __init__(self,csv_generator_config_dict,meta_file_generator_config_dict):
+#         self.meta_file_generator_config_dict = meta_file_generator_config_dict
+#         self.csv_generator_config_dict = csv_generator_config_dict
+
+#     def initialise_meta_file_dict(self):
+#         meta_file_dict = {}
+#         meta_file_dict["logging_description"] = self.csv_generator_config_dict["logging_description"]
+#         meta_file_dict["logging_folder"] = self.csv_generator_config_dict["logging_folder"]
+#         meta_file_dict["arm_names"] = self.csv_generator_config_dict["arm_names"]
+#         meta_file_dict["teleop1_connection"] = self.meta_file_generator_config_dict["teleop1_connection"]
+#         meta_file_dict["teleop2_connection"] = self.meta_file_generator_config_dict["teleop2_connection"]
+#         meta_file_dict["teleop3_connection"] = self.meta_file_generator_config_dict["teleop3_connection"]
+#         meta_file_dict["surgeon_name"] =  self.meta_file_generator_config_dict["surgeon_name"]
+#         meta_file_dict["assistant_name"] = self.meta_file_generator_config_dict["assistant_name"]
+#         meta_file_dict["tools_used"] = self.meta_file_generator_config_dict["tools_used"]
+#         meta_file_dict["mtm_scale"] = self.meta_file_generator_config_dict["mtm_scale"]
+#         meta_file_dict["phantom_omni_scale"] = self.meta_file_generator_config_dict["phantom_omni_scale"]
+#         meta_file_dict["initial_pose_json_path"] = self.meta_file_generator_config_dict["initial_pose_json_path"]
+#         meta_file_dict["Brightness"] = self.meta_file_generator_config_dict["Brightness"]
+
+#     def get_tool_types(self):
+#         pass
+
 
 if __name__ == '__main__':
     # List of topics and their message types
@@ -261,20 +292,41 @@ if __name__ == '__main__':
         ("/PSM1/setpoint_js", JointState),
         ("/PSM1/jaw/setpoint_js", JointState),
     
-        ("/PSM3/setpoint_cp", PoseStamped),
-        ("/PSM3/setpoint_js", JointState),
-        ("/PSM3/jaw/setpoint_js", JointState),
+        ("/PSM2/setpoint_cp", PoseStamped),
+        ("/PSM2/setpoint_js", JointState),
+        ("/PSM2/jaw/setpoint_js", JointState),
 
         ("/camera_right/image_raw", Image),
         ("/camera_left/image_raw", Image)
     ]
   
-    config_dict = {
+    csv_generator_config_dict = {
         "topics": topics,
         "time_format":"%Y-%m-%d %H:%M:%S.%f",
         "logging_description":args.logging_description,
         "logging_folder":args.logging_folder,
-        "arm_names": ["PSM1", "PSM3"]
+        "arm_names": ["PSM1", "PSM2"],
+        "duration":20
     }
-    synchronizer = MessageSynchronizer(config_dict)
+    meta_file_dict = {}
+    meta_file_dict["logging_description"] = csv_generator_config_dict["logging_description"]
+    meta_file_dict["logging_folder"] = csv_generator_config_dict["logging_folder"]
+    meta_file_dict["arm_names"] = csv_generator_config_dict["arm_names"]
+
+    meta_file_dict["teleop1_connection"] = "Phantom-PSM1"
+    meta_file_dict["teleop2_connection"] = "MTML-PSM2"
+    meta_file_dict["teleop3_connection"] = None
+    meta_file_dict["surgeon_name"] = "Alaa"
+    meta_file_dict["assistant_name"] = "Chetan"
+    meta_file_dict["tools_used"] = ['FENESTRATED_BIPOLAR_FORCEPS:420205[..]','FENESTRATED_BIPOLAR_FORCEPS:420205[..]']
+    meta_file_dict["mtm_scale"] = 0.4
+    meta_file_dict["phantom_omni_scale"] = 0.4  
+    meta_file_dict["initial_pose_json_path"] = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot/ROS Packages/data_collection/utils_config/initial_pose.json"
+    meta_file_dict["Brightness"] = 70
+    meta_file_dict["duration"] = csv_generator_config_dict["duration"]
+
+    
+
+    synchronizer = MessageSynchronizer(csv_generator_config_dict)
+    synchronizer.save_dict(meta_file_dict)
     synchronizer.run()
