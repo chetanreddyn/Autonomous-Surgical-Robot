@@ -6,10 +6,10 @@
 <!-- <arg name="json_file"
         default="console-MTML-Phantom-Teleop.json"/> -->
 
-<!-- <arg name="json_file"
-        default="console-SUJ-ECM-MTMR-PSM1-MTML-PSM2-PSM3-Teleop.json"/> -->
 <arg name="json_file"
-        default="console-MTML-Phantom-Teleop-PSM2-PSM3.json"/>
+        default="console-SUJ-ECM-MTMR-PSM1-MTML-PSM2-PSM3-Teleop.json"/>
+<!-- <arg name="json_file"
+        default="console-MTML-Phantom-Teleop-PSM2-PSM3.json"/> -->
 <arg name="launch_rviz"
             default="true"/>
 <arg name="ros_period"
@@ -21,7 +21,7 @@
       if="$(arg launch_rviz)"
         pkg="rviz"
         type="rviz"
-        args="-d '$(find teleop)/rviz/arms_real_rviz.rviz'"/>
+        args="-d '$(find teleop)/rviz/arms_and_phantom.rviz'"/>
 
 
   <node name="dvrk_patient_cart_node"
@@ -39,6 +39,8 @@
 <node pkg="tf2_ros" type="static_transform_publisher" name="PSM2ros_to_tool_tip2"
       args="0 0 0 0.7071 0 0 0.7071 PSM2 tool_tip2" />
 
+<node pkg="tf2_ros" type="static_transform_publisher" name="cart_to_phantom_omni"
+      args="0.1 0 0 0 0 0 base Cart" />
 
   <!-- added fixed tf to make sure dVRK console TF are defined wrt world -->
   <!-- <node name="tf_world_to_cart"
