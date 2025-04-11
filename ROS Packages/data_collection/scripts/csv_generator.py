@@ -17,8 +17,6 @@ import crtk
 import shutil
 
 
-
-
 class MessageSynchronizer:
     def __init__(self, config_dict):
         rospy.init_node('csv_generator', anonymous=True)
