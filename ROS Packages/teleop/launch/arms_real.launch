@@ -13,7 +13,7 @@
 <arg name="launch_rviz"
             default="true"/>
 <arg name="ros_period"
-            default="0.005"/>
+            default="0.01"/>
 
 
   <!-- rviz -->
@@ -36,7 +36,7 @@
 <node pkg="tf2_ros" type="static_transform_publisher" name="PSM1_to_tool_tip1"
       args="0 0 0 0.7071 0 0 0.7071 PSM1 tool_tip1" />
 
-<node pkg="tf2_ros" type="static_transform_publisher" name="PSM2ros_to_tool_tip2"
+<node pkg="tf2_ros" type="static_transform_publisher" name="PSM2_to_tool_tip2"
       args="0 0 0 0.7071 0 0 0.7071 PSM2 tool_tip2" />
 
 <node pkg="tf2_ros" type="static_transform_publisher" name="cart_to_phantom_omni"

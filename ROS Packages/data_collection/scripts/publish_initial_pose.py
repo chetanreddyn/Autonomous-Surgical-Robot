@@ -1,5 +1,10 @@
 #!/usr/bin/env python
 
+'''
+publish_initial_pose.py
+Reads the JSON file with the saved locations of the arms and publishes the static transforms
+so that the reference frames can be visualised in rviz
+'''
 import rospy
 import tf2_ros
 import json
@@ -69,7 +74,7 @@ if __name__ == "__main__":
 
     # Path to the JSON file
     config_dict = {
-        'json_file': "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot/ROS Packages/data_collection/utils_config/initial_pose.json",
+        'json_file': "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot/ROS Packages/data_collection/utils_config/initial_pose_11_apr.json",
         'parent_frame': 'Cart'  # Parent frame for all transforms
     }
 

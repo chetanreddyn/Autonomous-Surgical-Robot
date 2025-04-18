@@ -197,7 +197,7 @@ class MessageSynchronizer:
         cv_image = self.bridge.imgmsg_to_cv2(msg, desired_encoding='bgr8')
         timestamp = self.process_timestamp(msg.header.stamp)
         image_path = os.path.join(self.image_save_folder, f'{camera_name}_{timestamp}.png')
-        cv_image_reshaped = cv2.resize(cv_image, None, fx=0.4,fy=0.4)
+        cv_image_reshaped = cv2.resize(cv_image, None, fx=0.3,fy=0.3)
         cv2.imwrite(image_path, cv_image_reshaped)
         # print(cv_image.shape)
         # rospy.loginfo("Saved image to %s", image_path)
@@ -282,7 +282,7 @@ if __name__ == '__main__':
     parser.add_argument('-d','--logging_description',type=str,required=True,
                         help='Description of the data collection')
     
-    parser.add_argument('-n','--logging_folder',type=str,default="/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Initial Samples",
+    parser.add_argument('-n','--logging_folder',type=str,default="/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Object-Transfer/",
                         help='Logging Folder')
     
     args = parser.parse_args(argv)
@@ -306,27 +306,28 @@ if __name__ == '__main__':
         "logging_description":args.logging_description,
         "logging_folder":args.logging_folder,
         "arm_names": ["PSM1", "PSM2"],
-        "duration":20
+        "duration":15
     }
     meta_file_dict = {}
     meta_file_dict["logging_description"] = csv_generator_config_dict["logging_description"]
     meta_file_dict["logging_folder"] = csv_generator_config_dict["logging_folder"]
     meta_file_dict["arm_names"] = csv_generator_config_dict["arm_names"]
 
-    meta_file_dict["teleop1_connection"] = "Phantom-PSM1"
-    meta_file_dict["teleop2_connection"] = "MTML-PSM2"
+    meta_file_dict["teleop1_connection"] = "MTML-PSM2"
+    meta_file_dict["teleop2_connection"] = "MTMR-PSM1"
     meta_file_dict["teleop3_connection"] = None
     meta_file_dict["surgeon_name"] = "Alaa"
-    meta_file_dict["assistant_name"] = "Chetan"
+    meta_file_dict["assistant_name"] = None
+
     meta_file_dict["tools_used"] = ['FENESTRATED_BIPOLAR_FORCEPS:420205[..]','FENESTRATED_BIPOLAR_FORCEPS:420205[..]']
     meta_file_dict["mtm_scale"] = 0.4
-    meta_file_dict["phantom_omni_scale"] = 0.4  
+    meta_file_dict["phantom_omni_scale"] = None 
     meta_file_dict["initial_pose_json_path"] = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot/ROS Packages/data_collection/utils_config/initial_pose.json"
     meta_file_dict["Brightness"] = 70
     meta_file_dict["duration"] = csv_generator_config_dict["duration"]
 
     
-
     synchronizer = MessageSynchronizer(csv_generator_config_dict)
     synchronizer.save_dict(meta_file_dict)
+    synchronizer.prev_time = time.time()
     synchronizer.run()

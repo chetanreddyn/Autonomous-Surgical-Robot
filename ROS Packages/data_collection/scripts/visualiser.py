@@ -56,17 +56,17 @@ class Visualizer:
         
 
 
-csv_file = "/Users/chetan/Desktop/CHARM_IPRL_Project/Autonomous-Surgical-Robot-Data/Initial_Experiments/PSM1_PSM3/csv/data.csv"
+csv_file = "/Users/chetan/Desktop/CHARM_IPRL_Project/Autonomous-Surgical-Robot-Data/Initial_Experiments/Sample2/data.csv"
 df = pd.read_csv(csv_file)
 
 config_dict = {
     "stanford_computer_path": "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Initial Samples/",
-    "local_computer_path": "/Users/chetan/Desktop/CHARM_IPRL_Project/Autonomous-Surgical-Robot-Data/Initial_Experiments/",
+    "local_computer_path": "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Initial Samples/",
     'arm1_joints':['PSM1_joint_1',
        'PSM1_joint_2', 'PSM1_joint_3', 'PSM1_joint_4', 'PSM1_joint_5',
        'PSM1_joint_6', 'PSM1_jaw'],
-    'arm2_joints':['PSM3_joint_1', 'PSM3_joint_2', 'PSM3_joint_3', 'PSM3_joint_4',
-       'PSM3_joint_5', 'PSM3_joint_6', 'PSM3_jaw']
+    'arm2_joints':['PSM2_joint_1', 'PSM2_joint_2', 'PSM2_joint_3', 'PSM2_joint_4',
+       'PSM2_joint_5', 'PSM2_joint_6', 'PSM2_jaw']
 
 }
 

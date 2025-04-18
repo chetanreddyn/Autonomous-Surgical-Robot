@@ -49,7 +49,7 @@ class TransformSaver:
                     "w": transform.transform.rotation.w,
                 },
             }
-        except:
+        except e:
             rospy.logerr(f"Transform lookup failed for {parent} to {child}: {e}")
             return None
 
@@ -75,11 +75,11 @@ if __name__ == "__main__":
     rospy.init_node("save_initial_pose", anonymous=True)
 
     # Define parent and child frames
-    parents = ["Cart", "Cart", "Cart", "Cart","Cart","Cart"]
+    parents = ["Cart", "Cart", "Cart", "Cart", "Cart", "Cart"]
     children = ["PSM1", "PSM1_base", "PSM2", "PSM2_base","ECM","ECM_base"]
 
     # Output file path
-    output_file = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot/ROS Packages/data_collection/utils_config/initial_pose.json"
+    output_file = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot/ROS Packages/data_collection/utils_config/initial_pose_new.json"
 
     config_dict = {
         "parents": parents,
