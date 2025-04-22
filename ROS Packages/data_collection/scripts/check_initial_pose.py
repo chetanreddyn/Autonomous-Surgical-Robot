@@ -79,7 +79,7 @@ class TransformChecker:
 
                 # Calculate the error metric
                 translation_error, rotation_error = self.calculate_error(child_transform, child_ref_transform)
-                print(f"{child_frame:<5}: ({translation_error:.3f},{rotation_error:.3f})",end=" | ")
+                print(f"{child_frame:<5}: ({translation_error:.3f},{rotation_error:.3f})", end=" | ")
             print()
             self.rate.sleep()
 
@@ -90,9 +90,11 @@ if __name__ == "__main__":
 
     # Example configuration dictionary
     config_dict = {
-        "parent_frames": ["Cart", "Cart", "Cart"],
-        "child_frames": ["PSM1_base", "PSM2_base", "ECM_base"],
-        "ref_child_frames": ["PSM1_base_ref", "PSM2_base_ref", "ECM_base_ref"],
+        "parent_frames": ["Cart", "Cart", "Cart", "ECM", "ECM", "ECM"],
+        "child_frames": ["PSM1_base", "PSM2_base", "ECM_base",
+                         "PSM1", "PSM2", "ECM"],
+        "ref_child_frames": ["PSM1_base_ref", "PSM2_base_ref", "ECM_base_ref",
+                             "PSM1_ref", "PSM2_ref", "ECM_ref"],
         "rospy_freq": 100
     }
 
