@@ -179,7 +179,7 @@ if __name__ == "__main__":
                    "child_frames": ["ECM_ref", "PSM1_ref", "PSM2_ref"],
                    "arm_names": ["ECM", "PSM1", "PSM2"],
                    "transform_lookup_wait_time": 1.0,
-                   "sleep_time_between_moves": 2.0,
+                   "sleep_time_between_moves": 1.0,
                    "ros_freq": 10.0
     }
     ral = crtk.ral('experiment_initializer')

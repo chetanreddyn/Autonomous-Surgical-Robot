@@ -9,7 +9,7 @@ import rospy
 import tf2_ros
 import json
 from geometry_msgs.msg import TransformStamped
-
+from sensor_msgs.msg import JointState
 
 class TransformPublisher:
     def __init__(self, config_dict):
@@ -20,12 +20,14 @@ class TransformPublisher:
         """
         self.json_file = config_dict['json_file']
         self.parent_frame = config_dict["parent_frame"]  # Parent frame for all transforms
+        self.ros_freq = config_dict["ros_freq"]  # Frequency for publishing transforms and jaw angles
 
-        self.transforms = self.load_transforms()
-        print(self.transforms)
+        self.data = self.load_data()
         self.tf_broadcaster = tf2_ros.StaticTransformBroadcaster()
+        self.jaw_angles_ref_publisher = rospy.Publisher("jaw_angles_ref", JointState, queue_size=10)
 
-    def load_transforms(self):
+
+    def load_data(self):
         """
         Load transforms from the JSON file.
 
@@ -43,7 +45,7 @@ class TransformPublisher:
         Publish the static transforms as TF frames.
         """
         static_transforms = []
-        for key, transform_data in self.transforms.items():
+        for key, transform_data in self.data["transforms"].items():
             parent_frame, child_frame = key.split("_to_")
             child_frame += "_ref"  # Append "_ref" to the child frame
 
@@ -69,19 +71,42 @@ class TransformPublisher:
         self.tf_broadcaster.sendTransform(static_transforms)
         rospy.loginfo("Static transforms published.")
 
+    def publish_jaw_angles(self):
+        """
+        Publish the jaw angles to the "jaw_angles_ref" topic.
+        """
+        jaw_angles_msg = JointState()
+        jaw_angles_msg.header.stamp = rospy.Time.now()
+        jaw_angles_msg.name = list(self.data["jaw_angles"].keys())
+        jaw_angles_msg.position = list(self.data["jaw_angles"].values())
+
+        self.jaw_angles_ref_publisher.publish(jaw_angles_msg)
+        rospy.loginfo("Jaw angles published to 'jaw_angles_ref'.")
+
+    def run(self):
+        """
+        Continuously publish transforms and jaw angles.
+        """
+        rate = rospy.Rate(self.ros_freq)  # Publish at 1 Hz
+        self.publish_static_transforms()
+
+        while not rospy.is_shutdown():
+            self.publish_jaw_angles()
+            rate.sleep()
 
 if __name__ == "__main__":
     rospy.init_node("static_transform_publisher", anonymous=True)
 
     # Path to the JSON file
     config_dict = {
-        'json_file': "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot/ROS Packages/data_collection/utils_config/initial_pose_11_apr.json",
-        'parent_frame': 'Cart'  # Parent frame for all transforms
+        'json_file': "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot/ROS Packages/data_collection/utils_config/initial_pose_initial.json",
+        'parent_frame': 'Cart',  # Parent frame for all transforms
+        'ros_freq': 10  # Frequency for publishing transforms and jaw angles
     }
 
     # Create StaticTransformPublisher object and publish static transforms
     transform_publisher = TransformPublisher(config_dict)
-    transform_publisher.publish_static_transforms()
-
-    # Keep the node alive
-    rospy.spin()
+    # transform_publisher.publish_static_transforms()
+    transform_publisher.run()
+    # # Keep the node alive
+    # rospy.spin()
