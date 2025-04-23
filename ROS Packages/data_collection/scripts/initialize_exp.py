@@ -5,6 +5,9 @@ import tf2_ros
 import PyKDL
 import dvrk
 import crtk
+from sensor_msgs.msg import JointState
+import numpy as np
+
 
 
 class ExperimentInitializer:
@@ -15,6 +18,8 @@ class ExperimentInitializer:
         :param config_dict: Dictionary containing configuration parameters.
         """
 
+        self.ros_freq = config_dict['ros_freq']
+
         # Initialize dVRK arms
         self.ecm_name = config_dict['arm_names'][0]
         self.arm1_name = config_dict['arm_names'][1]
@@ -23,6 +28,9 @@ class ExperimentInitializer:
         self.parent_frames = config_dict['parent_frames']
         self.child_frames = config_dict['child_frames']
         self.arm_names = config_dict['arm_names']
+        self.jaw_names = {arm_name:arm_name+"_jaw" for arm_name in self.arm_names}
+
+        self.sleep_time_between_moves = config_dict['sleep_time_between_moves']
 
         self.transform_lookup_wait_time = config_dict['transform_lookup_wait_time']
         self.arm1 = dvrk.psm(ral, self.arm1_name)
@@ -38,14 +46,34 @@ class ExperimentInitializer:
         self.tf_listener = tf2_ros.TransformListener(self.tf_buffer)
         rospy.loginfo("Loading transforms...")
         self.load_transforms()
+
         rospy.loginfo("move_cp goal positions for {} loaded successfully.".format(self.arm_names))
+  
         # print(self.move_cp_goals)
 
+        # Subscribe to jaw_angles_ref topic
+        self.jaw_angles = {}
+        self.loaded_jaw_angles = False
+        rospy.Subscriber("jaw_angles_ref", JointState, self.jaw_angles_callback)
 
-    def load_transforms(self):
+    def jaw_angles_callback(self, msg):
+        """
+        Callback to handle jaw angles from the jaw_angles_ref topic.
+
+        :param msg: JointState message containing jaw angles.
+        """
+        if self.loaded_jaw_angles:
+            return
         
-        self.move_cp_goals = {}
+        for jaw_name, position in zip(msg.name, msg.position):
+            self.jaw_angles[jaw_name] = position
+        rospy.loginfo(f"Received jaw angles: {self.jaw_angles}")
+        self.loaded_jaw_angles = True
+        rospy.loginfo("Jaw angles loaded successfully.")
 
+    def load_transforms(self):        
+
+        self.move_cp_goals = {}
         for i in range(self.num_transforms):
             parent_frame = self.parent_frames[i]
             child_frame = self.child_frames[i]
@@ -59,7 +87,7 @@ class ExperimentInitializer:
 
                 if rospy.Time.now().to_sec() - t0 > self.transform_lookup_wait_time:
                     rospy.logerr("Transform lookup timed out after {} seconds Looking for {} to {} Transform".format(
-                        self.transform_lookup_wait_time,parent_frame, child_frame))
+                        self.transform_lookup_wait_time, parent_frame, child_frame))
                     break
                 
             self.move_cp_goals[parent_frame+"_to_"+child_frame] = goal
@@ -108,12 +136,13 @@ class ExperimentInitializer:
             rospy.loginfo("Successfully moved {}".format(arm_name))
 
 
+
     def run(self):
         """
         Run the experiment initialization process.
         """
         rospy.loginfo("Initializing experiment...")
-        rospy.sleep(1.0)
+        rospy.sleep(self.sleep_time_between_moves)
         # Publish transform from ECM_ref to PSM1_ref as ECM to PSM1
 
 
@@ -122,8 +151,22 @@ class ExperimentInitializer:
             child_frame = self.child_frames[i]
             arm_name = self.arm_names[i]
             self.publish_transform(parent_frame,child_frame,arm_name)
-            rospy.sleep(1)
+            rospy.sleep(self.sleep_time_between_moves)
 
+        while not self.loaded_jaw_angles:
+            rospy.loginfo("Waiting for jaw angles to be loaded...")
+            rospy.sleep(1/self.ros_freq)
+
+        for arm_name in self.arm_names:
+            if arm_name == "ECM":
+                continue
+            arm_obj = self.arm_objs[arm_name]
+            jaw_name = self.jaw_names[arm_name]
+            jaw_angle = self.jaw_angles[jaw_name]
+
+            arm_obj.jaw.move_jp(np.array([jaw_angle]))
+            rospy.loginfo("Moved {} jaw to angle {}".format(arm_name, jaw_angle))
+            rospy.sleep(self.sleep_time_between_moves)
 
         rospy.loginfo("Experiment initialization complete.")
 
@@ -135,7 +178,9 @@ if __name__ == "__main__":
     config_dict = {"parent_frames": ["Cart", "ECM_ref", "ECM_ref"],
                    "child_frames": ["ECM_ref", "PSM1_ref", "PSM2_ref"],
                    "arm_names": ["ECM", "PSM1", "PSM2"],
-                   "transform_lookup_wait_time": 1.0
+                   "transform_lookup_wait_time": 1.0,
+                   "sleep_time_between_moves": 2.0,
+                   "ros_freq": 10.0
     }
     ral = crtk.ral('experiment_initializer')
     # Create ExperimentInitializer object and run the initialization
