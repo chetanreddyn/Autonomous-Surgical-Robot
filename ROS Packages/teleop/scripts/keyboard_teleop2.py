@@ -117,6 +117,7 @@ class teleop_application:
         new_jaw_position = current_jaw_position + self.jaw_delta
 
         self.arm1.servo_jp(new_joint_positions)
+        print(new_joint_positions)
         self.arm1.jaw.servo_jp(new_jaw_position)
 
 

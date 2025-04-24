@@ -1,0 +1,12 @@
+{
+    "python.autoComplete.extraPaths": [
+        "/home/stanford/catkin_ws/devel/lib/python3/dist-packages",
+        "/opt/ros/noetic/lib/python3/dist-packages",
+        "/home/stanford/catkin_ws/build/cisst/lib"
+    ],
+    "python.analysis.extraPaths": [
+        "/home/stanford/catkin_ws/devel/lib/python3/dist-packages",
+        "/opt/ros/noetic/lib/python3/dist-packages",
+        "/home/stanford/catkin_ws/build/cisst/lib"
+    ]
+}

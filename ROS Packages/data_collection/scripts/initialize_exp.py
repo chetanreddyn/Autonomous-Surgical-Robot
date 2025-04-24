@@ -7,7 +7,7 @@ import dvrk
 import crtk
 from sensor_msgs.msg import JointState
 import numpy as np
-
+import argparse
 
 
 class ExperimentInitializer:
@@ -19,6 +19,7 @@ class ExperimentInitializer:
         """
 
         self.ros_freq = config_dict['ros_freq']
+        self.reposition_ecm = config_dict['reposition_ecm']
 
         # Initialize dVRK arms
         self.ecm_name = config_dict['arm_names'][0]
@@ -147,9 +148,13 @@ class ExperimentInitializer:
 
 
         for i in range(self.num_transforms):
+    
             parent_frame = self.parent_frames[i]
             child_frame = self.child_frames[i]
             arm_name = self.arm_names[i]
+            if not self.reposition_ecm and arm_name == self.ecm_name:
+                rospy.loginfo("Skipping ECM repositioning.")
+                continue
             self.publish_transform(parent_frame,child_frame,arm_name)
             rospy.sleep(self.sleep_time_between_moves)
 
@@ -157,6 +162,7 @@ class ExperimentInitializer:
             rospy.loginfo("Waiting for jaw angles to be loaded...")
             rospy.sleep(1/self.ros_freq)
 
+        # Move the jaws to the loaded angles
         for arm_name in self.arm_names:
             if arm_name == "ECM":
                 continue
@@ -180,7 +186,8 @@ if __name__ == "__main__":
                    "arm_names": ["ECM", "PSM1", "PSM2"],
                    "transform_lookup_wait_time": 1.0,
                    "sleep_time_between_moves": 1.0,
-                   "ros_freq": 10.0
+                   "ros_freq": 10.0,
+                   "reposition_ecm": False
     }
     ral = crtk.ral('experiment_initializer')
     # Create ExperimentInitializer object and run the initialization

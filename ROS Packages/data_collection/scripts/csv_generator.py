@@ -282,7 +282,7 @@ if __name__ == '__main__':
     parser.add_argument('-d','--logging_description',type=str,required=True,
                         help='Description of the data collection')
     
-    parser.add_argument('-n','--logging_folder',type=str,default="/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Object-Transfer/",
+    parser.add_argument('-n','--logging_folder',type=str,default="/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Initial Samples/",
                         help='Logging Folder')
     
     args = parser.parse_args(argv)
