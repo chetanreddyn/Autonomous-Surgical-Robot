@@ -51,11 +51,11 @@ class CSV_Corrector:
 
 
 
-demo_names = ["Demo25"]
+demo_names = [f"Demo{i}" for i in range(1, 51)]  # List of demo names
 
 csv_corrector_config_dict = {
         "arm_names": ["PSM1", "PSM2"],
-        "folder_path": "/Users/chetan/Desktop/CHARM_IPRL_Project/Autonomous-Surgical-Robot-Data/Initial_Experiments",
+        "folder_path": "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Object-Transfer",
         "demo_names": demo_names,
         "csv_name": "data.csv"
     }

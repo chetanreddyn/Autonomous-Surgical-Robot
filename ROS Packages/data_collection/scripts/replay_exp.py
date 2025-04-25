@@ -9,6 +9,8 @@ import csv
 from typing import Dict, List
 import argparse
 
+from sensor_msgs.msg import JointState
+
 from initialize_exp import ExperimentInitializer
 
 
@@ -23,12 +25,17 @@ class ReplayExperiment:
         self.csv_file = config_dict['csv_file']  # Path to the CSV file
         self.arm_name1 = config_dict['arm_names'][0]  # Name of the dVRK arm
         self.arm_name2 = config_dict['arm_names'][1]  # Name of the dVRK arm
+        self.arm_names = config_dict['arm_names']  # List of arm names
         self.ros_freq = config_dict['ros_freq'] 
-        self.joint_columns_arm1 = config_dict['joint_columns_arm1']  # Joint columns (1 to 7)
-        self.joint_columns_arm2 = config_dict['joint_columns_arm2']
+        # self.joint_columns_arm1 = config_dict['joint_columns_arm1']  # Joint columns (1 to 7)
+        # self.joint_columns_arm2 = config_dict['joint_columns_arm2']
         
-        self.joint_columns = {self.arm_name1: self.joint_columns_arm1,
-                              self.arm_name2: self.joint_columns_arm2}  # Joint columns (1 to 7)
+        self.joint_columns = {self.arm_name1: self.generate_joint_columns(self.arm_name1),
+                              self.arm_name2: self.generate_joint_columns(self.arm_name2)}  # Joint columns (1 to 7)
+        
+        self.initial_joint_states = {self.arm_name1: None, self.arm_name2: None}  # Initial joint states for each arm
+        self.initial_joint_states_updated = False
+        self.initial_joint_state_dicrepancy_tolerance = config_dict['initial_joint_state_dicrepancy_tolerance']
         
         self.arm_objs = config_dict['arm_objs']  # Dictionary of arm objects
         
@@ -56,14 +63,16 @@ class ReplayExperiment:
                     # Extracting for each arm
                     for arm_name in joint_angles_trajectories.keys():
                         joint_angles_trajectories[arm_name].append(self.get_joint_angles(row, arm_name))
-
-
+            
+            # Convert the list of joint angles to a numpy array
             rospy.loginfo(f"Successfully read joint angle sets from CSV.")
         except Exception as e:
             rospy.logerr(f"Failed to read CSV file: {e}")
             return None
-        return joint_angles_trajectories
 
+        return joint_angles_trajectories  # Return the dictionary of joint angles
+
+        
     def move_arms(self, joint_angles_trajectories: Dict[str, List[List[float]]]):
         """
         Move the arm to the specified joint angles.
@@ -84,8 +93,20 @@ class ReplayExperiment:
                     angles = joint_angles_trajectories[arm_name][t]
                     # rospy.loginfo(f"Moving {arm_name} to joint angles: {angles}")
 
-                    self.arm_objs[arm_name].move_jp(np.array(angles[:-1]))
-                    self.arm_objs[arm_name].jaw.move_jp(np.array([angles[-1]])) 
+                    initial_joint_state = np.array(self.initial_joint_states[arm_name])
+                    target_joint_state = np.array(angles[:-1])
+                    # print(initial_joint_state.round(2),target_joint_state.round(2))
+                    diff = np.abs(initial_joint_state - target_joint_state).max()
+                    if diff > 2*self.initial_joint_state_dicrepancy_tolerance:
+                        rospy.logfatal(f"Joint state discrepancy for {arm_name} is too large | max joint discrepancy{diff:.2f}")
+                        return 
+                    elif diff > self.initial_joint_state_dicrepancy_tolerance:
+                        rospy.logwarn(f"Joint state discrepancy for {arm_name} exceeds tolerance | max joint discrepancy {diff:.2f}")
+
+
+                    else:
+                        self.arm_objs[arm_name].move_jp(target_joint_state)
+                        self.arm_objs[arm_name].jaw.move_jp(np.array([angles[-1]])) 
 
                 rate.sleep()
             
@@ -96,13 +117,39 @@ class ReplayExperiment:
         else:
             rospy.loginfo("Finished arm movement.")
 
+    def generate_joint_columns(self, arm_name):
+        joint_columns_arm = []
+        for i in range(1, 7):
+            joint_columns_arm.append(f"{arm_name}_joint_{i}")
+
+        joint_columns_arm.append(f"{arm_name}_jaw")
+        return joint_columns_arm
+
+    def update_initial_joint_state(self, msg, arm_name):
+        self.initial_joint_states[arm_name] = msg.position
+
+        for arm_name in self.arm_names:
+            if self.initial_joint_states[arm_name] is None:
+                break
+        else:
+            self.initial_joint_states_updated = True
+            # rospy.loginfo(f"Initial joint states updated for {arm_name}.")
+
     def run(self):
         """
         Run the replay experiment.
         """
         joint_angles_trajectories = self.read_csv()
+
+        for arm_name in self.arm_names:
+            rospy.Subscriber(f'/{arm_name}/setpoint_js',JointState, self.update_initial_joint_state, callback_args=arm_name)
+
+        while not self.initial_joint_states_updated and not rospy.is_shutdown():
+            rospy.loginfo("Waiting for initial joint states to be updated...")
+            rospy.sleep(0.1)
         
-        if joint_angles_trajectories:
+        rospy.loginfo("Initial joint states updated for both arms.")
+        if joint_angles_trajectories and self.initial_joint_states_updated:
             self.move_arms(joint_angles_trajectories)
 
 
@@ -136,12 +183,12 @@ if __name__ == "__main__":
 
     initializer.run()
 
-    for t in range(3,-1,-1):
-        if rospy.is_shutdown():
-            rospy.loginfo("Shutting Down")
-            break
-        rospy.sleep(1)  # Sleep for a short duration to allow the initialization to complete
-        rospy.loginfo(f"REPLAYING EXPERIMENT in {t}")
+    # for t in range(3,-1,-1):
+    #     if rospy.is_shutdown():
+    #         rospy.loginfo("Shutting Down")
+    #         break
+    #     rospy.sleep(1)  # Sleep for a short duration to allow the initialization to complete
+    #     rospy.loginfo(f"REPLAYING EXPERIMENT in {t}")
 
 
 
@@ -150,13 +197,13 @@ if __name__ == "__main__":
     replay_exp_config_dict = {"csv_file": csv_file,
                    "arm_names": ["PSM1", "PSM2"],
                    "ros_freq": 30,
-                   "joint_columns_arm1": ["PSM1_orientation_matrix_[1,3]", # There must be 7 Joint columns specified
-                                      "PSM1_orientation_matrix_[2,1]",
-                                      "PSM1_orientation_matrix_[2,2]",
-                                      "PSM1_orientation_matrix_[2,3]",
-                                      "PSM1_orientation_matrix_[3,1]",
-                                      "PSM1_orientation_matrix_[3,2]",
-                                      "PSM1_orientation_matrix_[3,3]"],
+                   "joint_columns_arm1": ["PSM1_joint_1",
+                                          "PSM1_joint_2",
+                                          "PSM1_joint_3",
+                                          "PSM1_joint_4",
+                                          "PSM1_joint_5",
+                                          "PSM1_joint_6",
+                                          "PSM1_jaw"],
                     "joint_columns_arm2": ["PSM2_orientation_matrix_[1,3]",
                                        "PSM2_orientation_matrix_[2,1]",
                                        "PSM2_orientation_matrix_[2,2]",
@@ -164,7 +211,8 @@ if __name__ == "__main__":
                                        "PSM2_orientation_matrix_[3,1]",
                                        "PSM2_orientation_matrix_[3,2]",
                                        "PSM2_orientation_matrix_[3,3]"],
-                    "arm_objs":initializer.arm_objs
+                    "arm_objs":initializer.arm_objs,
+                    "initial_joint_state_dicrepancy_tolerance": 0.5 # Used to check if the initial measured joint state is too far from the target joint state from the csv file
                     }  # Specify the arm name if needed
 
     replay_exp = ReplayExperiment(ral, replay_exp_config_dict)
