@@ -46,16 +46,13 @@ class ExperimentInitializer:
         self.tf_buffer = tf2_ros.Buffer()
         self.tf_listener = tf2_ros.TransformListener(self.tf_buffer)
         rospy.loginfo("Loading transforms...")
-        self.load_transforms()
-
-        rospy.loginfo("move_cp goal positions for {} loaded successfully.".format(self.arm_names))
+        self.loaded_transforms = self.load_transforms() # If successful, returns True and transforms are loaded into self.move_cp_goals
   
         # print(self.move_cp_goals)
 
         # Subscribe to jaw_angles_ref topic
         self.jaw_angles = {}
         self.loaded_jaw_angles = False
-        rospy.Subscriber("jaw_angles_ref", JointState, self.jaw_angles_callback)
 
     def jaw_angles_callback(self, msg):
         """
@@ -73,7 +70,7 @@ class ExperimentInitializer:
         rospy.loginfo("Jaw angles loaded successfully.")
 
     def load_transforms(self):        
-
+        """returns a boolean indicating if the transforms were loaded successfully"""
         self.move_cp_goals = {}
         for i in range(self.num_transforms):
             parent_frame = self.parent_frames[i]
@@ -89,9 +86,13 @@ class ExperimentInitializer:
                 if rospy.Time.now().to_sec() - t0 > self.transform_lookup_wait_time:
                     rospy.logerr("Transform lookup timed out after {} seconds Looking for {} to {} Transform".format(
                         self.transform_lookup_wait_time, parent_frame, child_frame))
-                    break
+                    rospy.logerr("Consider increasing the transform_lookup_wait_time in the config_dict or check if the reference frames are being published correctly.")
+                    
+                    return False
+            
                 
             self.move_cp_goals[parent_frame+"_to_"+child_frame] = goal
+        return True
 
 
     def get_transform(self, parent_frame, child_frame):
@@ -134,8 +135,6 @@ class ExperimentInitializer:
         else:
             rospy.loginfo("Moving {}".format(arm_name))
             arm_obj.move_cp(goal).wait(True)
-            rospy.loginfo("Successfully moved {}".format(arm_name))
-
 
 
     def run(self):
@@ -146,19 +145,27 @@ class ExperimentInitializer:
         rospy.sleep(self.sleep_time_between_moves)
         # Publish transform from ECM_ref to PSM1_ref as ECM to PSM1
 
-
+        if not self.loaded_transforms:
+            rospy.logerr("Reference Transforms not loaded successfully. Cannot proceed.")
+            return
+        
         for i in range(self.num_transforms):
     
             parent_frame = self.parent_frames[i]
             child_frame = self.child_frames[i]
             arm_name = self.arm_names[i]
             if not self.reposition_ecm and arm_name == self.ecm_name:
-                rospy.loginfo("Skipping ECM repositioning.")
+                rospy.logwarn("Skipping ECM repositioning because reposition_ecm is set to False")
                 continue
             self.publish_transform(parent_frame,child_frame,arm_name)
             rospy.sleep(self.sleep_time_between_moves)
+            if rospy.is_shutdown():
+                rospy.logerr("Interrupted. Shutting down experiment initializer")
+                return
 
-        while not self.loaded_jaw_angles:
+        rospy.Subscriber("jaw_angles_ref", JointState, self.jaw_angles_callback)
+
+        while not self.loaded_jaw_angles and not rospy.is_shutdown():
             rospy.loginfo("Waiting for jaw angles to be loaded...")
             rospy.sleep(1/self.ros_freq)
 
@@ -174,11 +181,15 @@ class ExperimentInitializer:
             rospy.loginfo("Moved {} jaw to angle {}".format(arm_name, jaw_angle))
             rospy.sleep(self.sleep_time_between_moves)
 
+            if rospy.is_shutdown():
+                rospy.logerr("Interrupted. Shutting down experiment initializer")
+                return
+
         rospy.loginfo("Experiment initialization complete.")
 
 
 if __name__ == "__main__":
-    rospy.init_node("experiment_initializer", anonymous=True)
+    # rospy.init_node("experiment_initializer", anonymous=True)
 
     # Configuration dictionary
     config_dict = {"parent_frames": ["Cart", "ECM_ref", "ECM_ref"],
@@ -187,7 +198,7 @@ if __name__ == "__main__":
                    "transform_lookup_wait_time": 1.0,
                    "sleep_time_between_moves": 1.0,
                    "ros_freq": 10.0,
-                   "reposition_ecm": False
+                   "reposition_ecm": True
     }
     ral = crtk.ral('experiment_initializer')
     # Create ExperimentInitializer object and run the initialization

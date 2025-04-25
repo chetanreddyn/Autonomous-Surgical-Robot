@@ -90,11 +90,27 @@ if __name__ == "__main__":
 
     # Example configuration dictionary
     config_dict = {
-        "parent_frames": ["Cart", "Cart", "Cart", "ECM", "ECM", "ECM"],
-        "child_frames": ["PSM1_base", "PSM2_base", "ECM_base",
-                         "PSM1", "PSM2", "ECM"],
-        "ref_child_frames": ["PSM1_base_ref", "PSM2_base_ref", "ECM_base_ref",
-                             "PSM1_ref", "PSM2_ref", "ECM_ref"],
+        "parent_frames": ["Cart",
+                          "Cart",
+                          "Cart",
+                          "Cart",
+                          "Cart",
+                          "Cart"],
+
+        "child_frames": ["PSM1_base",
+                         "PSM2_base",
+                         "ECM_base",
+                         "PSM1",
+                         "PSM2",
+                         "ECM"],
+
+        "ref_child_frames": ["PSM1_base_ref",
+                             "PSM2_base_ref",
+                             "ECM_base_ref",
+                             "PSM1_ref",
+                             "PSM2_ref",
+                             "ECM_ref"],
+
         "rospy_freq": 100
     }
 

@@ -25,6 +25,7 @@ class TransformPublisher:
         self.data = self.load_data()
         self.tf_broadcaster = tf2_ros.StaticTransformBroadcaster()
         self.jaw_angles_ref_publisher = rospy.Publisher("jaw_angles_ref", JointState, queue_size=10)
+        self.published_jaw_angles = False
 
 
     def load_data(self):
@@ -69,7 +70,7 @@ class TransformPublisher:
 
         # Publish all static transforms at once
         self.tf_broadcaster.sendTransform(static_transforms)
-        rospy.loginfo("Static transforms published.")
+        rospy.loginfo("Static transforms of the reference stored locations published")
 
     def publish_jaw_angles(self):
         """
@@ -81,7 +82,11 @@ class TransformPublisher:
         jaw_angles_msg.position = list(self.data["jaw_angles"].values())
 
         self.jaw_angles_ref_publisher.publish(jaw_angles_msg)
-        rospy.loginfo("Jaw angles published to 'jaw_angles_ref'.")
+
+        if not self.published_jaw_angles:
+            rospy.loginfo("Jaw angles published to 'jaw_angles_ref'.")
+            
+        self.published_jaw_angles = True
 
     def run(self):
         """
