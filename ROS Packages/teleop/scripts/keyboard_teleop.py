@@ -38,6 +38,7 @@ class teleop_application:
         self.step_size = config_dict['step_size'] #  Step size for movement (in meters)
         self.joint_step_size = config_dict['joint_step_size'] # Step size for joint movement
         self.control_type = config_dict['control_type']
+        self.control_space = config_dict['control_space']
         self.arm1 = dvrk.psm(ral, self.arm1_name)
 
         if self.num_arms == 2:
@@ -116,9 +117,9 @@ class teleop_application:
         new_joint_positions = current_joint_positions + self.joint_deltas
         new_jaw_position = current_jaw_position + self.jaw_delta
 
-        self.arm1.servo_jp(new_joint_positions)
-        print(new_joint_positions)
-        self.arm1.jaw.servo_jp(new_jaw_position)
+        self.arm1.move_jp(new_joint_positions)
+        # print(new_joint_positions)
+        self.arm1.jaw.move_jp(new_jaw_position)
 
 
     # Keyboard event handlers
@@ -265,8 +266,11 @@ class teleop_application:
         listener = keyboard.Listener(on_press=self.on_press, on_release=self.on_release)
         listener.start()
         while self.running:
-            self.move_cartesian()
-            self.move_joint()
+
+            if self.control_space == 'cartesian':
+                self.move_cartesian()
+            elif self.control_space == 'joint':
+                self.move_joint()
             time.sleep(self.expected_interval)
 
 if __name__ == '__main__':
@@ -290,6 +294,7 @@ if __name__ == '__main__':
                         help='step size for movement in meters')
     parser.add_argument('-c', '--control_type', type=str, default='s',
                         help='s - servo_cp, m - move_cp, i - interpolate_cp')
+    parser.add_argument('--control_space', type=str, default='cartesian')
     args = parser.parse_args(argv)
 
 
@@ -299,7 +304,8 @@ if __name__ == '__main__':
                    'expected_interval':args.interval,
                    'step_size':args.step_size,
                    'joint_step_size':args.joint_step_size,
-                   'control_type':args.control_type}
+                   'control_type':args.control_type,
+                   'control_space':args.control_space}
 
     ral = crtk.ral('teleop_keyboard')
     application = teleop_application(ral, config_dict)

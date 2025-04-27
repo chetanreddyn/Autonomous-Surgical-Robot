@@ -147,7 +147,7 @@ class ExperimentInitializer:
 
         if not self.loaded_transforms:
             rospy.logerr("Reference Transforms not loaded successfully. Cannot proceed.")
-            return
+            return False
         
         for i in range(self.num_transforms):
     
@@ -161,7 +161,7 @@ class ExperimentInitializer:
             rospy.sleep(self.sleep_time_between_moves)
             if rospy.is_shutdown():
                 rospy.logerr("Interrupted. Shutting down experiment initializer")
-                return
+                return False
 
         rospy.Subscriber("jaw_angles_ref", JointState, self.jaw_angles_callback)
 
@@ -183,9 +183,10 @@ class ExperimentInitializer:
 
             if rospy.is_shutdown():
                 rospy.logerr("Interrupted. Shutting down experiment initializer")
-                return
+                return False
 
         rospy.loginfo("Experiment initialization complete.")
+        return True
 
 
 if __name__ == "__main__":

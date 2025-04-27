@@ -7,7 +7,7 @@
         default="console-MTML-Phantom-Teleop.json"/> -->
 
 <arg name="json_file"
-        default="console-SUJ-ECM-MTMR-PSM1-MTML-PSM2-PSM3-Teleop.json"/>
+        default="console-Full-System-Teleop.json"/>
 <!-- <arg name="json_file"
         default="console-MTML-Phantom-Teleop-PSM2-PSM3.json"/> -->
 <arg name="launch_rviz"

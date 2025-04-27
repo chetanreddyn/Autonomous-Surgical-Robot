@@ -86,8 +86,9 @@ class ReplayExperiment:
         t0 = rospy.Time.now()
         for t in range(trajectory_length):
             elapsed_time = (rospy.Time.now() - t0).to_sec()
-            rospy.loginfo(f"Elapsed time: {elapsed_time:.2f} s | Step: {t}/{trajectory_length}")
             if not rospy.is_shutdown():
+                rospy.loginfo(f"Elapsed time: {elapsed_time:.2f} s | Step: {t}/{trajectory_length}")
+    
                 # Move each arm to the specified joint angles
                 for arm_name in joint_angles_trajectories.keys():
                     angles = joint_angles_trajectories[arm_name][t]
@@ -97,19 +98,20 @@ class ReplayExperiment:
                     target_joint_state = np.array(angles[:-1])
                     # print(initial_joint_state.round(2),target_joint_state.round(2))
                     diff = np.abs(initial_joint_state - target_joint_state).max()
+                    
                     if diff > 2*self.initial_joint_state_dicrepancy_tolerance:
                         rospy.logfatal(f"Joint state discrepancy for {arm_name} is too large | max joint discrepancy{diff:.2f}")
                         return 
+                
                     elif diff > self.initial_joint_state_dicrepancy_tolerance:
                         rospy.logwarn(f"Joint state discrepancy for {arm_name} exceeds tolerance | max joint discrepancy {diff:.2f}")
-
 
                     else:
                         self.arm_objs[arm_name].move_jp(target_joint_state)
                         self.arm_objs[arm_name].jaw.move_jp(np.array([angles[-1]])) 
 
                 rate.sleep()
-            
+
             else:
                 rospy.loginfo("Shutting Down")
                 break
@@ -151,6 +153,11 @@ class ReplayExperiment:
         rospy.loginfo("Initial joint states updated for both arms.")
         if joint_angles_trajectories and self.initial_joint_states_updated:
             self.move_arms(joint_angles_trajectories)
+            
+        else:
+            joint_angles_trajectories_loaded = joint_angles_trajectories is not None
+            rospy.logerr("Cannot proceed with arm movement | joint_angles_trajectories_loaded: {joint_angles_trajectories_loaded} | initial_joint_states_updated: {self.initial_joint_states_updated}")
+            return
 
 
 if __name__ == "__main__":
@@ -159,12 +166,11 @@ if __name__ == "__main__":
 
     parser.add_argument('-d', '--demo_number', type=str, required=True, help="Demo number to replay")
     parser.add_argument('-r', '--reposition_ecm', action='store_true', help="Reposition ECM if this flag is provided")
-    
+
     args = parser.parse_args(argv)
     demo_number = args.demo_number
-    reposition_ecm = args.reposition_ecm 
-    print(reposition_ecm)
-    
+    reposition_ecm = args.reposition_ecm
+
     # Configuration dictionary
     exp_initialiser_config_dict = {"parent_frames": ["Cart", "ECM_ref", "ECM_ref"],
                    "child_frames": ["ECM_ref", "PSM1_ref", "PSM2_ref"],
@@ -181,26 +187,27 @@ if __name__ == "__main__":
 
     initializer = ExperimentInitializer(ral,exp_initialiser_config_dict)
 
-    initializer.run()
+    initialized_exp_successfully = initializer.run()
 
-    # for t in range(3,-1,-1):
-    #     if rospy.is_shutdown():
-    #         rospy.loginfo("Shutting Down")
-    #         break
-    #     rospy.sleep(1)  # Sleep for a short duration to allow the initialization to complete
-    #     rospy.loginfo(f"REPLAYING EXPERIMENT in {t}")
+    if initialized_exp_successfully:
+        for t in range(2,-1,-1):
+            if rospy.is_shutdown():
+                rospy.loginfo("Shutting Down")
+                break
+            rospy.sleep(1)  # Sleep for a short duration to allow the initialization to complete
+            rospy.loginfo(f"REPLAYING EXPERIMENT in {t}")
 
 
 
-    csv_file = f"/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Object-Transfer/Demo{demo_number}/data.csv"
+        csv_file = f"/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Object-Transfer/Demo{demo_number}/data.csv"
 
-    replay_exp_config_dict = {"csv_file": csv_file,
-                   "arm_names": ["PSM1", "PSM2"],
-                   "ros_freq": 30,
-                    "arm_objs":initializer.arm_objs,
-                    "initial_joint_state_dicrepancy_tolerance": 0.5 # Used to check if the initial measured joint state is too far from the target joint state from the csv file
-                    }  # Specify the arm name if needed
+        replay_exp_config_dict = {"csv_file": csv_file,
+                    "arm_names": ["PSM1", "PSM2"],
+                    "ros_freq": 30,
+                        "arm_objs":initializer.arm_objs,
+                        "initial_joint_state_dicrepancy_tolerance": 0.5 # Used to check if the initial measured joint state is too far from the target joint state from the csv file
+                        }  # Specify the arm name if needed
 
-    replay_exp = ReplayExperiment(ral, replay_exp_config_dict)
-    replay_exp.run()
+        replay_exp = ReplayExperiment(ral, replay_exp_config_dict)
+        replay_exp.run()
 
