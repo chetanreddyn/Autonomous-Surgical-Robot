@@ -65,7 +65,7 @@ class ExperimentInitializer:
         
         for jaw_name, position in zip(msg.name, msg.position):
             self.jaw_angles[jaw_name] = position
-        rospy.loginfo(f"Received jaw angles: {self.jaw_angles}")
+        rospy.loginfo("Received Jaw Angles")
         self.loaded_jaw_angles = True
         rospy.loginfo("Jaw angles loaded successfully.")
 
@@ -178,7 +178,7 @@ class ExperimentInitializer:
             jaw_angle = self.jaw_angles[jaw_name]
 
             arm_obj.jaw.move_jp(np.array([jaw_angle]))
-            rospy.loginfo("Moved {} jaw to angle {}".format(arm_name, jaw_angle))
+            rospy.loginfo(f"Moved {arm_name} jaw")
             rospy.sleep(self.sleep_time_between_moves)
 
             if rospy.is_shutdown():

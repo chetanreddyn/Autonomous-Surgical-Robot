@@ -87,7 +87,7 @@ class ReplayExperiment:
         for t in range(trajectory_length):
             elapsed_time = (rospy.Time.now() - t0).to_sec()
             if not rospy.is_shutdown():
-                rospy.loginfo(f"Elapsed time: {elapsed_time:.2f} s | Step: {t}/{trajectory_length}")
+                rospy.loginfo(f"Elapsed time: {elapsed_time:.2f} s | Step: {t+1}/{trajectory_length}")
     
                 # Move each arm to the specified joint angles
                 for arm_name in joint_angles_trajectories.keys():
@@ -98,13 +98,14 @@ class ReplayExperiment:
                     target_joint_state = np.array(angles[:-1])
                     # print(initial_joint_state.round(2),target_joint_state.round(2))
                     diff = np.abs(initial_joint_state - target_joint_state).max()
+                    diff_joint = np.abs(initial_joint_state - target_joint_state).argmax()
                     
                     if diff > 2*self.initial_joint_state_dicrepancy_tolerance:
-                        rospy.logfatal(f"Joint state discrepancy for {arm_name} is too large | max joint discrepancy{diff:.2f}")
+                        rospy.logfatal(f"Joint state discrepancy for {arm_name} is too large at joint {diff_joint} | max joint discrepancy{diff:.2f}")
                         return 
                 
                     elif diff > self.initial_joint_state_dicrepancy_tolerance:
-                        rospy.logwarn(f"Joint state discrepancy for {arm_name} exceeds tolerance | max joint discrepancy {diff:.2f}")
+                        rospy.logwarn(f"Joint state discrepancy for {arm_name} exceeds tolerance at joint {diff_joint} | max joint discrepancy {diff:.2f}")
 
                     else:
                         self.arm_objs[arm_name].move_jp(target_joint_state)
@@ -190,14 +191,14 @@ if __name__ == "__main__":
     initialized_exp_successfully = initializer.run()
 
     if initialized_exp_successfully:
+        rospy.loginfo("\n\n")
         for t in range(2,-1,-1):
             if rospy.is_shutdown():
                 rospy.loginfo("Shutting Down")
                 break
             rospy.sleep(1)  # Sleep for a short duration to allow the initialization to complete
             rospy.loginfo(f"REPLAYING EXPERIMENT in {t}")
-
-
+        
 
         csv_file = f"/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Object-Transfer/Demo{demo_number}/data.csv"
 
