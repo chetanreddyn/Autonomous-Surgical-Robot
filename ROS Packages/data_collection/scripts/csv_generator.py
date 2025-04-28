@@ -16,6 +16,7 @@ import sys
 import crtk
 import shutil
 import json
+import numpy as np
 
 
 class MessageSynchronizer:
@@ -115,6 +116,7 @@ class MessageSynchronizer:
         #     rospy.loginfo("Message timestamp: %s", msg.header.stamp.nsecs)
         # Add your processing code here
         
+        # print(self.csv_columns)
         self.process_messages(msgs)
 
     def process_timestamp(self, time_stamp):
@@ -125,6 +127,20 @@ class MessageSynchronizer:
         epoch_time_formatted = message_time.strftime(self.time_format)
         return epoch_time_formatted
     
+    def check_pose_values(self, pose_values):
+        '''
+        Checks if the pose values are valid
+        '''
+        orientation_matrix = pose_values[:9]
+        orientation_matrix = np.array(orientation_matrix).reshape(3, 3)
+
+        orthogonality_check = np.allclose(np.dot(orientation_matrix, orientation_matrix.T), np.eye(3), atol=1e-6)
+
+        # Check if the determinant is 1
+        determinant_check = np.isclose(np.linalg.det(orientation_matrix), 1.0, atol=1e-6)
+
+        return orthogonality_check and determinant_check
+
     def process_messages(self, msgs):
         '''
         Generates a row of the CSV file
@@ -141,20 +157,49 @@ class MessageSynchronizer:
         for i,(topic_name,topic_type) in enumerate(self.topics):
             # print(self.process_timestamp(msgs[i].header.stamp))
             if "cp" in topic_name:
-                row.extend(self.process_pose_msg(topic_name, msgs[i]))
+                pose_values = self.process_pose_msg(topic_name, msgs[i])
+                
+                if len(pose_values) != 12:
+                    rospy.logwarn(f"Pose values are not a list of 12 elements, NOT LOGGING | Topic:{topic_name}")
+                    return
+                
+                if not self.check_pose_values(pose_values):
+                    rospy.logfatal(f"Orientation Matrix is not valid, NOT LOGGING | Topic:{topic_name}")
+                    return
+                
+                row.extend(pose_values)
                 
             elif "js" in topic_name:
                 if "jaw" in topic_name:
-                    row.extend(self.process_jaw_msg(topic_name,msgs[i]))
+                    jaw_value = self.process_jaw_msg(topic_name,msgs[i])
+                    if len(jaw_value) != 1:
+                        rospy.logwarn(f"Jaw value is not a singleton list, NOT LOGGING | Topic:{topic_name}")
+                        return
+                    row.extend(jaw_value)
                 else:
-                    row.extend(self.process_joint_states_msg(topic_name,msgs[i]))
+                    joint_values = self.process_joint_states_msg(topic_name,msgs[i])
+
+                    if len(joint_values) != 6:
+                        rospy.logwarn(f"Joint values are not a list of 6 elements, NOT LOGGING | Topic:{topic_name}")
+                        return
+                    
+                    row.extend(joint_values)
 
             elif "image" in topic_name:
-                row.extend(self.process_image_msg(topic_name,msgs[i]))
+                image_path = self.process_image_msg(topic_name,msgs[i])
+                if len(image_path) != 1:
+                    rospy.logwarn(f"Image path is not a singleton set, NOT LOGGING | Topic:{topic_name}")
+                    return
+                
+                row.extend(image_path)
 
         # print(len(row))
-        self.write_csv_row(row)
-        self.frame_number += 1
+        if len(row) != len(self.csv_columns):
+            rospy.logwarn("Row length does not match the column length, NOT LOGGING")
+            return
+        else:      
+            self.write_csv_row(row)
+            self.frame_number += 1
 
 
     def process_joint_states_msg(self, topic_name, msg):
@@ -166,8 +211,7 @@ class MessageSynchronizer:
     
     def process_jaw_msg(self, topic_name, msg):
         '''
-        Processes messages of type JointState for the jaw
-        Returns the jaw angle
+        Processes messages of type JointState for the jaw columns
         '''
         jaw_angle_singleton_list = msg.position
         return jaw_angle_singleton_list
@@ -178,11 +222,15 @@ class MessageSynchronizer:
         Returns a list of x,y,z,orientation_matrix 9 elements
         '''
         # rospy.loginfo("Processing PoseStamped message")
+        position = [msg.pose.position.x, msg.pose.position.y, msg.pose.position.z]
+
         quaternion = [msg.pose.orientation.x, msg.pose.orientation.y, msg.pose.orientation.z, msg.pose.orientation.w]
         rotation_matrix = tf_trans.quaternion_matrix(quaternion)[:3, :3]  # Extract the 3x3 rotation matrix
         flattened_matrix = rotation_matrix.flatten().tolist()  # Flatten the matrix to a list
         # rospy.loginfo("Position: %s, Orientation Matrix: %s", position, flattened_matrix)
-        return flattened_matrix
+
+        pose_values = flattened_matrix + position # The order is very important do not change it
+        return pose_values
     
     def process_image_msg(self, topic_name, msg):
         '''
@@ -220,13 +268,17 @@ class MessageSynchronizer:
         columns = ["Epoch Time","Time (Seconds)","Frame Number"]
 
         for arm_name in self.arm_names:
+            for k in range(1,4):
+                for l in range(1,4):
+                    columns.append(f"{arm_name}_orientation_matrix_[{k},{l}]")
+
+            for direction in ["x", "y", "z"]:
+                columns.append(f"{arm_name}_ee_{direction}")
+
             for i in range(1,7):
                 columns.append(f"{arm_name}_joint_{i}")
             columns.append(f"{arm_name}_jaw")
 
-            for k in range(1,4):
-                for l in range(1,4):
-                    columns.append(f"{arm_name}_orientation_matrix_[{k},{l}]")
 
         for camera_name in ["camera_right", "camera_left"]:
             columns.append(f"{camera_name}_image_path")
@@ -285,6 +337,9 @@ if __name__ == '__main__':
     parser.add_argument('-n','--logging_folder',type=str,default="/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Initial Samples/",
                         help='Logging Folder')
     
+    parser.add_argument('-T','--duration',type=int,default=15,
+                        help='Duration of the experiment in seconds')
+    
     args = parser.parse_args(argv)
 
     topics = [
@@ -310,7 +365,7 @@ if __name__ == '__main__':
         "logging_description":args.logging_description,
         "logging_folder":args.logging_folder,
         "arm_names": ["PSM1", "PSM2", "PSM3"],
-        "duration":15
+        "duration":args.duration
     }
     meta_file_dict = {}
     meta_file_dict["logging_description"] = csv_generator_config_dict["logging_description"]

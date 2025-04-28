@@ -165,11 +165,14 @@ if __name__ == "__main__":
     argv = crtk.ral.parse_argv(sys.argv[1:])  # Skip argv[0], script name
     parser = argparse.ArgumentParser(description="Replay Experiment")
 
-    parser.add_argument('-d', '--demo_number', type=str, required=True, help="Demo number to replay")
+    parser.add_argument('-f', '--parent_folder', type=str, default="/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Initial Samples", help="Parent folder containing the demo data")
+    parser.add_argument('-d', '--demo_name', type=str, required=True, help="Demo name to replay")
     parser.add_argument('-r', '--reposition_ecm', action='store_true', help="Reposition ECM if this flag is provided")
 
+
     args = parser.parse_args(argv)
-    demo_number = args.demo_number
+    parent_folder = args.parent_folder
+    demo_name = args.demo_name
     reposition_ecm = args.reposition_ecm
 
     # Configuration dictionary
@@ -200,14 +203,14 @@ if __name__ == "__main__":
             rospy.loginfo(f"REPLAYING EXPERIMENT in {t}")
         
 
-        csv_file = f"/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Object-Transfer/Demo{demo_number}/data.csv"
+        csv_file = f"{parent_folder}/{demo_name}/data.csv"
 
         replay_exp_config_dict = {"csv_file": csv_file,
-                    "arm_names": ["PSM1", "PSM2"],
-                    "ros_freq": 30,
-                        "arm_objs":initializer.arm_objs,
-                        "initial_joint_state_dicrepancy_tolerance": 0.5 # Used to check if the initial measured joint state is too far from the target joint state from the csv file
-                        }  # Specify the arm name if needed
+                                 "arm_names": ["PSM1", "PSM2"],
+                                 "ros_freq": 30,
+                                 "arm_objs":initializer.arm_objs,
+                                 "initial_joint_state_dicrepancy_tolerance": 0.5 # Used to check if the initial measured joint state is too far from the target joint state from the csv file
+                                 }  # Specify the arm name if needed
 
         replay_exp = ReplayExperiment(ral, replay_exp_config_dict)
         replay_exp.run()
