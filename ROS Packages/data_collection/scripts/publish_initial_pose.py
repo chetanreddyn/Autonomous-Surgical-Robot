@@ -21,12 +21,19 @@ class TransformPublisher:
         self.json_file = config_dict['json_file']
         self.parent_frame = config_dict["parent_frame"]  # Parent frame for all transforms
         self.ros_freq = config_dict["ros_freq"]  # Frequency for publishing transforms and jaw angles
+        self.suj_joint_angles_suffix = config_dict['suj_joint_angles_suffix']
 
         self.data = self.load_data()
         self.tf_broadcaster = tf2_ros.StaticTransformBroadcaster()
         self.jaw_angles_ref_publisher = rospy.Publisher("jaw_angles_ref", JointState, queue_size=10)
         self.published_jaw_angles = False
 
+        # Create publishers for each arm's SUJ joint angles
+        self.suj_joint_angles_publishers = {
+            arm_name: rospy.Publisher(f"/SUJ/{arm_name}/{self.suj_joint_angles_suffix}", JointState, queue_size=10)
+            for arm_name in self.data["suj_joint_angles"].keys()
+        }      
+        self.published_suj_joint_angles = False
 
     def load_data(self):
         """
@@ -72,6 +79,25 @@ class TransformPublisher:
         self.tf_broadcaster.sendTransform(static_transforms)
         rospy.loginfo("Static transforms of the reference stored locations published")
 
+    def publish_suj_joint_angles(self):
+        """
+        Publish SUJ joint angles for each arm to individual topics.
+        """
+        for arm_name, arm_suj_joint_values in self.data["suj_joint_angles"].items():
+            suj_joint_angles_msg = JointState()
+            suj_joint_angles_msg.header.stamp = rospy.Time.now()
+
+            suj_joint_angles_msg.name = [
+                f"SUJ_{arm_name}_J{idx}" for idx in range(len(arm_suj_joint_values))
+            ]
+            suj_joint_angles_msg.position = arm_suj_joint_values
+
+            # Publish to the specific topic for this arm
+            self.suj_joint_angles_publishers[arm_name].publish(suj_joint_angles_msg)
+
+            rospy.loginfo_once(f"SUJ joint angles for {arm_name} published to /SUJ/{arm_name}/{self.suj_joint_angles_suffix}")
+
+    
     def publish_jaw_angles(self):
         """
         Publish the jaw angles to the "jaw_angles_ref" topic.
@@ -97,6 +123,7 @@ class TransformPublisher:
 
         while not rospy.is_shutdown():
             self.publish_jaw_angles()
+            self.publish_suj_joint_angles()
             rate.sleep()
 
 if __name__ == "__main__":
@@ -104,9 +131,10 @@ if __name__ == "__main__":
 
     # Path to the JSON file
     config_dict = {
-        'json_file': "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot/ROS Packages/data_collection/utils_config/initial_pose_initial.json",
+        'json_file': "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot/ROS Packages/data_collection/utils_config/initial_pose_with_suj.json",
         'parent_frame': 'Cart',  # Parent frame for all transforms
-        'ros_freq': 10  # Frequency for publishing transforms and jaw angles
+        'ros_freq': 10,  # Frequency for publishing transforms and jaw angles
+        'suj_joint_angles_suffix': 'measured_js_ref'  # Suffix for SUJ joint angles
     }
 
     # Create StaticTransformPublisher object and publish static transforms

@@ -8,7 +8,7 @@ Used to check if the Arm base has moved and how far it is from the saved referen
 import rospy
 import tf2_ros
 from geometry_msgs.msg import TransformStamped
-
+from sensor_msgs.msg import JointState
 
 class TransformChecker:
     def __init__(self, config_dict):
@@ -110,6 +110,8 @@ if __name__ == "__main__":
                              "PSM1_ref",
                              "PSM2_ref",
                              "ECM_ref"],
+
+        ""
 
         "rospy_freq": 100
     }
