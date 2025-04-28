@@ -9,6 +9,7 @@ import rospy
 import tf2_ros
 from geometry_msgs.msg import TransformStamped
 from sensor_msgs.msg import JointState
+import argparse
 
 class TransformChecker:
     def __init__(self, config_dict):
@@ -20,9 +21,31 @@ class TransformChecker:
         self.parent_frames = config_dict['parent_frames']
         self.child_frames = config_dict['child_frames']
         self.ref_child_frames = config_dict['ref_child_frames']
+        self.arm_names = config_dict['arm_names']
+        self.ecm_name = config_dict['ecm_name']
         self.rate = rospy.Rate(config_dict['rospy_freq'])
+        self.significant_digits = config_dict['significant_digits']
         self.tf_buffer = tf2_ros.Buffer()
         self.tf_listener = tf2_ros.TransformListener(self.tf_buffer)
+
+        # SUJ joint angles data
+        self.suj_joint_angles = {}
+        self.suj_joint_angles_ref = {}
+        self.suj_joint_angles_topics = config_dict['suj_joint_angles_topics']
+        self.suj_joint_angles_ref_topics = config_dict['suj_joint_angles_ref_topics']
+
+    def suj_joint_callback(self, msg, info):
+        """
+        Callback function to store SUJ joint angles.
+
+        :param msg: JointState message containing SUJ joint angles.
+        :param data_type: "current" for current angles, "ref" for reference angles.
+        """
+        # rospy.loginfo(f"Received {info['topic_type']} joint angles for {info['arm_name']}: {msg.position}")
+        if info['topic_type'] == "current":
+            self.suj_joint_angles[info['arm_name']] = msg.position
+        elif info['topic_type'] == "ref":
+            self.suj_joint_angles_ref[info['arm_name']] = msg.position
 
     def get_transform(self, parent_frame, child_frame):
         """
@@ -67,12 +90,14 @@ class TransformChecker:
             for parent_frame, child_frame,ref_child_frame in zip(self.parent_frames, self.child_frames,self.ref_child_frames):
                 # Get the transform for the child frame
                 child_transform = self.get_transform(parent_frame, child_frame)
+                child_ref_transform = self.get_transform(parent_frame, ref_child_frame)
+
+
                 if child_transform is None:
                     rospy.logwarn(f"Transform for {parent_frame} to {child_frame} not found.")
                     continue
 
                 # Get the transform for the child_ref frame
-                child_ref_transform = self.get_transform(parent_frame, ref_child_frame)
                 if child_ref_transform is None:
                     rospy.logwarn(f"Transform for {parent_frame} to {ref_child_frame} not found.")
                     continue
@@ -85,8 +110,52 @@ class TransformChecker:
 
 
 
+    def create_suj_subscribers(self):
+
+        # Subscribe to SUJ joint topics
+        for arm_name,topic in self.suj_joint_angles_topics.items():
+            rospy.Subscriber(topic, JointState, self.suj_joint_callback, 
+                             callback_args={"topic_type": "current", "arm_name": arm_name})
+
+        for arm_name,topic in self.suj_joint_angles_ref_topics.items():
+            rospy.Subscriber(topic, JointState, self.suj_joint_callback, 
+                             callback_args={"topic_type": "ref", "arm_name": arm_name})
+
+    def check_suj_joint_angles(self):
+        """
+        Check the SUJ joint angles for each arm and calculate errors.
+        """
+        # Create subscribers for SUJ joint angles
+        self.create_suj_subscribers()
+
+        while not rospy.is_shutdown():
+
+            if not self.suj_joint_angles or not self.suj_joint_angles_ref:
+                rospy.logwarn("SUJ joint angles or reference angles not received yet.")
+                self.rate.sleep()
+                continue
+
+            for joint_name, current_angles in self.suj_joint_angles.items():
+                if joint_name in self.suj_joint_angles_ref:
+                    ref_angles = self.suj_joint_angles_ref[joint_name]
+                    errors = [round((current - ref),self.significant_digits)
+                            for current, ref in zip(current_angles, ref_angles)]
+                    print(f"{joint_name}: {errors}", end=" | ")
+                else:
+                    rospy.logwarn(f"Reference angles for {joint_name} not available.")
+
+            print()
+            self.rate.sleep()
+        
+
+
 if __name__ == "__main__":
     rospy.init_node("check_initial_pose", anonymous=True)
+
+    parser = argparse.ArgumentParser(description="Check transforms or SUJ joint angles.")
+    parser.add_argument("--type", choices=["transforms", "joint_angles"], required=True,
+                        help="Type of checker to run: 'transforms' or 'SUJ_joint_angles'")
+    args = parser.parse_args()
 
     # Example configuration dictionary
     config_dict = {
@@ -111,13 +180,31 @@ if __name__ == "__main__":
                              "PSM2_ref",
                              "ECM_ref"],
 
-        ""
+        "suj_joint_angles_topics": {
+            "PSM1": "/SUJ/PSM1/measured_js",
+            "PSM2": "/SUJ/PSM2/measured_js",
+            "ECM": "/SUJ/ECM/measured_js",
+            "PSM3": "/SUJ/PSM3/measured_js"
+        },
 
-        "rospy_freq": 100
+        "suj_joint_angles_ref_topics": {
+            "PSM1": "/SUJ/PSM1/measured_js_ref",
+            "PSM2": "/SUJ/PSM2/measured_js_ref",
+            "ECM": "/SUJ/ECM/measured_js_ref",
+            "PSM3": "/SUJ/PSM3/measured_js_ref"
+        },
+        "arm_names": ["PSM1", "PSM2", "PSM3"],
+        "ecm_name": "ECM",
+        "rospy_freq": 100,
+        "significant_digits": 4
     }
 
     # Initialize the TransformChecker object
     checker = TransformChecker(config_dict)
 
     # Check the transforms
-    checker.check_transforms()
+    # Run the appropriate checker based on the argument
+    if args.type == "transforms":
+        checker.check_transforms()
+    elif args.type == "joint_angles":
+        checker.check_suj_joint_angles()

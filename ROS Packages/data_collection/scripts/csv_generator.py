@@ -296,6 +296,10 @@ if __name__ == '__main__':
         ("/PSM2/setpoint_js", JointState),
         ("/PSM2/jaw/setpoint_js", JointState),
 
+        ("/PSM3/setpoint_cp", PoseStamped),
+        ("/PSM3/setpoint_js", JointState),
+        ("/PSM3/jaw/setpoint_js", JointState),
+
         ("/camera_right/image_raw", Image),
         ("/camera_left/image_raw", Image)
     ]
@@ -305,7 +309,7 @@ if __name__ == '__main__':
         "time_format":"%Y-%m-%d %H:%M:%S.%f",
         "logging_description":args.logging_description,
         "logging_folder":args.logging_folder,
-        "arm_names": ["PSM1", "PSM2"],
+        "arm_names": ["PSM1", "PSM2", "PSM3"],
         "duration":15
     }
     meta_file_dict = {}
@@ -322,7 +326,7 @@ if __name__ == '__main__':
     meta_file_dict["tools_used"] = ['FENESTRATED_BIPOLAR_FORCEPS:420205[..]','FENESTRATED_BIPOLAR_FORCEPS:420205[..]']
     meta_file_dict["mtm_scale"] = 0.4
     meta_file_dict["phantom_omni_scale"] = None 
-    meta_file_dict["initial_pose_json_path"] = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot/ROS Packages/data_collection/utils_config/initial_pose.json"
+    meta_file_dict["initial_pose_json_path"] = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot/ROS Packages/data_collection/utils_config/initial_pose_with_suj.json"
     meta_file_dict["Brightness"] = 70
     meta_file_dict["duration"] = csv_generator_config_dict["duration"]
 
