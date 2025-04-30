@@ -334,7 +334,7 @@ if __name__ == '__main__':
     parser.add_argument('-d','--logging_description',type=str,required=True,
                         help='Description of the data collection')
     
-    parser.add_argument('-n','--logging_folder',type=str,default="/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Collaborative Two Handed Object Transfer/",
+    parser.add_argument('-n','--logging_folder',type=str,default="/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Initial Samples/",
                         help='Logging Folder')
     
     parser.add_argument('-T','--duration',type=int,default=15,

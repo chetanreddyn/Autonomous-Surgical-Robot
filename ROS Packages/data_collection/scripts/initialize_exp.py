@@ -20,11 +20,14 @@ class ExperimentInitializer:
 
         self.ros_freq = config_dict['ros_freq']
         self.reposition_ecm = config_dict['reposition_ecm']
+        self.position_diff_threshold = config_dict['position_diff_threshold']
 
         # Initialize dVRK arms
         self.ecm_name = config_dict['arm_names'][0]
         self.arm1_name = config_dict['arm_names'][1]
         self.arm2_name = config_dict['arm_names'][2]
+        self.arm3_name = config_dict['arm_names'][3]
+
         self.num_transforms = len(config_dict['parent_frames'])
         self.parent_frames = config_dict['parent_frames']
         self.child_frames = config_dict['child_frames']
@@ -36,9 +39,12 @@ class ExperimentInitializer:
         self.transform_lookup_wait_time = config_dict['transform_lookup_wait_time']
         self.arm1 = dvrk.psm(ral, self.arm1_name)
         self.arm2 = dvrk.psm(ral, self.arm2_name)
+        self.arm3 = dvrk.psm(ral, self.arm3_name)
         self.ecm = dvrk.ecm(ral, self.ecm_name) # Arm 3 is ECM
 
-        self.arm_objs = {self.arm1_name: self.arm1, self.arm2_name: self.arm2, self.ecm_name: self.ecm}
+        self.arm_objs = {self.arm1_name: self.arm1, self.arm2_name: self.arm2,
+                         self.arm3_name: self.arm3, self.ecm_name: self.ecm}
+        
         self.move_cp_goals_received = False
         self.move_cp_goals = None # PyKDL.Frame() type transforms to send to move_cp topic
 
@@ -89,8 +95,7 @@ class ExperimentInitializer:
                     rospy.logerr("Consider increasing the transform_lookup_wait_time in the config_dict or check if the reference frames are being published correctly.")
                     
                     return False
-            
-                
+               
             self.move_cp_goals[parent_frame+"_to_"+child_frame] = goal
         return True
 
@@ -127,14 +132,26 @@ class ExperimentInitializer:
         :param arm: dVRK arm object to move.
         """
         arm_obj = self.arm_objs[arm_name]
+        
+
+
         goal = self.move_cp_goals.get(parent_frame+"_to_"+child_frame)
         if goal is None:
             rospy.logerr("Transform not found for {} to {}. Cannot publish.".format(parent_frame, child_frame))
             return
         
         else:
-            rospy.loginfo("Moving {}".format(arm_name))
-            arm_obj.move_cp(goal).wait(True)
+
+            # Safety Check
+            current_position = arm_obj.setpoint_cp()
+            error = (current_position.p - goal.p).Norm()
+            if error> self.position_diff_threshold:
+                rospy.logfatal(f"Current position is too far from the goal position for {arm_name} | Distance :{error:.4f}  | Aborting for Safety | Check the position_diff_threshold")
+                rospy.signal_shutdown("Safety Check Failed")
+
+            else:
+                rospy.loginfo("Moving {}".format(arm_name))
+                arm_obj.move_cp(goal).wait(True)
 
 
     def run(self):
@@ -145,6 +162,8 @@ class ExperimentInitializer:
         rospy.sleep(self.sleep_time_between_moves)
         # Publish transform from ECM_ref to PSM1_ref as ECM to PSM1
 
+
+        
         if not self.loaded_transforms:
             rospy.logerr("Reference Transforms not loaded successfully. Cannot proceed.")
             return False
@@ -193,14 +212,16 @@ if __name__ == "__main__":
     # rospy.init_node("experiment_initializer", anonymous=True)
 
     # Configuration dictionary
-    config_dict = {"parent_frames": ["Cart", "ECM_ref", "ECM_ref"],
-                   "child_frames": ["ECM_ref", "PSM1_ref", "PSM2_ref"],
-                   "arm_names": ["ECM", "PSM1", "PSM2"],
+    config_dict = {"parent_frames": ["Cart", "ECM_ref", "ECM_ref", "ECM_ref"],
+                   "child_frames": ["ECM_ref", "PSM1_ref", "PSM2_ref", "PSM3_ref"],
+                   "arm_names": ["ECM", "PSM1", "PSM2", "PSM3"],
                    "transform_lookup_wait_time": 1.0,
                    "sleep_time_between_moves": 1.0,
                    "ros_freq": 10.0,
-                   "reposition_ecm": True
+                   "reposition_ecm": True,
+                   "position_diff_threshold": 0.04
     }
+
     ral = crtk.ral('experiment_initializer')
     # Create ExperimentInitializer object and run the initialization
     initializer = ExperimentInitializer(ral,config_dict)
