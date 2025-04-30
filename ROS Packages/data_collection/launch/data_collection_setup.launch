@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<launch>
+      <arg name="console"
+            default="false"/>
+      <arg name="json_file"
+            default="console-Full-System-Teleop.json"/>
+
+      <include file="$(find teleop)/launch/arms_real.launch">
+            <arg name="json_file" value="$(arg json_file)" />
+      </include>
+
+      <node pkg="data_collection" type="publish_initial_pose.py" name="publish_initial_pose"/>
+
+            <!-- The cart is positioned at 0,0,0.1678 in the world coordinate-->
+      <include file="$(find teleop)/launch/vision_cart.launch">
+            <arg name="console" value="$(arg console)" />
+      </include>
+</launch>

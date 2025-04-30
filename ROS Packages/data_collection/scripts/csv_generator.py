@@ -334,7 +334,7 @@ if __name__ == '__main__':
     parser.add_argument('-d','--logging_description',type=str,required=True,
                         help='Description of the data collection')
     
-    parser.add_argument('-n','--logging_folder',type=str,default="/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Initial Samples/",
+    parser.add_argument('-n','--logging_folder',type=str,default="/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Collaborative Two Handed Object Transfer/",
                         help='Logging Folder')
     
     parser.add_argument('-T','--duration',type=int,default=15,
@@ -373,14 +373,14 @@ if __name__ == '__main__':
     meta_file_dict["arm_names"] = csv_generator_config_dict["arm_names"]
 
     meta_file_dict["teleop1_connection"] = "MTML-PSM2"
-    meta_file_dict["teleop2_connection"] = "MTMR-PSM1"
+    meta_file_dict["teleop2_connection"] = "Phantom-PSM1"
     meta_file_dict["teleop3_connection"] = None
-    meta_file_dict["surgeon_name"] = "Alaa"
-    meta_file_dict["assistant_name"] = None
+    meta_file_dict["teleop1_name"] = "Alaa"
+    meta_file_dict["teleop2_name"] = "Chetan"
 
     meta_file_dict["tools_used"] = ['FENESTRATED_BIPOLAR_FORCEPS:420205[..]','FENESTRATED_BIPOLAR_FORCEPS:420205[..]']
     meta_file_dict["mtm_scale"] = 0.4
-    meta_file_dict["phantom_omni_scale"] = None 
+    meta_file_dict["phantom_omni_scale"] = 0.4 
     meta_file_dict["initial_pose_json_path"] = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot/ROS Packages/data_collection/utils_config/initial_pose_with_suj.json"
     meta_file_dict["Brightness"] = 70
     meta_file_dict["duration"] = csv_generator_config_dict["duration"]
