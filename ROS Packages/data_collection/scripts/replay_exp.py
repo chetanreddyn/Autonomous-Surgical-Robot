@@ -23,29 +23,35 @@ class ReplayExperiment:
         :param arm_name: Name of the dVRK arm to control (default: PSM1).
         """
         self.csv_file = config_dict['csv_file']  # Path to the CSV file
-        self.arm_name1 = config_dict['arm_names'][0]  # Name of the dVRK arm
-        self.arm_name2 = config_dict['arm_names'][1]  # Name of the dVRK arm
-        self.arm_name3 = config_dict['arm_names'][2]  # Name of the dVRK arm
+        # self.arm_name1 = config_dict['arm_names'][0]  # Name of the dVRK arm
+        # self.arm_name2 = config_dict['arm_names'][1]  # Name of the dVRK arm
+
+        # self.num_arms = config_dict['num_arms']  # Number of arms to control
+        # if self.num_arms == 3:
+        #     self.arm_name3 = config_dict['arm_names'][2]  # Name of the dVRK arm
+
         self.arm_names = config_dict['arm_names']  # List of arm names
         self.ros_freq = config_dict['ros_freq'] 
-        # self.joint_columns_arm1 = config_dict['joint_columns_arm1']  # Joint columns (1 to 7)
-        # self.joint_columns_arm2 = config_dict['joint_columns_arm2']
+        self.debug_mode = config_dict['debug_mode']  # Debug mode flag
         
-        self.joint_columns = {self.arm_name1: self.generate_joint_columns(self.arm_name1),
-                              self.arm_name2: self.generate_joint_columns(self.arm_name2),
-                              self.arm_name3: self.generate_joint_columns(self.arm_name3)}  # Joint columns (1 to 7)
+        # self.joint_columns = {self.arm_name1: self.generate_joint_columns(self.arm_name1),
+        #                       self.arm_name2: self.generate_joint_columns(self.arm_name2),
+        #                       self.arm_name3: self.generate_joint_columns(self.arm_name3)}  # Joint columns (1 to 7)
+        self.joint_columns = {arm_name: self.generate_joint_columns(arm_name) for arm_name in self.arm_names}  # Joint columns (1 to 7)
         
-        self.initial_joint_states = {self.arm_name1: None,
-                                     self.arm_name2: None,
-                                     self.arm_name3: None}  # Initial joint states for each arm
+        # self.initial_joint_states = {self.arm_name1: None,
+        #                              self.arm_name2: None,
+        #                              self.arm_name3: None}  # Initial joint states for each arm
+        
+        self.initial_joint_states = {arm_name: None for arm_name in self.arm_names}  # Initial joint states for each arm
+
         self.initial_joint_states_updated = False
         self.initial_joint_state_dicrepancy_tolerance = config_dict['initial_joint_state_dicrepancy_tolerance']
         
         self.arm_objs = config_dict['arm_objs']  # Dictionary of arm objects
         
         # self.joint_columns = [f"{self.arm_name1}_joint_{i}" for i in range(1, 7)]  # Joint columns (1 to 6)
-        rospy.loginfo(f"Initialized ReplayExperiment for {self.arm_name1} and {self.arm_name2} and {self.arm_name3} with CSV file: {self.csv_file}")
-
+        rospy.loginfo(f"Initialized ReplayExperiment for with CSV file: {self.csv_file}")
 
     def get_joint_angles(self, row, arm_name):
         joint_angles = [float(row[column]) for column in self.joint_columns[arm_name]]
@@ -57,7 +63,9 @@ class ReplayExperiment:
 
         :return: List of joint angle arrays.
         """
-        joint_angles_trajectories = {self.arm_name1: [], self.arm_name2: [], self.arm_name3: []}  # Dictionary to store joint angles for each arm
+        # joint_angles_trajectories = {self.arm_name1: [], self.arm_name2: [], self.arm_name3: []}  # Dictionary to store joint angles for each arm
+        joint_angles_trajectories = {arm_name: [] for arm_name in self.arm_names}  # Dictionary to store joint angles for each arm
+
         try:
             with open(self.csv_file, 'r') as file:
                 reader = csv.DictReader(file)
@@ -75,7 +83,6 @@ class ReplayExperiment:
             return None
 
         return joint_angles_trajectories  # Return the dictionary of joint angles
-
         
     def move_arms(self, joint_angles_trajectories: Dict[str, List[List[float]]]):
         """
@@ -86,7 +93,7 @@ class ReplayExperiment:
         rospy.loginfo("Starting arm movement...")
         rate = rospy.Rate(self.ros_freq)  
 
-        trajectory_length = len(joint_angles_trajectories[self.arm_name1])
+        trajectory_length = len(joint_angles_trajectories[self.arm_names[0]])
         t0 = rospy.Time.now()
         for t in range(trajectory_length):
             elapsed_time = (rospy.Time.now() - t0).to_sec()
@@ -113,8 +120,11 @@ class ReplayExperiment:
 
                     else:
                         # rospy.loginfo(f"seeeee")
-                        self.arm_objs[arm_name].move_jp(target_joint_state)
-                        self.arm_objs[arm_name].jaw.move_jp(np.array([angles[-1]])) 
+                        if not self.debug_mode:
+                            self.arm_objs[arm_name].move_jp(target_joint_state)
+                            self.arm_objs[arm_name].jaw.move_jp(np.array([angles[-1]]))
+                        else:
+                            rospy.loginfo("Debug mode: Not moving")
 
                 rate.sleep()
 
@@ -179,10 +189,11 @@ if __name__ == "__main__":
     argv = crtk.ral.parse_argv(sys.argv[1:])  # Skip argv[0], script name
     parser = argparse.ArgumentParser(description="Replay Experiment")
 
-    parser.add_argument('-f', '--parent_folder', type=str, default="/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Collaborative Expert Two Handed Object Transfer", help="Parent folder containing the demo data")
+    parser.add_argument('-f', '--parent_folder', type=str, default="/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Object-Transfer", help="Parent folder containing the demo data")
     parser.add_argument('-d', '--demo_name', type=str, required=True, help="Demo name to replay")
     parser.add_argument('-r', '--reposition_ecm', action='store_true', help="Reposition ECM if this flag is provided")
     parser.add_argument('-n', '--num_arms', type=int, default=2, help="Number of arms to replay (default: 3)")
+    parser.add_argument('-D', '--debug_mode', action='store_true', help="Enable debug mode (default: False)")
 
     args = parser.parse_args(argv)
     parent_folder = args.parent_folder
@@ -215,11 +226,12 @@ if __name__ == "__main__":
         csv_file = f"{parent_folder}/{demo_name}/data.csv"
 
         replay_exp_config_dict = {"csv_file": csv_file,
-                                  "arm_names": ["PSM1", "PSM2", "PSM3"],
+                                  "arm_names": ["PSM1", "PSM2"],
                                   "ros_freq": 30,
                                   "arm_objs": initializer.arm_objs,
-                                  "initial_joint_state_dicrepancy_tolerance": 0.4 # Used to check if the initial measured joint state is too far from the target joint state from the csv file
-                                  }  # Specify the arm name if needed
+                                  "initial_joint_state_dicrepancy_tolerance": 0.4,
+                                  "debug_mode": args.debug_mode
+                                  }
 
         replay_exp = ReplayExperiment(ral, replay_exp_config_dict)
         replay_exp.run()
