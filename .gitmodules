@@ -1,3 +1,6 @@
 [submodule "Models/Adapt-ACT"]
 	path = Models/Adapt-ACT
 	url = git@github.com:ZooeyHe/Adapt-ACT.git
+[submodule "Models/mlcore"]
+	path = Models/mlcore
+	url = git@github.com:ZooeyHe/mlcore.git
