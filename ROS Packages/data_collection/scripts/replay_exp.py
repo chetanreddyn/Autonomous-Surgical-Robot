@@ -179,7 +179,7 @@ if __name__ == "__main__":
     argv = crtk.ral.parse_argv(sys.argv[1:])  # Skip argv[0], script name
     parser = argparse.ArgumentParser(description="Replay Experiment")
 
-    parser.add_argument('-f', '--parent_folder', type=str, default="/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Initial Samples/", help="Parent folder containing the demo data")
+    parser.add_argument('-f', '--parent_folder', type=str, default="/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Collaborative Expert Two Handed Object Transfer", help="Parent folder containing the demo data")
     parser.add_argument('-d', '--demo_name', type=str, required=True, help="Demo name to replay")
     parser.add_argument('-r', '--reposition_ecm', action='store_true', help="Reposition ECM if this flag is provided")
     parser.add_argument('-n', '--num_arms', type=int, default=2, help="Number of arms to replay (default: 3)")

@@ -216,7 +216,7 @@ if __name__ == "__main__":
                    "child_frames": ["ECM_ref", "PSM1_ref", "PSM2_ref", "PSM3_ref"],
                    "arm_names": ["ECM", "PSM1", "PSM2", "PSM3"],
                    "transform_lookup_wait_time": 1.0,
-                   "sleep_time_between_moves": 1.0,
+                   "sleep_time_between_moves": 0.7,
                    "ros_freq": 10.0,
                    "reposition_ecm": True,
                    "position_diff_threshold": 0.04
