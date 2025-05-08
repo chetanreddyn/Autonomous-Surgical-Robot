@@ -1,0 +1,9 @@
+<launch>
+    <node pkg="rollout" type="rollout_node.py" name="rollout_node" output="screen">
+        <param name="train_dir" value="path/to/train/dir/[DATE]-[TIME]_[UUID4]_train" />
+        <param name="ckpt_strategy" value="last" />
+        <param name="rollout_len" value="100" />
+        <param name="device" value="cuda:0" />
+        <param name="safety_threshold" value="1.0" />
+    </node>
+</launch>
