@@ -31,6 +31,7 @@ class MessageSynchronizer:
         self.logging_folder = config_dict["logging_folder"]
         self.logging_description = config_dict["logging_description"]
         self.duration = config_dict["duration"]
+        self.image_size = config_dict["image_size"]
 
         self.arm_names = config_dict["arm_names"]
         
@@ -93,7 +94,7 @@ class MessageSynchronizer:
     def initialise_csv(self):
         '''
         Initialises the CSV file
-        '''
+     image_size   '''
         with open(self.csv_file, 'w', newline='') as file:
             writer = csv.writer(file)
             writer.writerow(self.csv_columns)
@@ -246,6 +247,7 @@ class MessageSynchronizer:
         timestamp = self.process_timestamp(msg.header.stamp)
         image_path = os.path.join(self.image_save_folder, f'{camera_name}_{timestamp}.png')
         cv_image_reshaped = cv2.resize(cv_image, None, fx=0.3,fy=0.3)
+        assert cv_image_reshaped.shape[:2] == self.image_size
         cv2.imwrite(image_path, cv_image_reshaped)
         # print(cv_image.shape)
         # rospy.loginfo("Saved image to %s", image_path)
@@ -334,7 +336,7 @@ if __name__ == '__main__':
     parser.add_argument('-d','--logging_description',type=str,required=True,
                         help='Description of the data collection')
     
-    parser.add_argument('-n','--logging_folder',type=str,default="/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Collaborative Expert Two Handed Object Transfer/",
+    parser.add_argument('-n','--logging_folder',type=str,default="/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Initial Samples/",
                         help='Logging Folder')
     
     parser.add_argument('-T','--duration',type=int,default=15,
@@ -365,6 +367,7 @@ if __name__ == '__main__':
         "logging_description":args.logging_description,
         "logging_folder":args.logging_folder,
         "arm_names": ["PSM1", "PSM2", "PSM3"],
+        "image_size": (324,576),
         "duration":args.duration
     }
     meta_file_dict = {}
@@ -383,6 +386,7 @@ if __name__ == '__main__':
     meta_file_dict["phantom_omni_scale"] = 0.4 
     meta_file_dict["initial_pose_json_path"] = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot/ROS Packages/data_collection/utils_config/initial_pose_with_suj.json"
     meta_file_dict["Brightness"] = 70
+    meta_file_dict["Image Size"] = csv_generator_config_dict["image_size"]
     meta_file_dict["duration"] = csv_generator_config_dict["duration"]
 
     
