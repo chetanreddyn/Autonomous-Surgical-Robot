@@ -153,7 +153,7 @@ if __name__ == "__main__":
     rospy.init_node("check_initial_pose", anonymous=True)
 
     parser = argparse.ArgumentParser(description="Check transforms or SUJ joint angles.")
-    parser.add_argument("--type", choices=["transforms", "joint_angles"], required=True,
+    parser.add_argument("--type", choices=["transforms", "joint_angles"], default="transforms",
                         help="Type of checker to run: 'transforms' or 'SUJ_joint_angles'")
     args = parser.parse_args()
 
