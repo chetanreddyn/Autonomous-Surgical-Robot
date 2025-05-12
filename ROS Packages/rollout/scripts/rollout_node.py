@@ -30,6 +30,7 @@ class RolloutController:
         self.step_frequency = config_dict["step_frequency"]
         self.guardrail_thresholds = config_dict["guardrail_thresholds"]
         self.debug_mode = config_dict["debug_mode"]
+        self.loginfo = config_dict["loginfo"]
         # Initialize dVRK arm objects
         self.arm_objs = self.initialize_arm_objs(ral)  # Will be used to move the arms later
 
@@ -189,7 +190,9 @@ class RolloutController:
             step += 1
             ti = rospy.get_time()
             time_stamp = ti - t0
-            rospy.loginfo(f"Time: {time_stamp:.2f} | Step {step}/{self.rollout_len} completed.")
+
+            if self.loginfo:
+                rospy.loginfo(f"Time: {time_stamp:.2f} | Step {step}/{self.rollout_len} completed.")
 
 
 if __name__ == "__main__":
@@ -198,13 +201,14 @@ if __name__ == "__main__":
     default_train_dir = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Models/trained_on_single_human_demos/Joint Control/20250503-191543_masterful-rat_train"
     parser.add_argument("--train_dir", type=str, default=default_train_dir, help="Path to the training directory")
     parser.add_argument("--ckpt_strategy", type=str, default="best", help="Checkpoint strategy: 'best', 'last', or 'none'")
-    parser.add_argument("--rollout_len", type=int, default=800, help="Rollout length")
+    parser.add_argument("-T", "--rollout_len", type=int, default=800, help="Rollout length")
     parser.add_argument("--device", type=str, default="cuda:0", help="Device to use: 'cpu' or 'cuda:X'")
     parser.add_argument("--step_frequency", type=int, default=30, help="Frequency of steps in Hz")
     parser.add_argument("--debug_mode", action="store_true", help="Enable debug mode")
+    parser.add_argument("--loginfo", action="store_true", help="Enable loginfo mode")
 
-    args = parser.parse_args()
-
+    args, unknown = parser.parse_known_args()
+    rospy.sleep(1)
     config_dict = {
         "train_dir": args.train_dir,
         "ckpt_strategy": args.ckpt_strategy,
@@ -215,7 +219,8 @@ if __name__ == "__main__":
         "image_size": (324, 576),
         "step_frequency": args.step_frequency,
         "guardrail_thresholds": np.array([0.5, 0.4, 0.4, 1.0, 0.4, 0.4, 1.2]),
-        "debug_mode": args.debug_mode
+        "debug_mode": args.debug_mode,
+        "loginfo": args.loginfo
     }
     ral = crtk.ral('RolloutNode')
 
