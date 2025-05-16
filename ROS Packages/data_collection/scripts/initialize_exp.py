@@ -110,6 +110,7 @@ class ExperimentInitializer:
         :return: PyKDL.Frame object representing the transform.
         """
         try:
+            # Our reference frames are published as tf frames
             transform = self.tf_buffer.lookup_transform(parent_frame, child_frame, rospy.Time(0), rospy.Duration(1.0))
             translation = transform.transform.translation
             rotation = transform.transform.rotation
@@ -154,23 +155,28 @@ class ExperimentInitializer:
                 rospy.loginfo("Moving {}".format(arm_name))
                 arm_obj.move_cp(goal).wait(True)
 
+    def open_jaws(self):
+        # open the jaws
+        for arm_name in self.arm_names:
+            if arm_name == "ECM":
+                continue
+            arm_obj = self.arm_objs[arm_name]
+            jaw_name = self.jaw_names[arm_name]
 
-    def run(self):
-        """
-        Run the experiment initialization process.
-        """
-        rospy.loginfo("Initializing experiment...")
-        rospy.sleep(self.sleep_time_between_moves)
-        # Publish transform from ECM_ref to PSM1_ref as ECM to PSM1
+            arm_obj.jaw.move_jp(np.array([2*np.pi/3]))
+            rospy.loginfo(f"Opened {arm_name} jaw")
+            rospy.sleep(self.sleep_time_between_moves)
 
+            if rospy.is_shutdown():
+                rospy.logerr("Interrupted. Shutting down experiment initializer")
+                return False
+            
+        return True
 
-        
-        if not self.loaded_transforms:
-            rospy.logerr("Reference Transforms not loaded successfully. Cannot proceed.")
-            return False
-        
+    def initialize_arms(self):
+        # Moves the arms in self.arm_names to the loaded reference transforms
         for i in range(self.num_transforms):
-    
+              
             parent_frame = self.parent_frames[i]
             child_frame = self.child_frames[i]
             arm_name = self.arm_names[i]
@@ -182,7 +188,10 @@ class ExperimentInitializer:
             if rospy.is_shutdown():
                 rospy.logerr("Interrupted. Shutting down experiment initializer")
                 return False
+            
+        return True
 
+    def initialise_jaw_angles(self):
         rospy.Subscriber("jaw_angles_ref", JointState, self.jaw_angles_callback)
 
         while not self.loaded_jaw_angles and not rospy.is_shutdown():
@@ -204,6 +213,34 @@ class ExperimentInitializer:
             if rospy.is_shutdown():
                 rospy.logerr("Interrupted. Shutting down experiment initializer")
                 return False
+            
+        return True
+            
+    def run(self):
+        """
+        Run the experiment initialization process.
+        """
+        rospy.loginfo("Initializing experiment...")
+        rospy.sleep(self.sleep_time_between_moves)
+        # Publish transform from ECM_ref to PSM1_ref as ECM to PSM1
+
+
+        
+        if not self.loaded_transforms:
+            rospy.logerr("Reference Transforms not loaded successfully. Cannot proceed.")
+            return False
+
+        success = self.open_jaws()
+        if not success:
+            return False
+        
+        success = self.initialize_arms()
+        if not success:
+            return False
+
+        success = self.initialise_jaw_angles()
+        if not success:
+            return False
 
         rospy.loginfo("Experiment initialization complete.")
         return True
