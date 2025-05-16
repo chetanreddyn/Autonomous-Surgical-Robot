@@ -12,6 +12,7 @@ import crtk
 import pickle
 import torch
 import numpy as np
+import os
 from message_filters import Subscriber, ApproximateTimeSynchronizer
 
 
@@ -23,6 +24,7 @@ class RolloutController:
         # Load parameters from argparse arguments
         self.train_dir = config_dict["train_dir"]
         self.ckpt_strategy = config_dict["ckpt_strategy"]
+        self.ckpt_path = config_dict["ckpt_path"]
         self.rollout_len = config_dict["rollout_len"]
         self.device = config_dict["device"]
         self.arm_names = config_dict["arm_names"]
@@ -31,6 +33,7 @@ class RolloutController:
         self.guardrail_thresholds = config_dict["guardrail_thresholds"]
         self.debug_mode = config_dict["debug_mode"]
         self.loginfo = config_dict["loginfo"]
+        self.automated_arms = config_dict["automated_arms"]
         # Initialize dVRK arm objects
         self.arm_objs = self.initialize_arm_objs(ral)  # Will be used to move the arms later
 
@@ -38,6 +41,7 @@ class RolloutController:
         self.controller = AutonomousController.from_train_dir(
             train_dir=self.train_dir,
             ckpt_strategy=self.ckpt_strategy,
+            ckpt_path = self.ckpt_path,
             rollout_len=self.rollout_len,
             device=self.device
         )
@@ -139,32 +143,38 @@ class RolloutController:
         """
         # Example of how to process the action
         for i, arm_name in enumerate(self.arm_names):
-            joint_positions = action[7*i: 7*(i + 1)]
+            if arm_name in self.automated_arms:
+                if len(action)!=7*len(self.arm_names):
+                    rospy.logerr(f"Length of model output must be 7*{len(self.arm_names)} i.e 7*num_arms but is {len(action)}")
+                    continue
 
-            measured_joint_state = np.array(self.arm_objs[arm_name].measured_js()[0])
-            measured_jaw_state = np.array(self.arm_objs[arm_name].jaw.measured_js()[0])
-            measured_joint_state = np.concatenate([measured_joint_state, measured_jaw_state])
+                joint_positions = action[7*i: 7*(i + 1)] # Assumes the order PSM1, PSM2, PSM3
 
-            target_joint_state = joint_positions
-            # print(initial_joint_state.round(2),target_joint_state.round(2))
-            diff = np.abs(measured_joint_state - target_joint_state)
-            # rospy.loginfo(str(measured_joint_state[3].round(2)) + arm_name)
+                measured_joint_state = np.array(self.arm_objs[arm_name].measured_js()[0])
+                measured_jaw_state = np.array(self.arm_objs[arm_name].jaw.measured_js()[0])
+                measured_joint_state = np.concatenate([measured_joint_state, measured_jaw_state])
+
+                target_joint_state = joint_positions
+                # print(initial_joint_state.round(2),target_joint_state.round(2))
+                diff = np.abs(measured_joint_state - target_joint_state)
+                # rospy.loginfo(str(measured_joint_state[3].round(2)) + arm_name)
 
 
-            if np.any(diff > self.guardrail_thresholds):
-                diff_joints = np.where(diff > self.guardrail_thresholds)[0]
-                # rospy.logfatal(f"Joint state discrepancy for {arm_name} is too large at joint {diff_joints} | diff : {np.round(diff,2)}")
-                continue
+                if np.any(diff > self.guardrail_thresholds):
+                    diff_joints = np.where(diff > self.guardrail_thresholds)[0]
+                    rospy.logwarn(f"Joint state discrepancy for {arm_name} is too large at joint {diff_joints} | diff : {np.round(diff,2)}")
+                    # continue
 
-            if not self.debug_mode:
-                self.arm_objs[arm_name].move_jp(joint_positions[:-1])
-                self.arm_objs[arm_name].jaw.move_jp(np.array([joint_positions[-1]]))
+                if not self.debug_mode:
+                    self.arm_objs[arm_name].move_jp(joint_positions[:-1])
+                    self.arm_objs[arm_name].jaw.move_jp(np.array([joint_positions[-1]]))
 
 
     def run(self):
         """
         Main loop to perform rollout using the AutonomousController.
         """
+
         rospy.loginfo("Starting rollout...")
         self.controller.reset()
         rate = rospy.Rate(self.step_frequency)
@@ -178,12 +188,9 @@ class RolloutController:
                 continue
 
             # Perform a step of the autonomous controller
-            try:
-                action = self.controller.step(images, qpos)
-                self.process_action(action)
-            except RuntimeError as e:
-                rospy.logerr(f"Error during rollout: {e}")
-                break
+            print(qpos.shape)
+            action = self.controller.step(images, qpos)
+            self.process_action(action)
 
 
             rate.sleep()
@@ -198,7 +205,8 @@ class RolloutController:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Rollout Node for AutonomousController")
 
-    default_train_dir = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Models/trained_on_single_human_demos/Joint Control/20250503-191543_masterful-rat_train"
+    default_train_dir = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Models/3_trained_on_expert_collab_demos-20250513T003747Z-001/3_trained_on_expert_collab_demos/Joint Control/20250504-153048_elegant-platypus_train"
+    # default_train_dir = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Models/trained_on_single_human_demos/Joint Control/20250503-191543_masterful-rat_train"
     parser.add_argument("--train_dir", type=str, default=default_train_dir, help="Path to the training directory")
     parser.add_argument("--ckpt_strategy", type=str, default="best", help="Checkpoint strategy: 'best', 'last', or 'none'")
     parser.add_argument("-T", "--rollout_len", type=int, default=800, help="Rollout length")
@@ -206,21 +214,41 @@ if __name__ == "__main__":
     parser.add_argument("--step_frequency", type=int, default=30, help="Frequency of steps in Hz")
     parser.add_argument("--debug_mode", action="store_true", help="Enable debug mode")
     parser.add_argument("--loginfo", action="store_true", help="Enable loginfo mode")
+    parser.add_argument("-a1", default=None, help = "Arm1 to Automate")
+    parser.add_argument("-a2", default=None, help = "Arm2 to Automate")
 
     args, unknown = parser.parse_known_args()
     rospy.sleep(1)
+    if not args.a1 and not args.a2:
+        automated_arms = ["PSM1", "PSM2"]
+
+    elif args.a1 and not args.a2:
+        automated_arms = [args.a1]
+    
+    elif not args.a1 and args.a2:
+        automated_arms = [args.a2]
+    
+    else:
+        automated_arms = [args.a1, args.a2]
+
+    print(automated_arms)
+
+
     config_dict = {
         "train_dir": args.train_dir,
         "ckpt_strategy": args.ckpt_strategy,
+        "ckpt_path": os.path.join(args.train_dir, "policy_epoch_20000_seed_0.ckpt"),
+        # "ckpt_path": os.path.join(args.train_dir, "policy_best_13933.ckpt"),
         "rollout_len": args.rollout_len,
         "device": args.device,
         "arm_names": ["PSM1", "PSM2"],
         "node_name": "rollout_node",
         "image_size": (324, 576),
         "step_frequency": args.step_frequency,
-        "guardrail_thresholds": np.array([0.5, 0.4, 0.4, 1.0, 0.4, 0.4, 1.2]),
+        "guardrail_thresholds": np.array([0.5, 0.4, 0.4, 1.2, 0.6, 0.4, 2.5]),
         "debug_mode": args.debug_mode,
-        "loginfo": args.loginfo
+        "loginfo": args.loginfo,
+        "automated_arms": automated_arms
     }
     ral = crtk.ral('RolloutNode')
 

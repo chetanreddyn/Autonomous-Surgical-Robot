@@ -24,7 +24,7 @@ class MessageSynchronizer:
         rospy.init_node('csv_generator', anonymous=True)
 
         self.queue_size = 10
-        self.slop = 0.1
+        self.slop = 0.3
         # self.time_prev = time.time()
         self.topics = config_dict["topics"]
         self.time_format = config_dict["time_format"]
@@ -32,6 +32,7 @@ class MessageSynchronizer:
         self.logging_description = config_dict["logging_description"]
         self.duration = config_dict["duration"]
         self.image_size = config_dict["image_size"]
+        self.loginfo = config_dict["loginfo"]
 
         self.arm_names = config_dict["arm_names"]
         
@@ -106,7 +107,9 @@ class MessageSynchronizer:
         # self.time_prev = time.time()
         self.time_milli = self.time_sec*1000
         duration = self.time_milli - self.prev_time_milli
-        rospy.loginfo("Time elapsed in milliseconds: {:.0f} | Duration: {:.0f}".format(self.time_milli,duration))
+        if self.loginfo:
+            rospy.loginfo("RECORDING DATA: Time elapsed (ms): {:.0f}/{:4.0f} | Duration: {:.0f}".format(self.time_milli,self.duration*1000,duration))
+
         self.prev_time_milli = self.time_sec*1000
 
         if self.time_sec>self.duration:
@@ -336,14 +339,19 @@ if __name__ == '__main__':
     parser.add_argument('-d','--logging_description',type=str,required=True,
                         help='Description of the data collection')
     
-    parser.add_argument('-n','--logging_folder',type=str,default="/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Initial Samples/",
+    parser.add_argument('-n','--logging_folder',type=str,default="/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Rollouts Object Transfer",
                         help='Logging Folder')
     
     parser.add_argument('-T','--duration',type=int,default=15,
                         help='Duration of the experiment in seconds')
     
-    args = parser.parse_args(argv)
+    parser.add_argument('--loginfo', action="store_true", help="Enable loginfo mode")
+    
+    args, unknown = parser.parse_known_args()
 
+    if args.logging_folder=="/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Initial Samples":
+        rospy.logwarn("Logging Folder set to default 'Initial Samples'")
+    
     topics = [
         ("/PSM1/setpoint_cp", PoseStamped),
         ("/PSM1/setpoint_js", JointState),
@@ -368,7 +376,8 @@ if __name__ == '__main__':
         "logging_folder":args.logging_folder,
         "arm_names": ["PSM1", "PSM2", "PSM3"],
         "image_size": (324,576),
-        "duration":args.duration
+        "duration":args.duration,
+        "loginfo":args.loginfo
     }
     meta_file_dict = {}
     meta_file_dict["logging_description"] = csv_generator_config_dict["logging_description"]

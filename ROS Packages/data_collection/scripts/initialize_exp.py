@@ -26,7 +26,7 @@ class ExperimentInitializer:
         self.ecm_name = config_dict['arm_names'][0]
         self.arm1_name = config_dict['arm_names'][1]
         self.arm2_name = config_dict['arm_names'][2]
-        self.arm3_name = config_dict['arm_names'][3]
+        # self.arm3_name = config_dict['arm_names'][3]
 
         self.num_transforms = len(config_dict['parent_frames'])
         self.parent_frames = config_dict['parent_frames']
@@ -39,12 +39,13 @@ class ExperimentInitializer:
         self.transform_lookup_wait_time = config_dict['transform_lookup_wait_time']
         self.arm1 = dvrk.psm(ral, self.arm1_name)
         self.arm2 = dvrk.psm(ral, self.arm2_name)
-        self.arm3 = dvrk.psm(ral, self.arm3_name)
+        # self.arm3 = dvrk.psm(ral, self.arm3_name)
         self.ecm = dvrk.ecm(ral, self.ecm_name) # Arm 3 is ECM
 
-        self.arm_objs = {self.arm1_name: self.arm1, self.arm2_name: self.arm2,
-                         self.arm3_name: self.arm3, self.ecm_name: self.ecm}
+        # self.arm_objs = {self.arm1_name: self.arm1, self.arm2_name: self.arm2,
+        #                  self.arm3_name: self.arm3, self.ecm_name: self.ecm}
         
+        self.arm_objs = {self.arm1_name: self.arm1, self.arm2_name: self.arm2, self.ecm_name: self.ecm}
         self.move_cp_goals_received = False
         self.move_cp_goals = None # PyKDL.Frame() type transforms to send to move_cp topic
 
@@ -212,14 +213,14 @@ if __name__ == "__main__":
     # rospy.init_node("experiment_initializer", anonymous=True)
 
     # Configuration dictionary
-    config_dict = {"parent_frames": ["Cart", "ECM_ref", "ECM_ref", "ECM_ref"],
-                   "child_frames": ["ECM_ref", "PSM1_ref", "PSM2_ref", "PSM3_ref"],
-                   "arm_names": ["ECM", "PSM1", "PSM2", "PSM3"],
+    config_dict = {"parent_frames": ["Cart", "ECM_ref", "ECM_ref"],
+                   "child_frames": ["ECM_ref", "PSM1_ref", "PSM2_ref"],
+                   "arm_names": ["ECM", "PSM1", "PSM2"],
                    "transform_lookup_wait_time": 1.0,
-                   "sleep_time_between_moves": 0.7,
+                   "sleep_time_between_moves": 1,
                    "ros_freq": 10.0,
                    "reposition_ecm": True,
-                   "position_diff_threshold": 0.04
+                   "position_diff_threshold": 0.06
     }
 
     ral = crtk.ral('experiment_initializer')

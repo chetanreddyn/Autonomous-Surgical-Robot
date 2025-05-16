@@ -101,7 +101,7 @@ class ReplayExperiment:
                 rospy.loginfo(f"Elapsed time: {elapsed_time:.2f} s | Step: {t+1}/{trajectory_length}")
     
                 # Move each arm to the specified joint angles
-                for arm_name in joint_angles_trajectories.keys():
+                for arm_name in self.arm_names:
                     angles = joint_angles_trajectories[arm_name][t]
                     # rospy.loginfo(f"Moving {arm_name} to joint angles: {angles}")
 
@@ -189,7 +189,7 @@ if __name__ == "__main__":
     argv = crtk.ral.parse_argv(sys.argv[1:])  # Skip argv[0], script name
     parser = argparse.ArgumentParser(description="Replay Experiment")
 
-    parser.add_argument('-f', '--parent_folder', type=str, default="/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Object-Transfer", help="Parent folder containing the demo data")
+    parser.add_argument('-f', '--parent_folder', type=str, default="/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Rollouts Object Transfer", help="Parent folder containing the demo data")
     parser.add_argument('-d', '--demo_name', type=str, required=True, help="Demo name to replay")
     parser.add_argument('-r', '--reposition_ecm', action='store_true', help="Reposition ECM if this flag is provided")
     parser.add_argument('-n', '--num_arms', type=int, default=2, help="Number of arms to replay (default: 3)")
@@ -201,9 +201,9 @@ if __name__ == "__main__":
     reposition_ecm = args.reposition_ecm
 
     # Configuration dictionary
-    exp_initialiser_config_dict = {"parent_frames": ["Cart", "ECM_ref", "ECM_ref", "ECM_ref"],
-                   "child_frames": ["ECM_ref", "PSM1_ref", "PSM2_ref", "PSM3_ref"],
-                   "arm_names": ["ECM", "PSM1", "PSM2", "PSM3"],
+    exp_initialiser_config_dict = {"parent_frames": ["Cart", "ECM_ref", "ECM_ref"],
+                   "child_frames": ["ECM_ref", "PSM1_ref", "PSM2_ref"],
+                   "arm_names": ["ECM", "PSM1", "PSM2"],
                    "transform_lookup_wait_time": 1.0,
                    "sleep_time_between_moves": 1.0,
                    "ros_freq": 10.0,
@@ -229,7 +229,7 @@ if __name__ == "__main__":
                                   "arm_names": ["PSM1", "PSM2"],
                                   "ros_freq": 30,
                                   "arm_objs": initializer.arm_objs,
-                                  "initial_joint_state_dicrepancy_tolerance": 0.4,
+                                  "initial_joint_state_dicrepancy_tolerance": 1,
                                   "debug_mode": args.debug_mode
                                   }
 

@@ -1,9 +1,30 @@
 <launch>
-    <node pkg="rollout" type="rollout_node.py" name="rollout_node" output="screen">
-        <param name="train_dir" value="path/to/train/dir/[DATE]-[TIME]_[UUID4]_train" />
-        <param name="ckpt_strategy" value="last" />
-        <param name="rollout_len" value="100" />
-        <param name="device" value="cuda:0" />
-        <param name="safety_threshold" value="1.0" />
-    </node>
+    <!-- Define arguments -->
+    <arg name="log" default="false" />
+    <arg name="rollout" default="true" />
+    <arg name="logging_description" default="SEE" />
+    <arg name="logging_folder" default="/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Initial Samples"/>
+    <arg name="duration" default="15"/>
+    <arg name="a1" default="PSM2"/>
+
+
+    <!-- Rollout arguments -->
+    <arg name="train_dir" default="/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Models/trained_on_single_human_demos/Joint Control/20250503-191543_masterful-rat_train"/>
+    <arg name="rollout_len" default="450"/>
+
+    <!-- Conditional launch of the csv_generator node -->
+    <group if="$(arg log)">
+        <node pkg="data_collection" type="csv_generator.py" name="csv_generator" output="screen" required="true"
+            args='-d $(arg logging_description) --logging_folder "$(arg logging_folder)" --loginfo -T $(arg duration)'>
+        </node>
+        <node pkg="rollout" type="rollout_node.py" name="rollout_with_recording" output="screen" required="true"
+            args='--train_dir "$(arg train_dir)" --a1 $(arg a1)'>       
+        </node>
+    </group>
+
+    <group unless="$(arg log)">
+        <node pkg="rollout" type="rollout_node.py" name="rollout_without_recording" output="screen" required="true"
+            args='--train_dir "$(arg train_dir)" --loginfo --rollout_len $(arg duration) --a1 $(arg a1)'/>
+    </group>
+
 </launch>
