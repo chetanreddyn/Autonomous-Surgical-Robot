@@ -21,7 +21,6 @@ import numpy as np
 
 class MessageSynchronizer:
     def __init__(self, config_dict):
-        rospy.init_node('csv_generator', anonymous=True)
 
         self.queue_size = 10
         self.slop = 0.3
@@ -33,6 +32,8 @@ class MessageSynchronizer:
         self.duration = config_dict["duration"]
         self.image_size = config_dict["image_size"]
         self.loginfo = config_dict["loginfo"]
+        self.rollout = config_dict["rollout"]
+        self.exp_done = False
 
         self.arm_names = config_dict["arm_names"]
         
@@ -51,10 +52,18 @@ class MessageSynchronizer:
         self.create_subscribers()
 
         # Synchronize the topics
+        if self.rollout:
+            rollout_started = False
+            while not rollout_started:
+                rollout_started = rospy.get_param("rollout_started", False) # Default value is False
+                rospy.loginfo("Waiting for rollout node to start...")
+
+                if not rollout_started:
+                    rospy.sleep(0.1)
 
         self.create_logging_folders()
         self.initialise_csv()
-
+        rospy.set_param("recording_started", True) # Reset the parameter to False
         self.ats = ApproximateTimeSynchronizer(self.subscribers, queue_size=self.queue_size, slop=self.slop)
         self.ats.registerCallback(self.callback)
 
@@ -105,17 +114,21 @@ class MessageSynchronizer:
         # rospy.loginfo("Synchronized messages received")
         # self.duration = time.time() - self.time_prev
         # self.time_prev = time.time()
+
+        if self.time_sec>self.duration:
+            if not self.exp_done:
+                rospy.loginfo("Experiment Duration Completed. Stopping the logging, restart the launch file to start a new experiment")
+                self.exp_done = True
+            # rospy.signal_shutdown("Duration exceeded")
+            return
+        
         self.time_milli = self.time_sec*1000
         duration = self.time_milli - self.prev_time_milli
         if self.loginfo:
-            rospy.loginfo("RECORDING DATA: Time elapsed (ms): {:.0f}/{:4.0f} | Duration: {:.0f}".format(self.time_milli,self.duration*1000,duration))
+            rospy.loginfo("RECORDING DATA: Time elapsed (s): {:.3f} /{:2.0f} | Duration: {:.0f}".format(self.time_milli/1000, self.duration, duration))
 
         self.prev_time_milli = self.time_sec*1000
 
-        if self.time_sec>self.duration:
-            rospy.loginfo("Experiment Duration Completed. Stopping the logging.")
-            rospy.signal_shutdown("Duration exceeded")
-            return
                     # for msg in msgs:
         #     rospy.loginfo("Message timestamp: %s", msg.header.stamp.nsecs)
         # Add your processing code here
@@ -197,9 +210,9 @@ class MessageSynchronizer:
                 
                 row.extend(image_path)
 
-        # print(len(row))
+        # print(len(row))rollout_lens):
         if len(row) != len(self.csv_columns):
-            rospy.logwarn("Row length does not match the column length, NOT LOGGING")
+            rospy.logwarn("Row length does not match the number of columns, NOT LOGGING")
             return
         else:      
             self.write_csv_row(row)
@@ -331,6 +344,10 @@ class MessageSynchronizer:
 
 
 if __name__ == '__main__':
+    rospy.init_node('csv_generator', anonymous=True)
+
+    LOGGING_FOLDER = rospy.get_param("LOGGING_FOLDER", "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Initial Samples/")
+
     # List of topics and their message types
     argv = crtk.ral.parse_argv(sys.argv[1:])  # Skip argv[0], script name
 
@@ -339,17 +356,16 @@ if __name__ == '__main__':
     parser.add_argument('-d','--logging_description',type=str,required=True,
                         help='Description of the data collection')
     
-    parser.add_argument('-n','--logging_folder',type=str,default="/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Rollouts Object Transfer",
-                        help='Logging Folder')
     
-    parser.add_argument('-T','--duration',type=int,default=15,
+    parser.add_argument('-T', '--duration',type=int,default=15,
                         help='Duration of the experiment in seconds')
     
     parser.add_argument('--loginfo', action="store_true", help="Enable loginfo mode")
-    
+    parser.add_argument('--rollout', action="store_true", help="Enable rollout mode")
+
     args, unknown = parser.parse_known_args()
 
-    if args.logging_folder=="/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Initial Samples":
+    if LOGGING_FOLDER=="/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Initial Samples":
         rospy.logwarn("Logging Folder set to default 'Initial Samples'")
     
     topics = [
@@ -373,11 +389,12 @@ if __name__ == '__main__':
         "topics": topics,
         "time_format":"%Y-%m-%d %H:%M:%S.%f",
         "logging_description":args.logging_description,
-        "logging_folder":args.logging_folder,
+        "logging_folder":LOGGING_FOLDER,
         "arm_names": ["PSM1", "PSM2", "PSM3"],
         "image_size": (324,576),
-        "duration":args.duration,
-        "loginfo":args.loginfo
+        "duration": args.duration,
+        "loginfo": args.loginfo,
+        "rollout": args.rollout
     }
     meta_file_dict = {}
     meta_file_dict["logging_description"] = csv_generator_config_dict["logging_description"]

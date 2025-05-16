@@ -119,7 +119,6 @@ class ReplayExperiment:
                         rospy.logwarn(f"Joint state discrepancy for {arm_name} exceeds tolerance at joint {diff_joint} | max joint discrepancy {diff:.2f}")
 
                     else:
-                        # rospy.loginfo(f"seeeee")
                         if not self.debug_mode:
                             self.arm_objs[arm_name].move_jp(target_joint_state)
                             self.arm_objs[arm_name].jaw.move_jp(np.array([angles[-1]]))
@@ -189,14 +188,13 @@ if __name__ == "__main__":
     argv = crtk.ral.parse_argv(sys.argv[1:])  # Skip argv[0], script name
     parser = argparse.ArgumentParser(description="Replay Experiment")
 
-    parser.add_argument('-f', '--parent_folder', type=str, default="/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Rollouts Object Transfer", help="Parent folder containing the demo data")
+    PARENT_FOLDER = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Rollouts Collaborative/"
     parser.add_argument('-d', '--demo_name', type=str, required=True, help="Demo name to replay")
     parser.add_argument('-r', '--reposition_ecm', action='store_true', help="Reposition ECM if this flag is provided")
     parser.add_argument('-n', '--num_arms', type=int, default=2, help="Number of arms to replay (default: 3)")
     parser.add_argument('-D', '--debug_mode', action='store_true', help="Enable debug mode (default: False)")
 
     args = parser.parse_args(argv)
-    parent_folder = args.parent_folder
     demo_name = args.demo_name
     reposition_ecm = args.reposition_ecm
 
@@ -223,13 +221,13 @@ if __name__ == "__main__":
 
         print_replay_starting_text()
 
-        csv_file = f"{parent_folder}/{demo_name}/data.csv"
+        csv_file = f"{PARENT_FOLDER}/{demo_name}/data.csv"
 
         replay_exp_config_dict = {"csv_file": csv_file,
                                   "arm_names": ["PSM1", "PSM2"],
                                   "ros_freq": 30,
                                   "arm_objs": initializer.arm_objs,
-                                  "initial_joint_state_dicrepancy_tolerance": 1,
+                                  "initial_joint_state_dicrepancy_tolerance": 1.1,
                                   "debug_mode": args.debug_mode
                                   }
 

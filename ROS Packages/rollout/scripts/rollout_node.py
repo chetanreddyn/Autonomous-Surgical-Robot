@@ -13,6 +13,8 @@ import pickle
 import torch
 import numpy as np
 import os
+import shutil
+import sys
 from message_filters import Subscriber, ApproximateTimeSynchronizer
 
 
@@ -34,6 +36,8 @@ class RolloutController:
         self.debug_mode = config_dict["debug_mode"]
         self.loginfo = config_dict["loginfo"]
         self.automated_arms = config_dict["automated_arms"]
+        self.record = config_dict["record"]
+
         # Initialize dVRK arm objects
         self.arm_objs = self.initialize_arm_objs(ral)  # Will be used to move the arms later
 
@@ -55,23 +59,71 @@ class RolloutController:
         self.joint_positions = {arm_name: None for arm_name in self.arm_names}
         self.jaw_angles = {arm_name: None for arm_name in self.arm_names}
 
-        # Create subscribers for synchronized topics
-        self.camera_right_sub = Subscriber("/camera_right/image_raw", Image)
-        self.camera_left_sub = Subscriber("/camera_left/image_raw", Image)
-        self.joint_state_subs = [
-            Subscriber(f"/{arm_name}/setpoint_js", JointState) for arm_name in self.arm_names
-        ]
-        self.jaw_angle_subs = [
-            Subscriber(f"/{arm_name}/jaw/setpoint_js", JointState) for arm_name in self.arm_names
-        ]
+        # # Create subscribers for synchronized topics
+        # self.camera_right_sub = Subscriber("/camera_right/image_raw", Image)
+        # self.camera_left_sub = Subscriber("/camera_left/image_raw", Image)
+        # self.joint_state_subs = [
+        #     Subscriber(f"/{arm_name}/setpoint_js", JointState) for arm_name in self.arm_names
+        # ]
+        # self.jaw_angle_subs = [
+        #     Subscriber(f"/{arm_name}/jaw/setpoint_js", JointState) for arm_name in self.arm_names
+        # ]
 
-        # Synchronize all topics
-        self.sync = ApproximateTimeSynchronizer(
-            [self.camera_right_sub, self.camera_left_sub] + self.joint_state_subs + self.jaw_angle_subs,
-            queue_size=10,
-            slop=0.1
-        )
-        self.sync.registerCallback(self.synchronized_callback)
+        # # Synchronize all topics
+        # self.sync = ApproximateTimeSynchronizer(
+        #     [self.camera_right_sub, self.camera_left_sub] + self.joint_state_subs + self.jaw_angle_subs,
+        #     queue_size=10,
+        #     slop=0.1
+        # )
+        # self.sync.registerCallback(self.synchronized_callback)
+
+        # Create individual subscribers for each camera
+        rospy.Subscriber("/camera_right/image_raw", Image, self.camera_right_callback)
+        rospy.Subscriber("/camera_left/image_raw", Image, self.camera_left_callback)
+
+        # Create individual subscribers for each arm's joint state and jaw angle
+        for arm_name in self.arm_names:
+            rospy.Subscriber(f"/{arm_name}/setpoint_js", JointState, self.joint_state_callback, callback_args=arm_name)
+            rospy.Subscriber(f"/{arm_name}/jaw/setpoint_js", JointState, self.jaw_angle_callback, callback_args=arm_name)
+
+    def camera_right_callback(self, msg):
+        """
+        Callback for the right camera image.
+        """
+        try:
+            self.camera_right_image = cv2.resize(self.bridge.imgmsg_to_cv2(msg, desired_encoding='bgr8'), self.image_size)
+            # rospy.loginfo("Received Right Image")
+        except Exception as e:
+            rospy.logerr(f"Failed to process right camera image: {e}")
+
+    def camera_left_callback(self, msg):
+        """
+        Callback for the left camera image.
+        """
+        try:
+            self.camera_left_image = cv2.resize(self.bridge.imgmsg_to_cv2(msg, desired_encoding='bgr8'), self.image_size)
+            # rospy.loginfo("Received Left Image")
+        except Exception as e:
+            rospy.logerr(f"Failed to process left camera image: {e}")
+
+    def joint_state_callback(self, msg, arm_name):
+        """
+        Callback for joint state messages.
+        """
+        try:
+            self.joint_positions[arm_name] = np.array(msg.position)
+            # rospy.loginfo("Received Joint State")
+        except Exception as e:
+            rospy.logerr(f"Failed to process joint state for {arm_name}: {e}")
+
+    def jaw_angle_callback(self, msg, arm_name):
+        """
+        Callback for jaw angle messages.
+        """
+        try:
+            self.jaw_angles[arm_name] = np.array(msg.position)
+        except Exception as e:
+            rospy.logerr(f"Failed to process jaw angle for {arm_name}: {e}")
 
     def initialize_arm_objs(self, ral):
         """
@@ -80,24 +132,24 @@ class RolloutController:
         arm_objs = {arm_name: dvrk.psm(ral, arm_name) for arm_name in self.arm_names}
         return arm_objs
 
-    def synchronized_callback(self, camera_right_msg, camera_left_msg, *joint_and_jaw_msgs):
-        """
-        Callback to process synchronized messages from all topics.
-        """
-        try:
-            # Process camera images
-            self.camera_right_image = cv2.resize(self.bridge.imgmsg_to_cv2(camera_right_msg, desired_encoding='bgr8'), self.image_size)
+    # def synchronized_callback(self, camera_right_msg, camera_left_msg, *joint_and_jaw_msgs):
+    #     """
+    #     Callback to process synchronized messages from all topics.
+    #     """
+    #     try:
+    #         # Process camera images
+    #         self.camera_right_image = cv2.resize(self.bridge.imgmsg_to_cv2(camera_right_msg, desired_encoding='bgr8'), self.image_size)
 
-            self.camera_left_image = cv2.resize(self.bridge.imgmsg_to_cv2(camera_left_msg, desired_encoding='bgr8'), self.image_size)
+    #         self.camera_left_image = cv2.resize(self.bridge.imgmsg_to_cv2(camera_left_msg, desired_encoding='bgr8'), self.image_size)
 
-            # Process joint states and jaw angles
-            num_arms = len(self.arm_names)
-            for i, arm_name in enumerate(self.arm_names):
-                self.joint_positions[arm_name] = np.array(joint_and_jaw_msgs[i].position)
-                self.jaw_angles[arm_name] = np.array(joint_and_jaw_msgs[num_arms + i].position)
+    #         # Process joint states and jaw angles
+    #         num_arms = len(self.arm_names)
+    #         for i, arm_name in enumerate(self.arm_names):
+    #             self.joint_positions[arm_name] = np.array(joint_and_jaw_msgs[i].position)
+    #             self.jaw_angles[arm_name] = np.array(joint_and_jaw_msgs[num_arms + i].position)
 
-        except Exception as e:
-            rospy.logerr(f"Failed to process synchronized messages: {e}")
+    #     except Exception as e:
+    #         rospy.logerr(f"Failed to process synchronized messages: {e}")
 
     def get_from_robot(self):
         """
@@ -126,6 +178,7 @@ class RolloutController:
             images = np.stack([self.camera_right_image, self.camera_left_image], axis=0)
         except Exception as e:
             print(self.camera_right_image.shape, self.camera_left_image.shape)
+
         # Concatenate joint positions and jaw angles from all arms into a single NumPy array
         qpos = np.concatenate([
             np.concatenate([self.joint_positions[arm_name], self.jaw_angles[arm_name]])
@@ -180,15 +233,28 @@ class RolloutController:
         rate = rospy.Rate(self.step_frequency)
         step = 0
         t0 = rospy.get_time()
+
+        if self.record:
+            rospy.set_param("rollout_started", True)
+
+            rospy.loginfo("Waiting for Recording to start...")
+            recording_started = False
+            while not recording_started:
+                recording_started = rospy.get_param("recording_started", False) # Default value is False
+                # rospy.loginfo("Waiting for recording to start...")
+                if not recording_started:
+                    rospy.sleep(0.01)
+            rospy.sleep(0.5)
+
         while not rospy.is_shutdown() and step < self.rollout_len:
             # Get images and joint positions from the robot
             images, qpos = self.get_from_robot()
             if images is None or qpos is None:
-                rospy.sleep(0.1)
+                rospy.sleep(0.01)
+                rospy.logwarn("images or qpos is none")
                 continue
 
             # Perform a step of the autonomous controller
-            print(qpos.shape)
             action = self.controller.step(images, qpos)
             self.process_action(action)
 
@@ -203,22 +269,22 @@ class RolloutController:
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Rollout Node for AutonomousController")
+    ral = crtk.ral('RolloutNode')
 
-    default_train_dir = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Models/3_trained_on_expert_collab_demos-20250513T003747Z-001/3_trained_on_expert_collab_demos/Joint Control/20250504-153048_elegant-platypus_train"
-    # default_train_dir = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Models/trained_on_single_human_demos/Joint Control/20250503-191543_masterful-rat_train"
-    parser.add_argument("--train_dir", type=str, default=default_train_dir, help="Path to the training directory")
+    TRAIN_DIR = rospy.get_param("TRAIN_DIR")
+
+    parser = argparse.ArgumentParser(description="Rollout Node for AutonomousController")
     parser.add_argument("--ckpt_strategy", type=str, default="best", help="Checkpoint strategy: 'best', 'last', or 'none'")
-    parser.add_argument("-T", "--rollout_len", type=int, default=800, help="Rollout length")
-    parser.add_argument("--device", type=str, default="cuda:0", help="Device to use: 'cpu' or 'cuda:X'")
-    parser.add_argument("--step_frequency", type=int, default=30, help="Frequency of steps in Hz")
+    parser.add_argument("-T", "--duration", type=int, default=15, help="Rollout length")
+    parser.add_argument("--step_frequency", type=int, default=60, help="Frequency of steps in Hz")
     parser.add_argument("--debug_mode", action="store_true", help="Enable debug mode")
     parser.add_argument("--loginfo", action="store_true", help="Enable loginfo mode")
-    parser.add_argument("-a1", default=None, help = "Arm1 to Automate")
-    parser.add_argument("-a2", default=None, help = "Arm2 to Automate")
-
+    parser.add_argument("-a1", default="", help = "Arm1 to Automate")
+    parser.add_argument("-a2", default="", help = "Arm2 to Automate")
+    parser.add_argument("--record", action="store_true", help="Record the rollout")
+    
     args, unknown = parser.parse_known_args()
-    rospy.sleep(1)
+
     if not args.a1 and not args.a2:
         automated_arms = ["PSM1", "PSM2"]
 
@@ -231,16 +297,19 @@ if __name__ == "__main__":
     else:
         automated_arms = [args.a1, args.a2]
 
-    print(automated_arms)
+    for arm in automated_arms:
+        if arm not in ["PSM1", "PSM2", "PSM3"]:
+            print(f"Invalid arm name: {arm}. Valid names are: PSM1, PSM2, PSM3")
+            sys.exit(1)
 
 
     config_dict = {
-        "train_dir": args.train_dir,
+        "train_dir": TRAIN_DIR,
         "ckpt_strategy": args.ckpt_strategy,
-        "ckpt_path": os.path.join(args.train_dir, "policy_epoch_20000_seed_0.ckpt"),
+        "ckpt_path": os.path.join(TRAIN_DIR, "policy_epoch_20000_seed_0.ckpt"),
         # "ckpt_path": os.path.join(args.train_dir, "policy_best_13933.ckpt"),
-        "rollout_len": args.rollout_len,
-        "device": args.device,
+        "rollout_len": args.duration* args.step_frequency,
+        "device": "cuda:0",
         "arm_names": ["PSM1", "PSM2"],
         "node_name": "rollout_node",
         "image_size": (324, 576),
@@ -248,9 +317,10 @@ if __name__ == "__main__":
         "guardrail_thresholds": np.array([0.5, 0.4, 0.4, 1.2, 0.6, 0.4, 2.5]),
         "debug_mode": args.debug_mode,
         "loginfo": args.loginfo,
-        "automated_arms": automated_arms
+        "automated_arms": automated_arms,
+        "record": args.record
     }
-    ral = crtk.ral('RolloutNode')
+
 
     rollout_controller = RolloutController(ral, config_dict)
     rollout_controller.run()

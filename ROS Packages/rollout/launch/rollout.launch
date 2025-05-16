@@ -1,30 +1,27 @@
 <launch>
     <!-- Define arguments -->
-    <arg name="log" default="false" />
-    <arg name="rollout" default="true" />
-    <arg name="logging_description" default="SEE" />
-    <arg name="logging_folder" default="/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Initial Samples"/>
-    <arg name="duration" default="15"/>
-    <arg name="a1" default="PSM2"/>
-
+    <arg name="d"/>
+    <!-- <arg name="logging_folder" default="/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Initial Samples"/> -->
+    <arg name="T" default="15"/>
+    <arg name="a1"/>
+    <arg name="a2"/>
 
     <!-- Rollout arguments -->
-    <arg name="train_dir" default="/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Models/trained_on_single_human_demos/Joint Control/20250503-191543_masterful-rat_train"/>
+    <param name = "TRAIN_DIR" value="/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Models/3_trained_on_expert_collab_demos-20250513T003747Z-001/3_trained_on_expert_collab_demos/Joint Control/20250504-153048_elegant-platypus_train" type="str"/>
+    <param name = "LOGGING_FOLDER" value="/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Rollouts Collaborative" type="str"/>
+    <param name = "rollout_started" value="false" type="bool"/>
+    <param name = "recording_started" value="false" type="bool"/>
+    
+    <!-- <arg name="train_dir" default="/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Models/trained_on_single_human_demos/Joint Control/20250503-191543_masterful-rat_train"/> -->
     <arg name="rollout_len" default="450"/>
 
     <!-- Conditional launch of the csv_generator node -->
-    <group if="$(arg log)">
-        <node pkg="data_collection" type="csv_generator.py" name="csv_generator" output="screen" required="true"
-            args='-d $(arg logging_description) --logging_folder "$(arg logging_folder)" --loginfo -T $(arg duration)'>
-        </node>
-        <node pkg="rollout" type="rollout_node.py" name="rollout_with_recording" output="screen" required="true"
-            args='--train_dir "$(arg train_dir)" --a1 $(arg a1)'>       
-        </node>
-    </group>
+    <node pkg="data_collection" type="csv_generator.py" name="csv_generator" output="screen" required="true"
+        args='-d $(arg d) --loginfo -T $(arg T) --rollout'>
+    </node>
 
-    <group unless="$(arg log)">
-        <node pkg="rollout" type="rollout_node.py" name="rollout_without_recording" output="screen" required="true"
-            args='--train_dir "$(arg train_dir)" --loginfo --rollout_len $(arg duration) --a1 $(arg a1)'/>
-    </group>
+    <node pkg="rollout" type="rollout_node.py" name="rollout_with_recording" output="screen" required="true"
+        args='-a1 $(arg a1) -a2 $(arg a2) --loginfo -T $(arg T) --record'>       
+    </node>
 
 </launch>
