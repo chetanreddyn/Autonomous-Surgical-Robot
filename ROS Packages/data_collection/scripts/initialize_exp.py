@@ -163,7 +163,7 @@ class ExperimentInitializer:
             arm_obj = self.arm_objs[arm_name]
             jaw_name = self.jaw_names[arm_name]
 
-            arm_obj.jaw.move_jp(np.array([2*np.pi/3]))
+            arm_obj.jaw.move_jp(np.array([np.pi/2]))
             rospy.loginfo(f"Opened {arm_name} jaw")
             rospy.sleep(self.sleep_time_between_moves)
 

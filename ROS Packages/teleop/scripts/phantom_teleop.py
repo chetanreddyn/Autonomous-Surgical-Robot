@@ -59,8 +59,13 @@ class MimicPose:
         if msg.grey_button == 1:
             # self.clutch = False
             self.mono = not self.mono # Toggle the mono flag every time the grey button is pressed and RELEASED
+
             if self.mono:
                 rospy.loginfo("Phantom Teleop Switched On")
+                # self.open_jaw = False
+                # self.was_in_open_jaw = False
+                # self.jaw_angle = 0
+
             else:
                 rospy.loginfo("Phantom Teleop Switched Off")
 

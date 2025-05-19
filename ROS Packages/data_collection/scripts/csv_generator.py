@@ -54,7 +54,7 @@ class MessageSynchronizer:
         # Synchronize the topics
         if self.rollout:
             rollout_started = False
-            while not rollout_started:
+            while not rollout_started and not rospy.is_shutdown():
                 rollout_started = rospy.get_param("rollout_started", False) # Default value is False
                 rospy.loginfo("Waiting for rollout node to start...")
 
@@ -346,8 +346,7 @@ class MessageSynchronizer:
 if __name__ == '__main__':
     rospy.init_node('csv_generator', anonymous=True)
 
-    LOGGING_FOLDER = rospy.get_param("LOGGING_FOLDER", "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Initial Samples/")
-
+    LOGGING_FOLDER = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Collaborative Expert Two Handed Object Transfer"
     # List of topics and their message types
     argv = crtk.ral.parse_argv(sys.argv[1:])  # Skip argv[0], script name
 
@@ -362,6 +361,7 @@ if __name__ == '__main__':
     
     parser.add_argument('--loginfo', action="store_true", help="Enable loginfo mode")
     parser.add_argument('--rollout', action="store_true", help="Enable rollout mode")
+    # parser.add_argument('--logcamera', action="store_true", help="Enable logcamera mode")
 
     args, unknown = parser.parse_known_args()
 

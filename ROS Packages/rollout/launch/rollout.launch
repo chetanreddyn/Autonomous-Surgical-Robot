@@ -3,6 +3,7 @@
     <arg name="d"/>
     <!-- <arg name="logging_folder" default="/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Initial Samples"/> -->
     <arg name="T" default="15"/>
+    <arg name="f" default="30"/>
     <arg name="a1"/>
     <arg name="a2"/>
 
@@ -21,7 +22,7 @@
     </node>
 
     <node pkg="rollout" type="rollout_node.py" name="rollout_with_recording" output="screen" required="true"
-        args='-a1 $(arg a1) -a2 $(arg a2) --loginfo -T $(arg T) --record'>       
+        args='-a1 $(arg a1) -a2 $(arg a2) --loginfo -T $(arg T) --record --step_frequency $(arg f)' >
     </node>
 
 </launch>

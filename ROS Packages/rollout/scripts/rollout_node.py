@@ -232,19 +232,19 @@ class RolloutController:
         self.controller.reset()
         rate = rospy.Rate(self.step_frequency)
         step = 0
-        t0 = rospy.get_time()
 
         if self.record:
             rospy.set_param("rollout_started", True)
 
             rospy.loginfo("Waiting for Recording to start...")
             recording_started = False
-            while not recording_started:
+            while not recording_started and not rospy.is_shutdown():
                 recording_started = rospy.get_param("recording_started", False) # Default value is False
                 # rospy.loginfo("Waiting for recording to start...")
                 if not recording_started:
                     rospy.sleep(0.01)
             rospy.sleep(0.5)
+        t0 = rospy.get_time()
 
         while not rospy.is_shutdown() and step < self.rollout_len:
             # Get images and joint positions from the robot
@@ -271,12 +271,13 @@ class RolloutController:
 if __name__ == "__main__":
     ral = crtk.ral('RolloutNode')
 
-    TRAIN_DIR = rospy.get_param("TRAIN_DIR")
+    # TRAIN_DIR = rospy.get_param("TRAIN_DIR")
+    TRAIN_DIR = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Models/trained_on_single_human_demos/Joint Control/20250503-191543_masterful-rat_train"
 
     parser = argparse.ArgumentParser(description="Rollout Node for AutonomousController")
     parser.add_argument("--ckpt_strategy", type=str, default="best", help="Checkpoint strategy: 'best', 'last', or 'none'")
     parser.add_argument("-T", "--duration", type=int, default=15, help="Rollout length")
-    parser.add_argument("--step_frequency", type=int, default=60, help="Frequency of steps in Hz")
+    parser.add_argument("--step_frequency", type=int, default=30, help="Frequency of steps in Hz")
     parser.add_argument("--debug_mode", action="store_true", help="Enable debug mode")
     parser.add_argument("--loginfo", action="store_true", help="Enable loginfo mode")
     parser.add_argument("-a1", default="", help = "Arm1 to Automate")
@@ -285,17 +286,20 @@ if __name__ == "__main__":
     
     args, unknown = parser.parse_known_args()
 
-    if not args.a1 and not args.a2:
+    arm_names = ["PSM1", "PSM2", "PSM3"]
+
+    if args.a1 in arm_names and args.a2 in arm_names:
+        automated_arms = [args.a1, args.a2]
+
+    elif args.a1 in arm_names and args.a2 not in arm_names:
+        automated_arms = [args.a1]
+
+    elif args.a1 not in arm_names and args.a2 in arm_names:
+        automated_arms = [args.a2]
+
+    else:
         automated_arms = ["PSM1", "PSM2"]
 
-    elif args.a1 and not args.a2:
-        automated_arms = [args.a1]
-    
-    elif not args.a1 and args.a2:
-        automated_arms = [args.a2]
-    
-    else:
-        automated_arms = [args.a1, args.a2]
 
     for arm in automated_arms:
         if arm not in ["PSM1", "PSM2", "PSM3"]:
