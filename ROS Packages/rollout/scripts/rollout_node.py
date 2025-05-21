@@ -12,9 +12,11 @@ import crtk
 import pickle
 import torch
 import numpy as np
+from datetime import datetime
 import os
 import shutil
 import sys
+import csv
 from message_filters import Subscriber, ApproximateTimeSynchronizer
 
 
@@ -25,6 +27,8 @@ class RolloutController:
         """
         # Load parameters from argparse arguments
         self.train_dir = config_dict["train_dir"]
+        self.logging_folder = config_dict["logging_folder"]
+        self.logging_description = config_dict["logging_description"]
         self.ckpt_strategy = config_dict["ckpt_strategy"]
         self.ckpt_path = config_dict["ckpt_path"]
         self.rollout_len = config_dict["rollout_len"]
@@ -35,6 +39,8 @@ class RolloutController:
         self.guardrail_thresholds = config_dict["guardrail_thresholds"]
         self.debug_mode = config_dict["debug_mode"]
         self.loginfo = config_dict["loginfo"]
+        self.log_actions = config_dict["log_actions"]
+        self.time_format = "%Y-%m-%d %H:%M:%S.%f"
         self.automated_arms = config_dict["automated_arms"]
         self.record = config_dict["record"]
 
@@ -50,6 +56,7 @@ class RolloutController:
             device=self.device
         )
 
+        rospy.loginfo("Model Loaded")
         # Initialize CvBridge for image processing
         self.bridge = CvBridge()
 
@@ -222,6 +229,23 @@ class RolloutController:
                     self.arm_objs[arm_name].move_jp(joint_positions[:-1])
                     self.arm_objs[arm_name].jaw.move_jp(np.array([joint_positions[-1]]))
 
+    def generate_csv_columns(self):
+        columns = ["Epoch Time", "Time (Seconds)", "Frame Number"]
+        for arm_name in self.arm_names:
+            # Joints and jaw
+            for i in range(1, 7):
+                columns.append(f"{arm_name}_joint_{i}")
+            columns.append(f"{arm_name}_jaw")
+
+        return columns
+
+    def process_timestamp(self, time_stamp):
+        '''
+        Processes the time stamp of the message
+        '''
+        message_time = datetime.fromtimestamp(time_stamp.to_sec())
+        epoch_time_formatted = message_time.strftime(self.time_format)
+        return epoch_time_formatted
 
     def run(self):
         """
@@ -244,6 +268,15 @@ class RolloutController:
                 if not recording_started:
                     rospy.sleep(0.01)
             rospy.sleep(0.5)
+
+
+        if self.log_actions:
+            csv_path = os.path.join(self.logging_folder, self.logging_description, "rollout_actions.csv")
+            columns = self.generate_csv_columns()
+            csv_file = open(csv_path, mode='w', newline='')
+            csv_writer = csv.writer(csv_file)
+            csv_writer.writerow(columns)
+
         t0 = rospy.get_time()
 
         while not rospy.is_shutdown() and step < self.rollout_len:
@@ -253,9 +286,11 @@ class RolloutController:
                 rospy.sleep(0.01)
                 rospy.logwarn("images or qpos is none")
                 continue
+            # rospy.loginfo(f"images shape: {images.shape} | qpos shape: {qpos.shape}")
 
             # Perform a step of the autonomous controller
             action = self.controller.step(images, qpos)
+            del images
             self.process_action(action)
 
 
@@ -264,22 +299,38 @@ class RolloutController:
             ti = rospy.get_time()
             time_stamp = ti - t0
 
+            if self.log_actions:
+                epoch_time_formatted = self.process_timestamp(rospy.Time.now())
+                row = [epoch_time_formatted, time_stamp, step]
+
+                row.extend(action.tolist())
+                csv_writer.writerow(row)
+                
             if self.loginfo:
                 rospy.loginfo(f"Time: {time_stamp:.2f} | Step {step}/{self.rollout_len} completed.")
 
+            torch.cuda.empty_cache()
+            rospy.loginfo(torch.cuda.max_memory_allocated())
+
+        if self.log_actions:
+            csv_file.close()
+            rospy.loginfo(f"Rollout actions logged to {csv_path}")
 
 if __name__ == "__main__":
     ral = crtk.ral('RolloutNode')
 
     # TRAIN_DIR = rospy.get_param("TRAIN_DIR")
-    TRAIN_DIR = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Models/trained_on_single_human_demos/Joint Control/20250503-191543_masterful-rat_train"
-
+    # TRAIN_DIR = rospy.get_param("TRAIN_DIR", "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Models/4_merged_training/Joint Control/20250516-130148_original-seal_train")
+    TRAIN_DIR = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Models/4_merged_training/Joint Control/20250516-130148_original-seal_train"
+    LOGGING_FOLDER = rospy.get_param("LOGGING_FOLDER", default="/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Rollouts Collaborative")
+    LOGGING_DESCRIPTION = rospy.get_param("LOGGING_DESCRIPTION", default="Test")
     parser = argparse.ArgumentParser(description="Rollout Node for AutonomousController")
     parser.add_argument("--ckpt_strategy", type=str, default="best", help="Checkpoint strategy: 'best', 'last', or 'none'")
-    parser.add_argument("-T", "--duration", type=int, default=15, help="Rollout length")
+    parser.add_argument("-N", "--rollout_len", type=int, default=450, help="Rollout length")
     parser.add_argument("--step_frequency", type=int, default=30, help="Frequency of steps in Hz")
     parser.add_argument("--debug_mode", action="store_true", help="Enable debug mode")
     parser.add_argument("--loginfo", action="store_true", help="Enable loginfo mode")
+    parser.add_argument("--log_actions", action="store_true", help="Enable logging of actions")
     parser.add_argument("-a1", default="", help = "Arm1 to Automate")
     parser.add_argument("-a2", default="", help = "Arm2 to Automate")
     parser.add_argument("--record", action="store_true", help="Record the rollout")
@@ -309,10 +360,12 @@ if __name__ == "__main__":
 
     config_dict = {
         "train_dir": TRAIN_DIR,
+        "logging_folder": LOGGING_FOLDER,
+        "logging_description": LOGGING_DESCRIPTION,
         "ckpt_strategy": args.ckpt_strategy,
         "ckpt_path": os.path.join(TRAIN_DIR, "policy_epoch_20000_seed_0.ckpt"),
         # "ckpt_path": os.path.join(args.train_dir, "policy_best_13933.ckpt"),
-        "rollout_len": args.duration* args.step_frequency,
+        "rollout_len": args.rollout_len,
         "device": "cuda:0",
         "arm_names": ["PSM1", "PSM2"],
         "node_name": "rollout_node",
@@ -321,6 +374,7 @@ if __name__ == "__main__":
         "guardrail_thresholds": np.array([0.5, 0.4, 0.4, 1.2, 0.6, 0.4, 2.5]),
         "debug_mode": args.debug_mode,
         "loginfo": args.loginfo,
+        "log_actions": args.log_actions,
         "automated_arms": automated_arms,
         "record": args.record
     }
@@ -328,3 +382,8 @@ if __name__ == "__main__":
 
     rollout_controller = RolloutController(ral, config_dict)
     rollout_controller.run()
+
+
+
+
+    

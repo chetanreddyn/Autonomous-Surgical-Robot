@@ -30,9 +30,11 @@ class MessageSynchronizer:
         self.logging_folder = config_dict["logging_folder"]
         self.logging_description = config_dict["logging_description"]
         self.duration = config_dict["duration"]
+        self.total_num_steps = config_dict["total_num_steps"]
         self.image_size = config_dict["image_size"]
         self.loginfo = config_dict["loginfo"]
         self.rollout = config_dict["rollout"]
+        self.dont_record_images = config_dict["dont_record_images"]
         self.exp_done = False
 
         self.arm_names = config_dict["arm_names"]
@@ -103,8 +105,7 @@ class MessageSynchronizer:
 
     def initialise_csv(self):
         '''
-        Initialises the CSV file
-     image_size   '''
+        Initialises the CSV file image_size   '''
         with open(self.csv_file, 'w', newline='') as file:
             writer = csv.writer(file)
             writer.writerow(self.csv_columns)
@@ -115,12 +116,21 @@ class MessageSynchronizer:
         # self.duration = time.time() - self.time_prev
         # self.time_prev = time.time()
 
-        if self.time_sec>self.duration:
-            if not self.exp_done:
-                rospy.loginfo("Experiment Duration Completed. Stopping the logging, restart the launch file to start a new experiment")
-                self.exp_done = True
-            # rospy.signal_shutdown("Duration exceeded")
-            return
+        if self.rollout:
+            if self.frame_number>self.total_num_steps:
+                if not self.exp_done:
+                    rospy.loginfo("Rollout Duration Completed. Stopping the logging, restart the launch file to start a new experiment")
+                    self.exp_done = True
+                # rospy.signal_shutdown("Duration exceeded")
+                return
+            
+        else:  # If not in rollout mode, check the duration 
+            if self.time_sec>self.duration:
+                if not self.exp_done:
+                    rospy.loginfo("Experiment Duration Completed. Stopping the logging, restart the launch file to start a new experiment")
+                    self.exp_done = True
+                # rospy.signal_shutdown("Duration exceeded")
+                return
         
         self.time_milli = self.time_sec*1000
         duration = self.time_milli - self.prev_time_milli
@@ -162,8 +172,7 @@ class MessageSynchronizer:
         '''
         Generates a row of the CSV file
         '''
-        pass
-
+        # rospy.loginfo(len(msgs))
         time_stamp = msgs[0].header.stamp
         self.time_sec = time_stamp.to_sec() - self.prev_time
         epoch_time_formatted = self.process_timestamp(time_stamp)
@@ -203,12 +212,15 @@ class MessageSynchronizer:
                     row.extend(joint_values)
 
             elif "image" in topic_name:
-                image_path = self.process_image_msg(topic_name,msgs[i])
-                if len(image_path) != 1:
-                    rospy.logwarn(f"Image path is not a singleton set, NOT LOGGING | Topic:{topic_name}")
-                    return
-                
-                row.extend(image_path)
+                if self.dont_record_images:
+                    continue
+                else:
+                    image_path = self.process_image_msg(topic_name,msgs[i])
+                    if len(image_path) != 1:
+                        rospy.logwarn(f"Image path is not a singleton set, NOT LOGGING | Topic:{topic_name}")
+                        return
+                    
+                    row.extend(image_path)
 
         # print(len(row))rollout_lens):
         if len(row) != len(self.csv_columns):
@@ -297,9 +309,9 @@ class MessageSynchronizer:
                 columns.append(f"{arm_name}_joint_{i}")
             columns.append(f"{arm_name}_jaw")
 
-
-        for camera_name in ["camera_right", "camera_left"]:
-            columns.append(f"{camera_name}_image_path")
+        if not self.dont_record_images:
+            for camera_name in ["camera_right", "camera_left"]:
+                columns.append(f"{camera_name}_image_path")
 
         return columns
 
@@ -346,7 +358,7 @@ class MessageSynchronizer:
 if __name__ == '__main__':
     rospy.init_node('csv_generator', anonymous=True)
 
-    LOGGING_FOLDER = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Collaborative Expert Two Handed Object Transfer"
+    LOGGING_FOLDER = rospy.get_param("LOGGING_FOLDER", "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Collaborative Expert Two Handed Object Transfer")
     # List of topics and their message types
     argv = crtk.ral.parse_argv(sys.argv[1:])  # Skip argv[0], script name
 
@@ -356,8 +368,11 @@ if __name__ == '__main__':
                         help='Description of the data collection')
     
     
-    parser.add_argument('-T', '--duration',type=int,default=15,
+    parser.add_argument('-T', '--duration', type=int, default=15,
                         help='Duration of the experiment in seconds')
+    
+    parser.add_argument('-N', '--total_num_steps',type=int,default=450)
+    parser.add_argument('--dont_record_images', action="store_true", help="Disable image recording")
     
     parser.add_argument('--loginfo', action="store_true", help="Enable loginfo mode")
     parser.add_argument('--rollout', action="store_true", help="Enable rollout mode")
@@ -368,6 +383,7 @@ if __name__ == '__main__':
     if LOGGING_FOLDER=="/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Initial Samples":
         rospy.logwarn("Logging Folder set to default 'Initial Samples'")
     
+
     topics = [
         ("/PSM1/setpoint_cp", PoseStamped),
         ("/PSM1/setpoint_js", JointState),
@@ -379,11 +395,12 @@ if __name__ == '__main__':
 
         ("/PSM3/setpoint_cp", PoseStamped),
         ("/PSM3/setpoint_js", JointState),
-        ("/PSM3/jaw/setpoint_js", JointState),
-
-        ("/camera_right/image_raw", Image),
-        ("/camera_left/image_raw", Image)
+        ("/PSM3/jaw/setpoint_js", JointState)
     ]
+
+    if not args.dont_record_images:
+        topics.append(("/camera_right/image_raw", Image))
+        topics.append(("/camera_left/image_raw", Image))
   
     csv_generator_config_dict = {
         "topics": topics,
@@ -393,8 +410,10 @@ if __name__ == '__main__':
         "arm_names": ["PSM1", "PSM2", "PSM3"],
         "image_size": (324,576),
         "duration": args.duration,
+        "total_num_steps": args.total_num_steps,
         "loginfo": args.loginfo,
-        "rollout": args.rollout
+        "rollout": args.rollout,
+        "dont_record_images": args.dont_record_images
     }
     meta_file_dict = {}
     meta_file_dict["logging_description"] = csv_generator_config_dict["logging_description"]

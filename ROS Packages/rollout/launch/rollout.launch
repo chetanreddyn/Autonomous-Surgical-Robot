@@ -2,14 +2,15 @@
     <!-- Define arguments -->
     <arg name="d"/>
     <!-- <arg name="logging_folder" default="/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Initial Samples"/> -->
-    <arg name="T" default="15"/>
+    <arg name="N" default="450"/>
     <arg name="f" default="30"/>
     <arg name="a1"/>
     <arg name="a2"/>
 
     <!-- Rollout arguments -->
-    <param name = "TRAIN_DIR" value="/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Models/3_trained_on_expert_collab_demos-20250513T003747Z-001/3_trained_on_expert_collab_demos/Joint Control/20250504-153048_elegant-platypus_train" type="str"/>
+    <param name = "TRAIN_DIR" value="    /home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Models/4_merged_training/Joint Control/20250516-130148_original-seal_train" type="str"/>
     <param name = "LOGGING_FOLDER" value="/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Rollouts Collaborative" type="str"/>
+    <param name = "LOGGING_DESCRIPTION" value="$(arg d)" type="str"/>
     <param name = "rollout_started" value="false" type="bool"/>
     <param name = "recording_started" value="false" type="bool"/>
     
@@ -18,11 +19,11 @@
 
     <!-- Conditional launch of the csv_generator node -->
     <node pkg="data_collection" type="csv_generator.py" name="csv_generator" output="screen" required="true"
-        args='-d $(arg d) --loginfo -T $(arg T) --rollout'>
+        args='-d $(arg d) --loginfo -N $(arg N) --rollout'>
     </node>
 
     <node pkg="rollout" type="rollout_node.py" name="rollout_with_recording" output="screen" required="true"
-        args='-a1 $(arg a1) -a2 $(arg a2) --loginfo -T $(arg T) --record --step_frequency $(arg f)' >
+        args='-a1 $(arg a1) -a2 $(arg a2) --loginfo -N $(arg N) --record --step_frequency $(arg f) --log_actions' >
     </node>
 
 </launch>
