@@ -80,7 +80,7 @@ def plot_arm_joints(data_csv=None, actions_csv=None, x_axis="Frame Number"):
                             y=df_data[joint],
                             mode='lines',
                             name=legend_name,
-                            legendgroup=f"{arm}_{joint}",
+                            legendgroup=legend_name,  # unique for each trace
                             showlegend=True,
                             line=dict(dash='solid', color=color)
                         ),
@@ -100,13 +100,12 @@ def plot_arm_joints(data_csv=None, actions_csv=None, x_axis="Frame Number"):
                             y=df_actions[joint],
                             mode='lines',
                             name=legend_name,
-                            legendgroup=f"{arm}_{joint}",
+                            legendgroup=legend_name,  # unique for each trace
                             showlegend=True,
                             line=dict(dash='dash', color=color)
                         ),
                         row=idx, col=1
                     )
-
     for idx in range(1, len(arms) + 1):
         fig.update_yaxes(title_text="Joint Value", row=idx, col=1)
         fig.update_xaxes(title_text=x_axis, showticklabels=True, row=idx, col=1)
