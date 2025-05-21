@@ -223,7 +223,7 @@ class RolloutController:
                 if np.any(diff > self.guardrail_thresholds):
                     diff_joints = np.where(diff > self.guardrail_thresholds)[0]
                     rospy.logwarn(f"Joint state discrepancy for {arm_name} is too large at joint {diff_joints} | diff : {np.round(diff,2)}")
-                    # continue
+                    continue
 
                 if not self.debug_mode:
                     self.arm_objs[arm_name].move_jp(joint_positions[:-1])
@@ -279,6 +279,8 @@ class RolloutController:
 
         t0 = rospy.get_time()
 
+        t_prev = t0
+        duration = 0
         while not rospy.is_shutdown() and step < self.rollout_len:
             # Get images and joint positions from the robot
             images, qpos = self.get_from_robot()
@@ -290,7 +292,6 @@ class RolloutController:
 
             # Perform a step of the autonomous controller
             action = self.controller.step(images, qpos)
-            del images
             self.process_action(action)
 
 
@@ -298,6 +299,8 @@ class RolloutController:
             step += 1
             ti = rospy.get_time()
             time_stamp = ti - t0
+            duration = ti - t_prev
+            t_prev = ti
 
             if self.log_actions:
                 epoch_time_formatted = self.process_timestamp(rospy.Time.now())
@@ -307,10 +310,8 @@ class RolloutController:
                 csv_writer.writerow(row)
                 
             if self.loginfo:
-                rospy.loginfo(f"Time: {time_stamp:.2f} | Step {step}/{self.rollout_len} completed.")
-
-            torch.cuda.empty_cache()
-            rospy.loginfo(torch.cuda.max_memory_allocated())
+                # rospy.loginfo(f"Time: {time_stamp:.2f} | Step {step}/{self.rollout_len} completed.")
+                rospy.loginfo(f"Time: {time_stamp:.2f} | Step {step}/{self.rollout_len} completed. | Duration: {duration:.5f} seconds")
 
         if self.log_actions:
             csv_file.close()
@@ -319,9 +320,11 @@ class RolloutController:
 if __name__ == "__main__":
     ral = crtk.ral('RolloutNode')
 
-    # TRAIN_DIR = rospy.get_param("TRAIN_DIR")
+    TRAIN_DIR = rospy.get_param("TRAIN_DIR")
     # TRAIN_DIR = rospy.get_param("TRAIN_DIR", "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Models/4_merged_training/Joint Control/20250516-130148_original-seal_train")
-    TRAIN_DIR = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Models/4_merged_training/Joint Control/20250516-130148_original-seal_train"
+    # TRAIN_DIR = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Models/4_merged_training/Joint Control/20250516-130148_original-seal_train"
+    # TRAIN_DIR = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Models/3_trained_on_expert_collab_demos-20250513T003747Z-001/3_trained_on_expert_collab_demos/Joint Control/20250504-153048_elegant-platypus_train"
+    # TRAIN_DIR = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Models/trained_on_single_human_demos/Joint Control/20250503-191543_masterful-rat_train"
     LOGGING_FOLDER = rospy.get_param("LOGGING_FOLDER", default="/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Rollouts Collaborative")
     LOGGING_DESCRIPTION = rospy.get_param("LOGGING_DESCRIPTION", default="Test")
     parser = argparse.ArgumentParser(description="Rollout Node for AutonomousController")

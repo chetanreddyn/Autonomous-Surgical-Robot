@@ -4,6 +4,7 @@ import rospy
 import crtk
 import sys
 import numpy as np
+import os
 import dvrk
 import csv
 from typing import Dict, List
@@ -189,16 +190,20 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Replay Experiment")
 
     # PARENT_FOLDER = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Collaborative Expert Two Handed Object Transfer"
-    PARENT_FOLDER = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Collaborative Expert Two Handed Object Transfer"
+    exp_type = "Collaborative Expert Two Handed Object Transfer"
+
+    root_folder = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/"
 
     parser.add_argument('-d', '--demo_name', type=str, required=True, help="Demo name to replay")
     parser.add_argument('-r', '--reposition_ecm', action='store_true', help="Reposition ECM if this flag is provided")
     parser.add_argument('-n', '--num_arms', type=int, default=2, help="Number of arms to replay (default: 3)")
     parser.add_argument('-D', '--debug_mode', action='store_true', help="Enable debug mode (default: False)")
+    parser.add_argument('-e', '--exp_type', type=str, default=exp_type, help="Parent folder for the demo data (default: /home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Collaborative Expert Two Handed Object Transfer)")
 
     args = parser.parse_args(argv)
     demo_name = args.demo_name
     reposition_ecm = args.reposition_ecm
+    PARENT_FOLDER = root_folder + args.exp_type
 
     # Configuration dictionary
     exp_initialiser_config_dict = {"parent_frames": ["Cart", "ECM_ref", "ECM_ref"],
@@ -214,6 +219,12 @@ if __name__ == "__main__":
     ral = crtk.ral('replay_exp')
     # Create ExperimentInitializer object and run the initialization
     rospy.loginfo("INITIALIZING EXPERIMENT BEFORE REPLAYING")
+
+    if os.path.exists(f"{PARENT_FOLDER}/{demo_name}/data.csv"):
+        pass
+    else:
+        rospy.logfatal(f"CSV file not found at {PARENT_FOLDER}/{demo_name}/data.csv")
+        sys.exit(1)
 
     initializer = ExperimentInitializer(ral,exp_initialiser_config_dict)
 

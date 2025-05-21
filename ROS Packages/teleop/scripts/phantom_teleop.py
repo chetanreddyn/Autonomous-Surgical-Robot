@@ -93,10 +93,7 @@ class MimicPose:
 
                     self.jaw_control_active = False
 
-                
-
-
-
+            
     def transition_to_enabled(self):
         '''
         This function is called everytime the clutch is pressed
@@ -168,19 +165,20 @@ class MimicPose:
                     
                 if self.open_jaw:
 
-                    rospy.loginfo("Opening Mode")
+                    # rospy.loginfo("Opening Mode")
 
                     self.jaw_angle += self.jaw_step_size
                     self.jaw_angle = min(self.jaw_angle,self.jaw_open_angle)
+                    # rospy.loginfo(f"Opening Mode {self.jaw_angle}")
 
-                    # rospy.loginfo("Opening Jaw | Jaw Angle: {:.2f}".format(self.jaw_angle*180/np.pi))
+                    rospy.loginfo("Opening Jaw | Jaw Angle: {:.2f}".format(self.jaw_angle*180/np.pi))
                 else: # Closing the jaw
-                    rospy.loginfo("Closing Mode")
 
                     self.jaw_angle -= self.jaw_step_size
                     self.jaw_angle = max(self.jaw_angle,self.jaw_close_angle)
+                    # rospy.loginfo(f"Closing Mode {self.jaw_angle}")
 
-                    # rospy.loginfo("Closing Jaw | Jaw Angle: {:.2f}".format(self.jaw_angle*180/np.pi))
+                    rospy.loginfo("Closing Jaw | Jaw Angle: {:.2f}".format(self.jaw_angle*180/np.pi))
                 self.arm.jaw.move_jp(np.array([self.jaw_angle]))    
 
         elif self.jaw_control_mode == 'double_click': 
@@ -196,7 +194,7 @@ class MimicPose:
                         self.jaw_angle += self.jaw_step_size
                         self.jaw_angle = min(self.jaw_angle,self.jaw_open_angle)
 
-                    # rospy.loginfo("Opening Jaw | Jaw Angle: {:.2f}".format(self.jaw_angle*180/np.pi))
+                    rospy.loginfo("Opening Jaw | Jaw Angle: {:.2f}".format(self.jaw_angle*180/np.pi))
                 else: # Closing the jaw
                     if self.jaw_mode_switch_ctr==1:
                         rospy.loginfo("Jaw Mode Switched to Close Jaw")
@@ -204,7 +202,7 @@ class MimicPose:
                         self.jaw_angle -= self.jaw_step_size
                         self.jaw_angle = max(self.jaw_angle,self.jaw_close_angle)
 
-                    # rospy.loginfo("Closing Jaw | Jaw Angle: {:.2f}".format(self.jaw_angle*180/np.pi))
+                    rospy.loginfo("Closing Jaw | Jaw Angle: {:.2f}".format(self.jaw_angle*180/np.pi))
                 self.arm.jaw.move_jp(np.array([self.jaw_angle]))
 
 
@@ -227,6 +225,8 @@ class MimicPose:
                     self.was_in_mono = True 
 
                 self.move_cartesian()
+                # rospy.loginfo("Jaw Angle: {:.2f}".format(self.jaw_angle*180/np.pi))
+
                 self.move_jaw()
 
             # When Mono is not pressed
@@ -251,7 +251,7 @@ if __name__ == '__main__':
     parser.add_argument('-js', '--jaw_step_size_per_second', type=float, default=50,
                     help='Jaw Step Size in degrees')
     parser.add_argument('-jo','--jaw_open_angle',type=float,default=90,help="Jaw Angle when Open in degrees")
-    parser.add_argument('-jc','--jaw_close_angle',type=float,default=0,help="Jaw Angle when Closed in degrees")
+    parser.add_argument('-jc','--jaw_close_angle',type=float,default=-10,help="Jaw Angle when Closed in degrees")
     parser.add_argument('-pt','--pose_topic',type=str,default="/phantom/pose_assistant_perspective",help="The pose to mimic")
     parser.add_argument('-p','--ros_period',type=float,default=0.005,help="Indicates the time period (must match the dvrk_console_json -p flag")
     parser.add_argument('-jcm','--jaw_control_mode',type=str,default='single_click',choices=['single_click','double_click'],help="Jaw Control Mode: single_click or double_click")
