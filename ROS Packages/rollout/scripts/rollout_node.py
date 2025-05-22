@@ -295,7 +295,7 @@ class RolloutController:
             self.process_action(action)
 
 
-            rate.sleep()
+            rate.sleep() # 0.01
             step += 1
             ti = rospy.get_time()
             time_stamp = ti - t0
@@ -320,8 +320,8 @@ class RolloutController:
 if __name__ == "__main__":
     ral = crtk.ral('RolloutNode')
 
-    TRAIN_DIR = rospy.get_param("TRAIN_DIR")
-    # TRAIN_DIR = rospy.get_param("TRAIN_DIR", "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Models/4_merged_training/Joint Control/20250516-130148_original-seal_train")
+    # TRAIN_DIR = rospy.get_param("TRAIN_DIR")
+    TRAIN_DIR = rospy.get_param("TRAIN_DIR", "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Models/4_merged_training/Joint Control/20250516-130148_original-seal_train")
     # TRAIN_DIR = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Models/4_merged_training/Joint Control/20250516-130148_original-seal_train"
     # TRAIN_DIR = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Models/3_trained_on_expert_collab_demos-20250513T003747Z-001/3_trained_on_expert_collab_demos/Joint Control/20250504-153048_elegant-platypus_train"
     # TRAIN_DIR = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Models/trained_on_single_human_demos/Joint Control/20250503-191543_masterful-rat_train"

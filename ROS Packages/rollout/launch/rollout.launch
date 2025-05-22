@@ -8,10 +8,12 @@
     <arg name="a2"/>
 
     <!-- Rollout arguments -->
-    <param name = "TRAIN_DIR" value="/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Models/3_trained_on_expert_collab_demos-20250513T003747Z-001/3_trained_on_expert_collab_demos/Joint Control/20250516-025910_elegant-weasel_train" type="str"/>
+    <param name = "TRAIN_DIR" value="/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Models/5_trained_on_100expert_collab_demos/Joint Control/20250520-094517_innovative-mink_train" type="str"/>
+
+    <!-- <param name = "TRAIN_DIR" value="/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Models/3_trained_on_expert_collab_demos-20250513T003747Z-001/3_trained_on_expert_collab_demos/Joint Control/20250516-025910_elegant-weasel_train" type="str"/> -->
     <!-- <param name = "TRAIN_DIR" value="/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Models/3_trained_on_expert_collab_demos-20250513T003747Z-001/3_trained_on_expert_collab_demos/Joint Control/20250504-153048_elegant-platypus_train" type="str"/> -->
     <!-- <param name = "TRAIN_DIR" value="    /home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Models/4_merged_training/Joint Control/20250516-130148_original-seal_train" type="str"/> -->
-    <param name = "LOGGING_FOLDER" value="/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Rollouts Autonomous" type="str"/>
+    <param name = "LOGGING_FOLDER" value="/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Rollouts Autonomous Dominant" type="str"/>
     <param name = "LOGGING_DESCRIPTION" value="$(arg d)" type="str"/>
     <param name = "rollout_started" value="false" type="bool"/>
     <param name = "recording_started" value="false" type="bool"/>
@@ -21,7 +23,7 @@
 
     <!-- Conditional launch of the csv_generator node -->
     <node pkg="data_collection" type="csv_generator.py" name="csv_generator" output="screen" required="true"
-        args='-d $(arg d) --loginfo -N $(arg N) --rollout'>
+        args='-d $(arg d) -N $(arg N) --rollout'>
     </node>
 
     <node pkg="rollout" type="rollout_node.py" name="rollout_with_recording" output="screen" required="true"

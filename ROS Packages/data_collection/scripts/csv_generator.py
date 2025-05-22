@@ -358,8 +358,8 @@ class MessageSynchronizer:
 if __name__ == '__main__':
     rospy.init_node('csv_generator', anonymous=True)
 
-    LOGGING_FOLDER = rospy.get_param("LOGGING_FOLDER")
-    # LOGGING_FOLDER = rospy.get_param("LOGGING_FOLDER", "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Collaborative Expert Two Handed Object Transfer")
+    # LOGGING_FOLDER = rospy.get_param("LOGGING_FOLDER")
+    LOGGING_FOLDER = rospy.get_param("LOGGING_FOLDER", "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Collaborative Expert Two Handed Object Transfer")
     # List of topics and their message types
     argv = crtk.ral.parse_argv(sys.argv[1:])  # Skip argv[0], script name
 
