@@ -115,11 +115,11 @@ def plot_arm_joints(data_csv=None, actions_csv=None, x_axis="Frame Number", titl
     )
     pio.show(fig)
 
-def plot_arm_joints_and_xyz(data_csv=None, actions_csv=None, x_axis="Frame Number", title=""):
+def plot_arm_joints_and_xyz(data_csv=None, actions_csv=None, x_axis="Frame Number", title="", logging_folder=None):
     pio.renderers.default = "browser"
     df_data = load_csv(data_csv)
     df_actions = load_csv(actions_csv)
-    arms = get_arms()
+    arms = list(get_arms().keys())
     color_palette = [
         "#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd",
         "#8c564b", "#e377c2", "#7f7f7f", "#bcbd22", "#17becf"
@@ -127,108 +127,105 @@ def plot_arm_joints_and_xyz(data_csv=None, actions_csv=None, x_axis="Frame Numbe
     xyz_labels = ['x', 'y', 'z']
     xyz_palette = ["#1f77b4", "#ff7f0e", "#2ca02c"]
 
-    fig = make_subplots(
-        rows=len(arms), cols=1, shared_xaxes=False,
-        subplot_titles=[f"{arm} Values" for arm in arms.keys()]
-    )
     # Only align if both are present
     if df_data is not None and df_actions is not None:
         df_data, df_actions = align_dfs(df_data, df_actions)
-    # --- JOINT TRACES ---
-    joint_traces = []
-    if df_data is not None and x_axis in df_data.columns:
-        for idx, (arm, joints) in enumerate(arms.items(), start=1):
-            for j, joint in enumerate(joints):
-                if joint in df_data.columns:
-                    color = color_palette[j % len(color_palette)]
-                    legend_name = f"{joint} (data)"
-                    trace = go.Scatter(
+
+    fig = make_subplots(
+        rows=2, cols=2, shared_xaxes=False,
+        subplot_titles=[
+            f"{arms[0]} Joint Values", f"{arms[0]} Cartesian XYZ",
+            f"{arms[1]} Joint Values", f"{arms[1]} Cartesian XYZ"
+        ]
+    )
+
+    for arm_idx, arm in enumerate(arms):
+        joints = get_arms()[arm]
+        row = arm_idx + 1
+
+        # --- JOINTS ---
+        for j, joint in enumerate(joints):
+            # Data
+            if df_data is not None and joint in df_data.columns and x_axis in df_data.columns:
+                color = color_palette[j % len(color_palette)]
+                legend_name = f"{joint} (data)"
+                fig.add_trace(
+                    go.Scatter(
                         x=df_data[x_axis],
                         y=df_data[joint],
                         mode='lines',
                         name=legend_name,
-                        legendgroup=legend_name,
                         showlegend=True,
-                        line=dict(dash='solid', color=color),
-                        visible=True  # Default: show joints
-                    )
-                    fig.add_trace(trace, row=idx, col=1)
-                    joint_traces.append(len(fig.data)-1)
-
-    if df_actions is not None and x_axis in df_actions.columns:
-        for idx, (arm, joints) in enumerate(arms.items(), start=1):
-            for j, joint in enumerate(joints):
-                if joint in df_actions.columns:
-                    color = color_palette[j % len(color_palette)]
-                    legend_name = f"{joint} (action)"
-                    trace = go.Scatter(
+                        line=dict(dash='solid', color=color)
+                    ),
+                    row=row, col=1
+                )
+            # Actions
+            if df_actions is not None and joint in df_actions.columns and x_axis in df_actions.columns:
+                color = color_palette[j % len(color_palette)]
+                legend_name = f"{joint} (action)"
+                fig.add_trace(
+                    go.Scatter(
                         x=df_actions[x_axis],
                         y=df_actions[joint],
                         mode='lines',
                         name=legend_name,
-                        legendgroup=legend_name,
                         showlegend=True,
-                        line=dict(dash='dash', color=color),
-                        visible=True
-                    )
-                    fig.add_trace(trace, row=idx, col=1)
-                    joint_traces.append(len(fig.data)-1)
+                        line=dict(dash='dash', color=color)
+                    ),
+                    row=row, col=1
+                )
 
-    # --- XYZ TRACES ---
-    xyz_traces = []
-    if df_data is not None and x_axis in df_data.columns:
-        for idx, arm in enumerate(arms.keys(), start=1):
-            for j, label in enumerate(xyz_labels):
-                col = f"{arm}_ee_{label}"
-                if col in df_data.columns:
-                    trace = go.Scatter(
+        # --- XYZ ---
+        for j, label in enumerate(xyz_labels):
+            col = f"{arm}_ee_{label}"
+            if df_data is not None and col in df_data.columns and x_axis in df_data.columns:
+                color = xyz_palette[j % len(xyz_palette)]
+                legend_name = f"{arm}_ee_{label} (data)"
+                fig.add_trace(
+                    go.Scatter(
                         x=df_data[x_axis],
                         y=df_data[col],
                         mode='lines',
-                        name=f"{arm} {label}",
-                        legendgroup=f"{arm}_{label}",
+                        name=legend_name,
                         showlegend=True,
-                        line=dict(color=xyz_palette[j % len(xyz_palette)]),
-                        visible=False  # Default: hide xyz
-                    )
-                    fig.add_trace(trace, row=idx, col=1)
-                    xyz_traces.append(len(fig.data)-1)
+                        line=dict(dash='solid', color=color)
+                    ),
+                    row=row, col=2
+                )
 
-    # --- DROPDOWN MENU ---
-    n_joint = len(joint_traces)
-    n_xyz = len(xyz_traces)
-    visibility_joint = [True]*n_joint + [False]*n_xyz
-    visibility_xyz = [False]*n_joint + [True]*n_xyz
+    for row in range(1, 3):
+        fig.update_yaxes(title_text="Joint Value", row=row, col=1)
+        fig.update_xaxes(title_text=x_axis, showticklabels=True, row=row, col=1)
+        fig.update_yaxes(title_text="XYZ", row=row, col=2)
+        fig.update_xaxes(title_text=x_axis, showticklabels=True, row=row, col=2)
 
     fig.update_layout(
-        updatemenus=[
-            dict(
-                buttons=[
-                    dict(label="Joints", method="update", args=[{"visible": visibility_joint}]),
-                    dict(label="XYZ", method="update", args=[{"visible": visibility_xyz}]),
-                ],
-                direction="down",
-                showactive=True,
-                x=1.05,
-                xanchor="left",
-                y=1.15,
-                yanchor="top"
-            ),
-        ],
-        height=600 * len(arms),
-        width=1000,
+        height=1200,
+        width=1600,
         title_text=title,
-        legend_title="Legend"
+        legend_title="Legend",
+        legend=dict(
+            x=1.02,
+            y=1,
+            xanchor='left',
+            yanchor='top',
+            orientation='v',
+            font=dict(size=12),
+            bordercolor="Black",
+            borderwidth=1
+        ),
+        margin=dict(r=350)  # Add space on the right for the legend
     )
-
-    for idx in range(1, len(arms) + 1):
-        fig.update_yaxes(title_text="Value", row=idx, col=1)
-        fig.update_xaxes(title_text=x_axis, showticklabels=True, row=idx, col=1)
-
+    # Save as HTML in the logging folder
+    if logging_folder is not None:
+        html_path = os.path.join(logging_folder, "plot.html")
+        fig.write_html(html_path)
+        print(f"Plot saved to {html_path}")
     pio.show(fig)
 
 if __name__ == "__main__":
-    root_folder = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/"
+    root_folder = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Rollouts"
     exp_type = "Rollouts Autonomous"
     # exp_type = "Collaborative Expert Two Handed Object Transfer"
     demo_name = "Test3"
@@ -237,4 +234,7 @@ if __name__ == "__main__":
     actions_csv = os.path.join(LOGGING_FOLDER, "rollout_actions.csv")
     # plot_arm_joints(data_csv=data_csv, actions_csv=actions_csv, x_axis="Frame Number", title=f"{exp_type}/{demo_name}")
     # plot_arm_joints(data_csv=data_csv, actions_csv=actions_csv, x_axis="Epoch Time")
-    plot_arm_joints_and_xyz(data_csv=data_csv, actions_csv=actions_csv, x_axis="Frame Number", title=f"{exp_type}/{demo_name}")
+    plot_arm_joints_and_xyz(data_csv=data_csv, actions_csv=actions_csv, 
+                            x_axis="Frame Number", 
+                            title=f"{exp_type}/{demo_name}", 
+                            logging_folder=LOGGING_FOLDER)
