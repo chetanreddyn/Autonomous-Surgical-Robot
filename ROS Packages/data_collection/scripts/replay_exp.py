@@ -190,7 +190,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Replay Experiment")
 
     # PARENT_FOLDER = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Collaborative Expert Two Handed Object Transfer"
-    exp_type = "Collaborative Expert Two Handed Object Transfer"
+    # exp_type = "Rollouts/Rollouts 150 Demo Model/Autonomous"
+    # exp_type = "Collaborative Expert Two Handed Object Transfer"
+    exp_type = "Collaborative Three Handed"
 
     root_folder = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/"
 
@@ -206,14 +208,13 @@ if __name__ == "__main__":
     PARENT_FOLDER = root_folder + args.exp_type
 
     # Configuration dictionary
-    exp_initialiser_config_dict = {"parent_frames": ["Cart", "ECM_ref", "ECM_ref"],
-                   "child_frames": ["ECM_ref", "PSM1_ref", "PSM2_ref"],
-                   "arm_names": ["ECM", "PSM1", "PSM2"],
+    exp_initialiser_config_dict = {
+                   "arm_names": ["ECM", "PSM1", "PSM2", "PSM3"],
                    "transform_lookup_wait_time": 1.0,
                    "sleep_time_between_moves": 1.0,
                    "ros_freq": 10.0,
                    "reposition_ecm": True,
-                   "position_diff_threshold": 0.05
+                   "position_diff_threshold": 0.1
     }
 
     ral = crtk.ral('replay_exp')
@@ -237,7 +238,7 @@ if __name__ == "__main__":
         csv_file = f"{PARENT_FOLDER}/{demo_name}/data.csv"
 
         replay_exp_config_dict = {"csv_file": csv_file,
-                                  "arm_names": ["PSM1", "PSM2"],
+                                  "arm_names": ["PSM1", "PSM2", "PSM3"],
                                   "ros_freq": 30,
                                   "arm_objs": initializer.arm_objs,
                                   "initial_joint_state_dicrepancy_tolerance": 1.1,

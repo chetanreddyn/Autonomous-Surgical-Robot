@@ -23,29 +23,39 @@ class ExperimentInitializer:
         self.position_diff_threshold = config_dict['position_diff_threshold']
 
         # Initialize dVRK arms
-        self.ecm_name = config_dict['arm_names'][0]
-        self.arm1_name = config_dict['arm_names'][1]
-        self.arm2_name = config_dict['arm_names'][2]
+        # self.ecm_name = config_dict['arm_names'][0]
+        # self.arm1_name = config_dict['arm_names'][1]
+        # self.arm2_name = config_dict['arm_names'][2]
         # self.arm3_name = config_dict['arm_names'][3]
 
-        self.num_transforms = len(config_dict['parent_frames'])
-        self.parent_frames = config_dict['parent_frames']
-        self.child_frames = config_dict['child_frames']
+        # self.num_transforms = len(config_dict['parent_frames'])
+        # self.parent_frames = config_dict['parent_frames']
+        # self.child_frames = config_dict['child_frames']
         self.arm_names = config_dict['arm_names']
-        self.jaw_names = {arm_name:arm_name+"_jaw" for arm_name in self.arm_names}
+        self.generate_frames_from_arm_names(self.arm_names)
+        self.num_transforms = len(self.parent_frames)
+
+        self.jaw_names = {arm_name: arm_name+"_jaw" for arm_name in self.arm_names}
 
         self.sleep_time_between_moves = config_dict['sleep_time_between_moves']
 
         self.transform_lookup_wait_time = config_dict['transform_lookup_wait_time']
-        self.arm1 = dvrk.psm(ral, self.arm1_name)
-        self.arm2 = dvrk.psm(ral, self.arm2_name)
+        # self.arm1 = dvrk.psm(ral, self.arm1_name)
+        # self.arm2 = dvrk.psm(ral, self.arm2_name)
         # self.arm3 = dvrk.psm(ral, self.arm3_name)
-        self.ecm = dvrk.ecm(ral, self.ecm_name) # Arm 3 is ECM
+        # self.ecm = dvrk.ecm(ral, self.ecm_name) # Arm 3 is ECM
 
         # self.arm_objs = {self.arm1_name: self.arm1, self.arm2_name: self.arm2,
         #                  self.arm3_name: self.arm3, self.ecm_name: self.ecm}
         
-        self.arm_objs = {self.arm1_name: self.arm1, self.arm2_name: self.arm2, self.ecm_name: self.ecm}
+        # self.arm_objs = {self.arm1_name: self.arm1, self.arm2_name: self.arm2, self.ecm_name: self.ecm}
+        self.arm_objs = {}
+        for arm_name in self.arm_names:
+            if "ECM" in arm_name:
+                self.arm_objs[arm_name] = dvrk.ecm(ral, arm_name)
+            else:
+                self.arm_objs[arm_name] = dvrk.psm(ral, arm_name)
+
         self.move_cp_goals_received = False
         self.move_cp_goals = None # PyKDL.Frame() type transforms to send to move_cp topic
 
@@ -60,6 +70,18 @@ class ExperimentInitializer:
         # Subscribe to jaw_angles_ref topic
         self.jaw_angles = {}
         self.loaded_jaw_angles = False
+
+    def generate_frames_from_arm_names(self, arm_names):
+        self.parent_frames = []
+        self.child_frames = []
+
+        for arm_name in arm_names:
+            if arm_name == "ECM":
+                self.parent_frames.append("Cart")
+                self.child_frames.append("ECM_ref")
+            else:
+                self.parent_frames.append("ECM_ref")
+                self.child_frames.append(arm_name+"_ref")
 
     def jaw_angles_callback(self, msg):
         """
@@ -180,7 +202,7 @@ class ExperimentInitializer:
             parent_frame = self.parent_frames[i]
             child_frame = self.child_frames[i]
             arm_name = self.arm_names[i]
-            if not self.reposition_ecm and arm_name == self.ecm_name:
+            if not self.reposition_ecm and arm_name == "ECM":
                 rospy.logwarn("Skipping ECM repositioning because reposition_ecm is set to False")
                 continue
             self.publish_transform(parent_frame,child_frame,arm_name)
@@ -246,18 +268,19 @@ class ExperimentInitializer:
         return True
 
 
+        
+
+
 if __name__ == "__main__":
     # rospy.init_node("experiment_initializer", anonymous=True)
 
     # Configuration dictionary
-    config_dict = {"parent_frames": ["Cart", "ECM_ref", "ECM_ref"],
-                   "child_frames": ["ECM_ref", "PSM1_ref", "PSM2_ref"],
-                   "arm_names": ["ECM", "PSM1", "PSM2"],
+    config_dict = {"arm_names": ["ECM", "PSM1", "PSM2", "PSM3"],
                    "transform_lookup_wait_time": 1.0,
                    "sleep_time_between_moves": 1,
                    "ros_freq": 10.0,
                    "reposition_ecm": True,
-                   "position_diff_threshold": 0.06
+                   "position_diff_threshold": 0.08
     }
 
     ral = crtk.ral('experiment_initializer')

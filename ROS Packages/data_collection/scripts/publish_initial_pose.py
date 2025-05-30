@@ -129,9 +129,10 @@ class TransformPublisher:
 if __name__ == "__main__":
     rospy.init_node("static_transform_publisher", anonymous=True)
 
+    initial_pose_json = rospy.get_param("initial_pose_json",  "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot/ROS Packages/data_collection/utils_config/initial_pose_with_suj.json")
     # Path to the JSON file
     config_dict = {
-        'json_file': "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot/ROS Packages/data_collection/utils_config/initial_pose_with_suj.json",
+        'json_file': initial_pose_json, 
         'parent_frame': 'Cart',  # Parent frame for all transforms
         'ros_freq': 10,  # Frequency for publishing transforms and jaw angles
         'suj_joint_angles_suffix': 'measured_js_ref'  # Suffix for SUJ joint angles

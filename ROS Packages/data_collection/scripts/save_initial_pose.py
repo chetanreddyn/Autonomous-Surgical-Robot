@@ -208,7 +208,7 @@ if __name__ == "__main__":
     # Output file path
     output_file = (
         "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot/"
-        "ROS Packages/data_collection/utils_config/initial_pose_with_suj.json"
+        "ROS Packages/data_collection/utils_config/initial_pose_with_suj_3_arms.json"
     ) 
 
     config_dict = {

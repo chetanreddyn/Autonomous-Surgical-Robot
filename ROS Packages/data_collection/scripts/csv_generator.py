@@ -359,7 +359,7 @@ if __name__ == '__main__':
     rospy.init_node('csv_generator', anonymous=True)
 
     # LOGGING_FOLDER = rospy.get_param("LOGGING_FOLDER")
-    LOGGING_FOLDER = rospy.get_param("LOGGING_FOLDER", "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Collaborative Expert Two Handed Object Transfer")
+    LOGGING_FOLDER = rospy.get_param("LOGGING_FOLDER", "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Collaborative Three Handed")
     # List of topics and their message types
     argv = crtk.ral.parse_argv(sys.argv[1:])  # Skip argv[0], script name
 
@@ -422,12 +422,15 @@ if __name__ == '__main__':
     meta_file_dict["arm_names"] = csv_generator_config_dict["arm_names"]
 
     meta_file_dict["teleop1_connection"] = "MTMR-PSM1" # Always on the Console
-    meta_file_dict["teleop2_connection"] = "Phantom-PSM2"
-    meta_file_dict["teleop3_connection"] = None
-    meta_file_dict["teleop1_name"] = "Alaa"
-    meta_file_dict["teleop2_name"] = "Chetan"
+    meta_file_dict["teleop3_connection"] = "MTML-PSM3"
+    meta_file_dict["teleop3_connection"] = "Phantom-PSM2"
 
-    meta_file_dict["tools_used"] = ['FENESTRATED_BIPOLAR_FORCEPS:420205[..]','FENESTRATED_BIPOLAR_FORCEPS:420205[..]']
+    meta_file_dict["teleop1_name"] = "Alaa"
+    meta_file_dict["teleop2_name"] = "Alaa"
+    meta_file_dict["teleop3_name"] = "Chetan"
+
+
+    meta_file_dict["tools_used"] = ['FENESTRATED_BIPOLAR_FORCEPS:420205[..]','FENESTRATED_BIPOLAR_FORCEPS:420205[..]', 'LARGE_NEEDLE_DRIVER:420006[12..]']
     meta_file_dict["mtm_scale"] = 0.4
     meta_file_dict["phantom_omni_scale"] = 0.4 
     meta_file_dict["initial_pose_json_path"] = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot/ROS Packages/data_collection/utils_config/initial_pose_with_suj.json"

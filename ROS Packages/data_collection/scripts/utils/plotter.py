@@ -8,7 +8,7 @@ def get_arms():
     return {
         'PSM1': [f'PSM1_joint_{i+1}' for i in range(6)] + ['PSM1_jaw'],
         'PSM2': [f'PSM2_joint_{i+1}' for i in range(6)] + ['PSM2_jaw'],
-        # 'PSM3': [f'PSM3_joint_{i+1}' for i in range(6)] + ['PSM3_jaw'],
+        'PSM3': [f'PSM3_joint_{i+1}' for i in range(6)] + ['PSM3_jaw'],
     }
 
 def load_csv(csv_path):
@@ -120,6 +120,7 @@ def plot_arm_joints_and_xyz(data_csv=None, actions_csv=None, x_axis="Frame Numbe
     df_data = load_csv(data_csv)
     df_actions = load_csv(actions_csv)
     arms = list(get_arms().keys())
+    num_arms = len(arms)
     color_palette = [
         "#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd",
         "#8c564b", "#e377c2", "#7f7f7f", "#bcbd22", "#17becf"
@@ -131,12 +132,14 @@ def plot_arm_joints_and_xyz(data_csv=None, actions_csv=None, x_axis="Frame Numbe
     if df_data is not None and df_actions is not None:
         df_data, df_actions = align_dfs(df_data, df_actions)
 
+    subplot_titles = []
+    for arm in arms:
+        subplot_titles.append(f"{arm} Joint Values")
+        subplot_titles.append(f"{arm} Cartesian XYZ")
+
     fig = make_subplots(
-        rows=2, cols=2, shared_xaxes=False,
-        subplot_titles=[
-            f"{arms[0]} Joint Values", f"{arms[0]} Cartesian XYZ",
-            f"{arms[1]} Joint Values", f"{arms[1]} Cartesian XYZ"
-        ]
+        rows=num_arms, cols=2, shared_xaxes=False,
+        subplot_titles=subplot_titles
     )
 
     for arm_idx, arm in enumerate(arms):
@@ -194,8 +197,11 @@ def plot_arm_joints_and_xyz(data_csv=None, actions_csv=None, x_axis="Frame Numbe
                     row=row, col=2
                 )
 
+    fig.update_yaxes(title_text="Joint Value", row=1, col=1, range = [-2.2,2])
+    fig.update_yaxes(title_text="Joint Value", row=2, col=1, range = [-2.2,2])
+
+
     for row in range(1, 3):
-        fig.update_yaxes(title_text="Joint Value", row=row, col=1)
         fig.update_xaxes(title_text=x_axis, showticklabels=True, row=row, col=1)
         fig.update_yaxes(title_text="XYZ", row=row, col=2)
         fig.update_xaxes(title_text=x_axis, showticklabels=True, row=row, col=2)
@@ -225,10 +231,10 @@ def plot_arm_joints_and_xyz(data_csv=None, actions_csv=None, x_axis="Frame Numbe
     pio.show(fig)
 
 if __name__ == "__main__":
-    root_folder = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Rollouts"
-    exp_type = "Rollouts Autonomous"
+    root_folder = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data"
+    exp_type = "Collaborative Three Handed"
     # exp_type = "Collaborative Expert Two Handed Object Transfer"
-    demo_name = "Test3"
+    demo_name = "Test"
     LOGGING_FOLDER = os.path.join(root_folder, exp_type, demo_name)
     data_csv = os.path.join(LOGGING_FOLDER, "data.csv")
     actions_csv = os.path.join(LOGGING_FOLDER, "rollout_actions.csv")

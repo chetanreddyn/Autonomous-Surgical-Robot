@@ -3,12 +3,16 @@
 <launch>
       <arg name="console"
             default="false"/>
-      <arg name="json_file"
+      <!-- <arg name="json_file"
             default="console-Full-System-Teleop.json"/>
 
       <include file="$(find teleop)/launch/arms_real.launch">
             <arg name="json_file" value="$(arg json_file)" />
-      </include>
+      </include> -->
+      <param 
+      name="initial_pose_json" 
+      value="/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot/ROS Packages/data_collection/utils_config/initial_pose_with_suj_3_arms.json"
+      type="str"/>
 
       <node pkg="data_collection" type="publish_initial_pose.py" name="publish_initial_pose"/>
 
