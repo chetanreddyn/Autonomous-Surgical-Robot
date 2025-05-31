@@ -234,7 +234,7 @@ if __name__ == "__main__":
     root_folder = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data"
     exp_type = "Collaborative Three Handed"
     # exp_type = "Collaborative Expert Two Handed Object Transfer"
-    demo_name = "Test"
+    demo_name = "Demo7"
     LOGGING_FOLDER = os.path.join(root_folder, exp_type, demo_name)
     data_csv = os.path.join(LOGGING_FOLDER, "data.csv")
     actions_csv = os.path.join(LOGGING_FOLDER, "rollout_actions.csv")

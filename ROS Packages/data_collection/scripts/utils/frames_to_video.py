@@ -88,7 +88,8 @@ class VideoCreator:
 if __name__ == "__main__":
     # Specify the path to the CSV file and the output folder
     root_folder = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data"
-    exp_type = "Rollouts/Rollouts 150 Demo Model/Autonomous"
+    # exp_type = "Rollouts/Rollouts 150 Demo Model/Autonomous"
+    exp_type = "Collaborative Three Handed"
     LOGGING_FOLDER = os.path.join(root_folder, exp_type)
 
     if not os.path.exists(LOGGING_FOLDER):
@@ -97,8 +98,8 @@ if __name__ == "__main__":
     else:
         t0 = time.time()
         t_prev = t0
-        for i in range(1,11):
-            logging_description = "Test" + str(i)
+        for i in range(1,10):
+            logging_description = "Demo" + str(i)
             csv_path = os.path.join(LOGGING_FOLDER, logging_description, "data.csv")
             output_folder = os.path.join(LOGGING_FOLDER, logging_description, "videos")
 

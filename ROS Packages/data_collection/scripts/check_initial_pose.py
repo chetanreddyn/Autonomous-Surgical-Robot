@@ -164,20 +164,26 @@ if __name__ == "__main__":
                           "Cart",
                           "Cart",
                           "Cart",
+                          "Cart",
+                          "Cart",
                           "Cart"],
 
         "child_frames": ["PSM1_base",
                          "PSM2_base",
+                         "PSM3_base",
                          "ECM_base",
                          "PSM1",
                          "PSM2",
+                         "PSM3",
                          "ECM"],
 
         "ref_child_frames": ["PSM1_base_ref",
                              "PSM2_base_ref",
+                             "PSM3_base_ref",
                              "ECM_base_ref",
                              "PSM1_ref",
                              "PSM2_ref",
+                             "PSM3_ref",
                              "ECM_ref"],
 
         "suj_joint_angles_topics": {

@@ -16,7 +16,7 @@ def correct_jaw_angles(csv_path):
 if __name__ == "__main__":
     # Specify the path to the CSV file and the output folder
     root_folder = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/"
-    exp_type = "Collaborative Object Transfer Corrected"
+    exp_type = "Collaborative Three Handed Clipped Jaw Angle"
 
     LOGGING_FOLDER = os.path.join(root_folder, exp_type)
 
@@ -26,7 +26,7 @@ if __name__ == "__main__":
     else:
         t0 = time.time()
         t_prev = t0
-        for i in range(70,101):
+        for i in range(1, 71):
             logging_description = "Demo" + str(i)
             csv_path = os.path.join(LOGGING_FOLDER, logging_description, "data.csv")
 

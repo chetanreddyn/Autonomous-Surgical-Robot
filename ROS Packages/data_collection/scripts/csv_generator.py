@@ -422,8 +422,8 @@ if __name__ == '__main__':
     meta_file_dict["arm_names"] = csv_generator_config_dict["arm_names"]
 
     meta_file_dict["teleop1_connection"] = "MTMR-PSM1" # Always on the Console
-    meta_file_dict["teleop3_connection"] = "MTML-PSM3"
-    meta_file_dict["teleop3_connection"] = "Phantom-PSM2"
+    meta_file_dict["teleop3_connection"] = "MTML-PSM2"
+    meta_file_dict["teleop3_connection"] = "Phantom-PSM3"
 
     meta_file_dict["teleop1_name"] = "Alaa"
     meta_file_dict["teleop2_name"] = "Alaa"
@@ -434,7 +434,7 @@ if __name__ == '__main__':
     meta_file_dict["mtm_scale"] = 0.4
     meta_file_dict["phantom_omni_scale"] = 0.4 
     meta_file_dict["initial_pose_json_path"] = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot/ROS Packages/data_collection/utils_config/initial_pose_with_suj.json"
-    meta_file_dict["Brightness"] = 70
+    meta_file_dict["Brightness"] = 100
     meta_file_dict["Image Size"] = csv_generator_config_dict["image_size"]
     meta_file_dict["duration"] = csv_generator_config_dict["duration"]
 
