@@ -228,6 +228,7 @@ class RolloutController:
                 if not self.debug_mode:
                     self.arm_objs[arm_name].move_jp(joint_positions[:-1])
                     self.arm_objs[arm_name].jaw.move_jp(np.array([joint_positions[-1]]))
+                    pass
 
     def generate_csv_columns(self):
         columns = ["Epoch Time", "Time (Seconds)", "Frame Number"]
@@ -321,7 +322,8 @@ if __name__ == "__main__":
     ral = crtk.ral('RolloutNode')
 
     # TRAIN_DIR = rospy.get_param("TRAIN_DIR")
-    TRAIN_DIR = rospy.get_param("TRAIN_DIR", "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Models/4_merged_training/Joint Control/20250516-130148_original-seal_train")
+    # TRAIN_DIR = rospy.get_param("TRAIN_DIR", "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Models/4_merged_training/Joint Control/20250516-130148_original-seal_train")
+    TRAIN_DIR = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Models/6_three_arm_collab/joint control/20250601-235431_lovely-bat_train"
     # TRAIN_DIR = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Models/4_merged_training/Joint Control/20250516-130148_original-seal_train"
     # TRAIN_DIR = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Models/3_trained_on_expert_collab_demos-20250513T003747Z-001/3_trained_on_expert_collab_demos/Joint Control/20250504-153048_elegant-platypus_train"
     # TRAIN_DIR = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Models/trained_on_single_human_demos/Joint Control/20250503-191543_masterful-rat_train"
@@ -336,29 +338,22 @@ if __name__ == "__main__":
     parser.add_argument("--log_actions", action="store_true", help="Enable logging of actions")
     parser.add_argument("-a1", default="", help = "Arm1 to Automate")
     parser.add_argument("-a2", default="", help = "Arm2 to Automate")
+    parser.add_argument("-a3", default="", help = "Arm3 to Automate")
+
     parser.add_argument("--record", action="store_true", help="Record the rollout")
     
     args, unknown = parser.parse_known_args()
 
     arm_names = ["PSM1", "PSM2", "PSM3"]
 
-    if args.a1 in arm_names and args.a2 in arm_names:
-        automated_arms = [args.a1, args.a2]
-
-    elif args.a1 in arm_names and args.a2 not in arm_names:
-        automated_arms = [args.a1]
-
-    elif args.a1 not in arm_names and args.a2 in arm_names:
-        automated_arms = [args.a2]
-
-    else:
-        automated_arms = ["PSM1", "PSM2"]
-
-
-    for arm in automated_arms:
-        if arm not in ["PSM1", "PSM2", "PSM3"]:
-            print(f"Invalid arm name: {arm}. Valid names are: PSM1, PSM2, PSM3")
-            sys.exit(1)
+    automated_arms = []
+    for a in [args.a1, args.a2, args.a3]:
+        if a in arm_names:
+            automated_arms.append(a)
+        
+    if len(automated_arms)==0:
+        print("No Valid Arm Passed")
+        sys.exit(1)
 
 
     config_dict = {
@@ -370,11 +365,12 @@ if __name__ == "__main__":
         # "ckpt_path": os.path.join(args.train_dir, "policy_best_13933.ckpt"),
         "rollout_len": args.rollout_len,
         "device": "cuda:0",
-        "arm_names": ["PSM1", "PSM2"],
+        "arm_names": ["PSM1", "PSM2", "PSM3"],
         "node_name": "rollout_node",
         "image_size": (324, 576),
         "step_frequency": args.step_frequency,
         "guardrail_thresholds": np.array([0.5, 0.4, 0.4, 1.2, 0.6, 0.4, 2.5]),
+        # "guardrail_thresholds": np.array([0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2]),
         "debug_mode": args.debug_mode,
         "loginfo": args.loginfo,
         "log_actions": args.log_actions,
