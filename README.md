@@ -3,7 +3,7 @@ Project with CHARM and IPRL on the Da Vinci Surgical Robot. The project aims to 
 
 ## Table of Contents
 - [Overview](#overview)
-- [Repo Structure](#Repo Structure)
+- [Repo Structure](#Repo-Structure)
 - [Installation](#installation)
 - [Project Structure](#project-structure)
 - [Contributing](#contributing)
