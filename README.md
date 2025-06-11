@@ -4,17 +4,25 @@ Project with CHARM and IPRL on the Da Vinci Surgical Robot. The project aims to 
 ## Table of Contents
 - [Overview](#overview)
 - [Repo Structure](#Repo-Structure)
-- [Installation](#installation)
+- [Teleoperation](#Teleoperation)
+- [Data Collection](#Data-Collection)
+- [Rollout](#Rollout)
 - [Project Structure](#project-structure)
-- [Contributing](#contributing)
-- [License](#license)
 - [Contact](#contact)
 
 ## Overview
 
 ## Repo Structure
 
-## Installation 
+## Teleoperation 
+
+## Data Collection 
+
+## Rollout 
+
+## Contact
+
+
 
 
 **Teleoperation Demo**
