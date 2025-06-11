@@ -1,6 +1,22 @@
 # Autonomous-Surgical-Robot
 Project with CHARM and IPRL on the Da Vinci Surgical Robot. The project aims to automate one of the arms as an assistant (using imitation learning) to collaborate with the surgeon.
 
+## Table of Contents
+- [Overview](#overview)
+- [Repo Structure](#Repo Structure)
+- [Installation](#installation)
+- [Project Structure](#project-structure)
+- [Contributing](#contributing)
+- [License](#license)
+- [Contact](#contact)
+
+## Overview
+
+## Repo Structure
+
+## Installation 
+
+
 **Teleoperation Demo**
 
 
