@@ -73,6 +73,15 @@ The `data_collection` ROS package has the scripts/nodes to record the data durin
 roslaunch data_collection data_collection_setup.launch
 ```
 > (This launch file can also be edited to include all the steps in Teleoperation if you want everything in a single place but not recommended)
+
+#### Step 2: Specify the Logging Folder
+Open the file `/data_collection/scripts/csv_generator.py` and specify the `LOGGING_FOLDER`. 
+
+#### Step 3: Run the csv_generator script to log an experiment
+```bash
+rosrun data_collection csv_generator.py --loginfo -T 20 -d Demo1
+```
+The -d flag specifies the demonstration name and the -T flag used to specify the duration of an experiment after which the logging automatically stops (default is 15 seconds). In the above command, the experimental run will be saved in LOGGING_FOLDER/Demo1 and the duration is 20 seconds.
 ## Rollout 
 Steps
 1. roslaunch rollout
