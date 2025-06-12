@@ -14,11 +14,14 @@ Project with CHARM and IPRL on the Da Vinci Surgical Robot. The project aims to 
 
 ## Repo Structure
 
-## Teleoperation 
+## Teleoperation
+The `teleop` package2
 
 ## Data Collection 
 
 ## Rollout 
+Steps
+1. roslaunch rollout
 
 ## Contact
 
