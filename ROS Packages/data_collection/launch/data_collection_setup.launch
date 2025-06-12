@@ -17,7 +17,7 @@
       <node pkg="data_collection" type="publish_initial_pose.py" name="publish_initial_pose"/>
 
             <!-- The cart is positioned at 0,0,0.1678 in the world coordinate-->
-      <include file="$(find teleop)/launch/vision_cart.launch">
+      <!-- <include file="$(find teleop)/launch/vision_cart.launch">
             <arg name="console" value="$(arg console)" />
-      </include>
+      </include> -->
 </launch>
