@@ -3,7 +3,7 @@ Project with CHARM and IPRL on the Da Vinci Surgical Robot. The project aims to 
 
 ## Table of Contents
 - [Overview](#overview)
-- [Repo Structure](#Repo-Structure)
+- [File Structure](#File-Structure)
 - [Teleoperation](#Teleoperation)
 - [Data Collection](#Data-Collection)
 - [Rollout](#Rollout)
@@ -12,8 +12,36 @@ Project with CHARM and IPRL on the Da Vinci Surgical Robot. The project aims to 
 
 ## Overview
 
-## Repo Structure
+## File Structure
+```
+Autonomous-Surgical-Robot/
+├── README.md
+├── Models/
+│   ├── Adapt-ACT/
+│   ├── mlcore/
+├── ROS Packages/
+    ├── data_collection/
+    │   ├── CMakeLists.txt
+    │   ├── package.xml
+    │   ├── launch/
+    │   ├── scripts/
+    │   └── ...
+    ├── rollout/
+    │   ├── CMakeLists.txt
+    │   ├── package.xml
+    │   ├── launch/
+    │   ├── scripts/
+    │   └── ...
+    ├── teleop/
+    │   ├── CMakeLists.txt
+    │   ├── package.xml
+    │   ├── launch/
+    │   ├── scripts/
+    │   └── ...
 
+```
+- **Models/**: Contains ACT model and core utilities.
+- **ROS Packages/**: Contains ROS packages for data collection, teleoperation, and rollouts.
 ## Teleoperation
 The `teleop` package2
 
