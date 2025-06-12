@@ -197,8 +197,8 @@ def plot_arm_joints_and_xyz(data_csv=None, actions_csv=None, x_axis="Frame Numbe
                     row=row, col=2
                 )
 
-    fig.update_yaxes(title_text="Joint Value", row=1, col=1, range = [-2.2,2])
-    fig.update_yaxes(title_text="Joint Value", row=2, col=1, range = [-2.2,2])
+    fig.update_yaxes(title_text="Joint Value", row=1, col=1, range = [-3,3])
+    fig.update_yaxes(title_text="Joint Value", row=2, col=1, range = [-3,3])
 
 
     for row in range(1, 3):

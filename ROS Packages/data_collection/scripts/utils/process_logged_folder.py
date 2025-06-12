@@ -10,8 +10,10 @@ def main():
     rospy.init_node('process_logged_folder_node')
 
     # Read ROS parameters
-    logging_folder = rospy.get_param('LOGGING_FOLDER', None)
-    logging_description = rospy.get_param('LOGGING_DESCRIPTION', None)
+    # logging_folder = rospy.get_param('LOGGING_FOLDER', None)
+    logging_folder = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Rollouts/Rollouts Three Handed Initial/Two Arms Autonomous"
+    # logging_description = rospy.get_param('LOGGING_DESCRIPTION', None)
+    logging_description = "Test10agg"
 
     if logging_folder is None or logging_description is None:
         rospy.logerr("LOGGING_FOLDER and LOGGING_DESCRIPTION parameters must be set.")
