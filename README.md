@@ -74,14 +74,27 @@ roslaunch data_collection data_collection_setup.launch
 ```
 > (This launch file can also be edited to include all the steps in Teleoperation if you want everything in a single place but not recommended)
 
-#### Step 2: Specify the Logging Folder
-Open the file `/data_collection/scripts/csv_generator.py` and specify the `LOGGING_FOLDER`. 
+#### Step 2: Check the Initialise poses to ensure the SUJs haven't been moved (done only once per session)
+```bash
+rosrun data_collection check_initial_pose.py
+```
+The values corresponding to PSM1_base, PSM2_base, PSM3_base and ECM_base must be less than 0.01. Use the flag --type joint_angles to specify the errors in the joints.
+
+#### Step 2: Specify the Logging Folder (done only once per session)
+Open the file `/data_collection/scripts/csv_generator.py` and specify the `LOGGING_FOLDER`. This needs to be done only once per session unless different kinds of experiments are done in the same sessions.
+
+#### Step 3: Initialise the Experiment
+```bash
+rosrun data_collection initialize_exp.py
+```
 
 #### Step 3: Run the csv_generator script to log an experiment
 ```bash
 rosrun data_collection csv_generator.py --loginfo -T 20 -d Demo1
 ```
-The -d flag specifies the demonstration name and the -T flag used to specify the duration of an experiment after which the logging automatically stops (default is 15 seconds). In the above command, the experimental run will be saved in LOGGING_FOLDER/Demo1 and the duration is 20 seconds.
+Specify the demonstration name in the -d flag and the -T flag is used to specify the duration of an experiment after which the logging automatically stops (default is 15 seconds). In the above command, the experimental run will be saved in LOGGING_FOLDER/Demo1 and the duration is 20 seconds.
+
+#### 
 ## Rollout 
 Steps
 1. roslaunch rollout
