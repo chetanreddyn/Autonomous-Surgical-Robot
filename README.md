@@ -44,18 +44,18 @@ Autonomous-Surgical-Robot/
 - **ROS Packages/**: Contains ROS packages for data collection, teleoperation, and rollouts.
 ## Teleoperation
 The `teleop` ROS package has the scripts/nodes to launch the robot and perform teleoperation using the MTMs (Master Tele Manipulator), Phantom Omni and Keyboard.
-### Step 1: Launch the dvrk console 
+#### Step 1: Launch the dvrk console 
 ```bash
 roslaunch teleop arms_real.launch
 ```
 
-### Step 2: Launch the vision pipeline
+#### Step 2: Launch the vision pipeline
 ```bash
 roslaunch teleop vision_cart.launch console:=true
 ```
 > Set `console:=false` to suppress surgeon console GUI windows.
 
-### Step 3: Launching the Phantom Omni device
+#### Step 3: Launching the Phantom Omni device
 ```bash
 roslaunch teleop phantom_real.launch
 ```
@@ -67,9 +67,12 @@ rosrun teleop phantom_teleop.py -a PSM1
 > The -a flag is used to specify the arm to teleoperate
 
 ## Data Collection 
-The `data_collection` ROS package has the scripts/nodes to record the data during an experiment. It also has the scripts to initialize and replay experiments and also save and check the initial poses of the SUJs and tool tips. Follow these steps to log an experimental run (after the robot and phantom omni are launched):
-
-
+The `data_collection` ROS package has the scripts/nodes to record the data during an experiment. It also has the scripts to initialize and replay experiments and also save and check the initial poses of the SUJs and tool tips. Follow these steps to log an experimental run (after completing the steps above):
+#### Step 1: Run the launch file that loads and publishes the saved initial pose 
+```bash
+roslaunch data_collection data_collection_setup.launch
+```
+> (This launch file can also be edited to include all the steps in Teleoperation if you want everything in a single place but not recommended)
 ## Rollout 
 Steps
 1. roslaunch rollout
