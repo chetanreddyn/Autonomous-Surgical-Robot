@@ -43,7 +43,7 @@ Autonomous-Surgical-Robot/
 - **Models/**: Contains ACT model and core utilities.
 - **ROS Packages/**: Contains ROS packages for data collection, teleoperation, and rollouts.
 ## Teleoperation
-The `teleop` package2
+The `teleop` package has all the scripts to launch the 
 
 ## Data Collection 
 
