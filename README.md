@@ -44,6 +44,21 @@ Autonomous-Surgical-Robot/
 - **ROS Packages/**: Contains ROS packages for data collection, teleoperation, and rollouts.
 ## Teleoperation
 The `teleop` package has all the scripts to launch the 
+### Step 1: Launch the dvrk console 
+```bash
+roslaunch teleop arms_real.launch
+```
+
+### Step 2: Launch the vision pipeline
+```bash
+roslaunch teleop vision_cart.launch console:=true
+```
+> Set `console:=false` to suppress surgeon console GUI windows.
+
+### Step 3: Start teleop control node  
+```bash
+rosrun teleop teleop_node.py
+```
 
 ## Data Collection 
 
