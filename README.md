@@ -43,7 +43,7 @@ Autonomous-Surgical-Robot/
 - **Models/**: Contains ACT model and core utilities.
 - **ROS Packages/**: Contains ROS packages for data collection, teleoperation, and rollouts.
 ## Teleoperation
-The `teleop` package has all the scripts to launch the 
+The `teleop` package has the scripts to launch the robot and perform teleoperation using the MTMs (Master Tele Manipulator), Phantom Omni and Keyboard.
 ### Step 1: Launch the dvrk console 
 ```bash
 roslaunch teleop arms_real.launch
@@ -55,10 +55,16 @@ roslaunch teleop vision_cart.launch console:=true
 ```
 > Set `console:=false` to suppress surgeon console GUI windows.
 
-### Step 3: Start teleop control node  
+### Step 3: Launching the Phantom Omni device
 ```bash
-rosrun teleop teleop_node.py
+roslaunch teleop phantom_real.launch
 ```
+
+### Step 4: Run the script to launch phantom omni teleoperation
+```bash
+rosrun teleop phantom_teleop.py -a PSM1
+```
+> The -a flag is used to specify the arm to teleoperate
 
 ## Data Collection 
 
