@@ -107,13 +107,25 @@ Specify the demonstration name in the -d flag and the -T flag is used to specify
 ## Rollout 
 The `rollout` package is responsible for loading the trained model from a specified folder and using it to control the robot. It also has a logging script to save the generated actions. Run the following steps in a rollout session:
 
-#### Step 1: Teleoperation Steps
+#### Step 1: Teleoperation Steps (in different terminals)
 ```bash
 roslaunch teleop arms_real.launch
-roslaunch teleop vision_cart.launch console:=true
-roslaunch teleop phantom_real.launch
-rosrun teleop phantom_teleop.py -a PSM3 #
 ```
+```bash
+roslaunch teleop vision_cart.launch console:=true
+```
+```bash
+roslaunch teleop phantom_real.launch 
+```
+```bash
+rosrun teleop phantom_teleop.py -a PSM3 
+```
+
+#### Step 2: Specify the trained model folder path and logging folder path in rollout/launch/rollout.launch
+`
+<param name = "TRAIN_DIR" value=<trained **model** path> type="str"/>
+<param name = "LOGGING_FOLDER" value=<logging_folder_path> type="str"/>
+`
 
 
 ## Contact
