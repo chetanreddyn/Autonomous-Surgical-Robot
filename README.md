@@ -34,11 +34,11 @@ Autonomous-Surgical-Robot/
     │   ├── scripts/
     │   └── ...
     ├── teleop/
-    │   ├── CMakeLists.txt
-    │   ├── package.xml
-    │   ├── launch/
-    │   ├── scripts/
-    │   └── ...
+        ├── CMakeLists.txt
+        ├── package.xml
+        ├── launch/
+        ├── scripts/
+        └── ...
 
 ```
 - **Models/**: Contains ACT model and core utilities.
@@ -49,17 +49,20 @@ The `teleop` ROS package has the scripts/nodes to launch the robot and perform t
 ```bash
 roslaunch teleop arms_real.launch
 ```
+This launch files will run the `dvrk_console_json` node from the dVRK package and other static coordinate transformations that are required for the teleoperation.
 
 #### Step 2: Launch the vision pipeline
 ```bash
 roslaunch teleop vision_cart.launch console:=true
 ```
 > Set `console:=false` to suppress surgeon console GUI windows.
+This launch file will run the nodes required to process the video stream from the camera and publish them into ROS topics. 
 
 #### Step 3: Launching the Phantom Omni device
 ```bash
 roslaunch teleop phantom_real.launch
 ```
+The `phantom_real.launch` file contains the nodes required to simulate the digital twin and publish the pose of the phantom omni's stylus with respect to it's base
 
 #### Step 4: Run the script to launch phantom omni teleoperation
 ```bash
