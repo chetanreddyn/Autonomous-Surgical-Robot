@@ -7,7 +7,7 @@ Project with CHARM and IPRL on the Da Vinci Surgical Robot. The project aims to 
 - [Teleoperation](#Teleoperation)
 - [Data Collection](#Data-Collection)
 - [Rollout](#Rollout)
-- [Project Structure](#project-structure)
+- [Results](#results)
 - [Contact](#contact)
 
 ## Overview
@@ -159,21 +159,16 @@ rosrun data_collection process_logged_folder.py
 This should be run in a different terminal immediately after the rollout is completed. This is because the script relies on reading from the `LOGGING_FOLDER/Test` which is published as a ROS parameter. 
 
 
-## Contact
-
+## Results
 **Demo of the Two handed and Three Handed Tasks Semi and Fully Automated (Play it with the Music!)**
-
-
 https://github.com/user-attachments/assets/b8fad08e-2f3c-4888-b93d-a9336c0b85df
 
 
-
-
-
 **Teleoperation Demo**
-
-
 https://github.com/user-attachments/assets/abd87d2c-8bc9-43d4-abea-3149a9075a11
 
+## Contact
+Name: Chetan Reddy Narayanaswamy
+Email: chetanrn@stanford.edu
 
 
