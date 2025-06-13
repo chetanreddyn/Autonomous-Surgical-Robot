@@ -45,6 +45,9 @@ Autonomous-Surgical-Robot/
 - **ROS Packages/**: Contains ROS packages for data collection, teleoperation, and rollouts.
 ## Teleoperation
 The `teleop` ROS package has the scripts/nodes to launch the robot and perform teleoperation using the MTMs (Master Tele Manipulator), Phantom Omni and Keyboard.
+#### Step 0: The setup
+Ensure the vision cart is switched on along with the light at 100%. Create a new terminator window. Use `Ctrl+Shift+O` to split it horizontally and `Ctrl+Shift+E` to split vertically. We would be needing a lot of terminal windows, so terminator is recommended.
+
 #### Step 1: Launch the dvrk console 
 ```bash
 roslaunch teleop arms_real.launch
@@ -123,9 +126,22 @@ rosrun teleop phantom_teleop.py -a PSM3
 
 #### Step 2: Specify the trained model folder path and logging folder path in rollout/launch/rollout.launch
 ```
-<param name = "TRAIN_DIR" value=<trained **model** path> type="str"/>
-<param name = "LOGGING_FOLDER" value=<logging_folder_path> type="str"/>
+<param name = "TRAIN_DIR" value="INSERT trained model path HERE" type="str"/>
+<param name = "LOGGING_FOLDER" value="INSERT logging_folder_path HERE" type="str"/>
 ```
+The `LOGGING_DESCRIPTION` will be passed in command line in the next step
+
+#### Step 3: Launch rollout.launch and specify the arms to be automated
+```bash
+roslaunch rollout rollout.launch a1:=PSM1 a2:=PSM2 a3:=None d:=Test
+```
+This will automate the arms PSM1 and PSM2 while PSM3 will not receive commands from the model. The `phantom_teleop.py` script running from a different terminal will control PSM3. The `d` argument specifies the logging description. The rollout run will be saved in `LOGGING_FOLDER/Test`.
+
+#### Step 4: Run process_logged_folder.py to create videos and the visualizations
+```bash
+rosrun data_collection process_logged_folder.py
+```
+This should be run in a different terminal immediately after the rollout is completed. This is because the script relies on reading from the `LOGGING_FOLDER/Test` which is published as a ROS parameter. 
 
 
 ## Contact
