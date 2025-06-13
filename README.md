@@ -79,28 +79,43 @@ The -a flag is used to specify the arm to teleoperate. The `phantom_teleop` scri
 
 ## Data Collection 
 The `data_collection` ROS package has the scripts/nodes to record the data during an experiment, initialize and replay experiments and also save and check the initial poses of the SUJs and tool tips. Follow these steps to log an experimental run (after completing the teleoperation commands above):
-#### Step 1: Run the launch file that loads and publishes the saved initial pose 
+
+#### Step 1: Teleoperation Steps (in different terminals)
+```bash
+roslaunch teleop arms_real.launch
+```
+```bash
+roslaunch teleop vision_cart.launch console:=true
+```
+```bash
+roslaunch teleop phantom_real.launch 
+```
+```bash
+rosrun teleop phantom_teleop.py -a PSM3 
+```
+
+#### Step 2: Run the launch file that loads and publishes the saved initial pose 
 ```bash
 roslaunch data_collection data_collection_setup.launch
 ```
 (This launch file can also be edited to include all the steps in Teleoperation if you want everything in a single place but not recommended since you have to relaunch the robot everytime there is a small issue)
 
-#### Step 2: Check the Initialise poses to ensure the SUJs haven't been moved (done only once per session)
+#### Step 3: Check the Initialise poses to ensure the SUJs haven't been moved (done only once per session)
 ```bash
 rosrun data_collection check_initial_pose.py
 ```
 The values corresponding to PSM1_base, PSM2_base, PSM3_base and ECM_base must be less than 0.01. Use the flag --type joint_angles to display the errors in the joints.
 
-#### Step 2: Specify the Logging Folder (done only once per session)
+#### Step 4: Specify the Logging Folder (done only once per session)
 Open the file `/data_collection/scripts/csv_generator.py` and specify the `LOGGING_FOLDER`. This needs to be done only once per session unless different kinds of experiments are done in the same sessions.
 
-#### Step 3: Initialise the Experiment
+#### Step 5: Initialise the Experiment
 ```bash
 rosrun data_collection initialize_exp.py
 ```
 The initialization should take less than 10 seconds. If it is stuck at a step, terminate and re-run the script.
 
-#### Step 3: Run the csv_generator script to log an experiment
+#### Step 6: Run the csv_generator script to log an experiment
 ```bash
 rosrun data_collection csv_generator.py --loginfo -T 20 -d Demo1
 ```
