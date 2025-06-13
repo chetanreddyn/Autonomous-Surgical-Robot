@@ -86,7 +86,7 @@ roslaunch data_collection data_collection_setup.launch
 ```bash
 rosrun data_collection check_initial_pose.py
 ```
-The values corresponding to PSM1_base, PSM2_base, PSM3_base and ECM_base must be less than 0.01. Use the flag --type joint_angles to specify the errors in the joints.
+The values corresponding to PSM1_base, PSM2_base, PSM3_base and ECM_base must be less than 0.01. Use the flag --type joint_angles to display the errors in the joints.
 
 #### Step 2: Specify the Logging Folder (done only once per session)
 Open the file `/data_collection/scripts/csv_generator.py` and specify the `LOGGING_FOLDER`. This needs to be done only once per session unless different kinds of experiments are done in the same sessions.
@@ -95,6 +95,7 @@ Open the file `/data_collection/scripts/csv_generator.py` and specify the `LOGGI
 ```bash
 rosrun data_collection initialize_exp.py
 ```
+The initialization should take less than 10 seconds. If it is stuck at a step, terminate and re-run the script.
 
 #### Step 3: Run the csv_generator script to log an experiment
 ```bash
@@ -104,8 +105,16 @@ Specify the demonstration name in the -d flag and the -T flag is used to specify
 
 #### 
 ## Rollout 
-Steps
-1. roslaunch rollout
+The `rollout` package is responsible for loading the trained model from a specified folder and using it to control the robot. It also has a logging script to save the generated actions. Run the following steps in a rollout session:
+
+#### Step 1: Teleoperation Steps
+```bash
+roslaunch teleop arms_real.launch
+roslaunch teleop vision_cart.launch console:=true
+roslaunch teleop phantom_real.launch
+rosrun teleop phantom_teleop.py -a PSM3 #
+```
+
 
 ## Contact
 
