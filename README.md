@@ -64,7 +64,7 @@ roslaunch teleop phantom_real.launch
 ```
 The `phantom_real.launch` file contains the nodes required to simulate the digital twin and publish the pose of the phantom omni's stylus with respect to it's base. Sometimes, this command can throw permission errors (when the phantom omni is re-plugged or the computer is restarted). Run the following command when that happens: 
 ```
-sudo chmod 777 /dev/ttvACM0`
+sudo chmod 777 /dev/ttvACM0
 ```
 and re launch the `phantom_real.launch`
 
@@ -72,7 +72,7 @@ and re launch the `phantom_real.launch`
 ```bash
 rosrun teleop phantom_teleop.py -a PSM1
 ```
-> The -a flag is used to specify the arm to teleoperate
+The -a flag is used to specify the arm to teleoperate. The phantom_teleop script performs the required transformation and has the logic to process the button clicks into a continuous jaw angle. 
 
 ## Data Collection 
 The `data_collection` ROS package has the scripts/nodes to record the data during an experiment. It also has the scripts to initialize and replay experiments and also save and check the initial poses of the SUJs and tool tips. Follow these steps to log an experimental run (after completing the steps above):
