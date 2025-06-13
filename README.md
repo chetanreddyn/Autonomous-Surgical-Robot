@@ -54,6 +54,7 @@ roslaunch teleop arms_real.launch
 ```
 The `arms_real.launch` launch files will run the `dvrk_console_json` node from the dVRK package and other static coordinate transformations that are required for the teleoperation.
 
+<INCLUDE ABOUT arms_real.launch, console power on and home button, SUJ lighting up green>
 #### Step 2: Launch the vision pipeline
 ```bash
 roslaunch teleop vision_cart.launch console:=true
@@ -105,7 +106,7 @@ roslaunch data_collection data_collection_setup.launch
 rosrun data_collection check_initial_pose.py
 ```
 The values corresponding to PSM1_base, PSM2_base, PSM3_base and ECM_base must be less than 0.01. Use the flag --type joint_angles to display the errors in the joints.
-
+<TODO Include about how to correct the errors, less than 0.01 and arm_base points>
 #### Step 4: Specify the Logging Folder (done only once per session)
 Open the file `/data_collection/scripts/csv_generator.py` and specify the `LOGGING_FOLDER`. This needs to be done only once per session unless different kinds of experiments are done in the same sessions.
 
@@ -120,8 +121,10 @@ The initialization should take less than 10 seconds. If it is stuck at a step, t
 rosrun data_collection csv_generator.py --loginfo -T 20 -d Demo1
 ```
 Specify the demonstration name in the -d flag and the -T flag is used to specify the duration of an experiment after which the logging automatically stops (default is 15 seconds). In the above command, the experimental run will be saved in LOGGING_FOLDER/Demo1 and the duration is 20 seconds.
+<TO DO data collection pipeline and mono>
 
-#### 
+<TO DO Replay Script explanation>
+
 ## Rollout 
 The `rollout` package is responsible for loading the trained model from a specified folder and using it to control the robot. It also has a logging script to save the generated actions. Run the following steps in a rollout session:
 
