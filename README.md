@@ -122,10 +122,10 @@ rosrun teleop phantom_teleop.py -a PSM3
 ```
 
 #### Step 2: Specify the trained model folder path and logging folder path in rollout/launch/rollout.launch
-`
+```
 <param name = "TRAIN_DIR" value=<trained **model** path> type="str"/>
 <param name = "LOGGING_FOLDER" value=<logging_folder_path> type="str"/>
-`
+```
 
 
 ## Contact
