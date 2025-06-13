@@ -72,15 +72,15 @@ and re launch the `phantom_real.launch`
 ```bash
 rosrun teleop phantom_teleop.py -a PSM1
 ```
-The -a flag is used to specify the arm to teleoperate. The phantom_teleop script performs the required transformation and has the logic to process the button clicks into a continuous jaw angle. 
+The -a flag is used to specify the arm to teleoperate. The `phantom_teleop` script performs the required transformation to ensure the pose of the PSM tool tip with respect to the camera matches that of the stylus with respect to the eyes. It also has the logic to process the button clicks into a continuous jaw angle. 
 
 ## Data Collection 
-The `data_collection` ROS package has the scripts/nodes to record the data during an experiment. It also has the scripts to initialize and replay experiments and also save and check the initial poses of the SUJs and tool tips. Follow these steps to log an experimental run (after completing the steps above):
+The `data_collection` ROS package has the scripts/nodes to record the data during an experiment, initialize and replay experiments and also save and check the initial poses of the SUJs and tool tips. Follow these steps to log an experimental run (after completing the teleoperation commands above):
 #### Step 1: Run the launch file that loads and publishes the saved initial pose 
 ```bash
 roslaunch data_collection data_collection_setup.launch
 ```
-> (This launch file can also be edited to include all the steps in Teleoperation if you want everything in a single place but not recommended)
+(This launch file can also be edited to include all the steps in Teleoperation if you want everything in a single place but not recommended since you have to relaunch the robot everytime there is a small issue)
 
 #### Step 2: Check the Initialise poses to ensure the SUJs haven't been moved (done only once per session)
 ```bash
