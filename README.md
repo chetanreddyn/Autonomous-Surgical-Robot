@@ -122,7 +122,7 @@ rosrun data_collection csv_generator.py --loginfo -T 20 -d Demo1
 ```
 Specify the demonstration name in the -d flag and the -T flag is used to specify the duration of an experiment after which the logging automatically stops (default is 15 seconds). In the above command, the experimental run will be saved in LOGGING_FOLDER/Demo1 and the duration is 20 seconds.
 <TO DO data collection pipeline and mono>
-
+<TO DO replay script timing, correct the bug>
 <TO DO Replay Script explanation>
 
 ## Rollout 
