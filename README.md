@@ -161,6 +161,12 @@ This should be run in a different terminal immediately after the rollout is comp
 
 ## Contact
 
+**Two handed and Three Handed Tasks Semi and Fully Automated**
+
+
+https://github.com/user-attachments/assets/b8fad08e-2f3c-4888-b93d-a9336c0b85df
+
+
 
 
 
@@ -168,4 +174,6 @@ This should be run in a different terminal immediately after the rollout is comp
 
 
 https://github.com/user-attachments/assets/abd87d2c-8bc9-43d4-abea-3149a9075a11
+
+
 
