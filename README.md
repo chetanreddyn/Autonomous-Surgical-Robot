@@ -170,7 +170,7 @@ https://github.com/user-attachments/assets/b8fad08e-2f3c-4888-b93d-a9336c0b85df
 https://github.com/user-attachments/assets/abd87d2c-8bc9-43d4-abea-3149a9075a11
 
 ## Contact
-Name: Chetan Reddy Narayanaswamy
-Email: chetanrn@stanford.edu
+**Name:** Chetan Reddy Narayanaswamy<Br>
+**Email:** chetanrn@stanford.edu
 
 
