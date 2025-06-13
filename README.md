@@ -11,6 +11,7 @@ Project with CHARM and IPRL on the Da Vinci Surgical Robot. The project aims to 
 - [Contact](#contact)
 
 ## Overview
+This github repository has the ROS packages for three functionalities - teleoperation, data collection and model rollout. The instructions have been described in detail below. It is assumed that the commands are executed from the SRC (Stanford Robotics Centre) computer in the Medical Bay connected to the Da Vinci Robot (Si Model). 
 
 ## File Structure
 ```
