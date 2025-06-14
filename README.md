@@ -76,7 +76,7 @@ and re launch the `phantom_real.launch`
 
 #### Step 5: Run the script to launch phantom omni teleoperation
 ```bash
-rosrun teleop phantom_teleop.py -a PSM1
+rosrun teleop phantom_teleop.py -a PSM3 # Specify the appropriate the PSM
 ```
 The -a flag is used to specify the arm to teleoperate. The `phantom_teleop` script performs the required transformation to ensure the pose of the PSM tool tip with respect to the camera matches that of the stylus with respect to the eyes. It also has the logic to process the button clicks into a continuous jaw angle. 
 
@@ -107,8 +107,8 @@ roslaunch data_collection data_collection_setup.launch
 ```bash
 rosrun data_collection check_initial_pose.py
 ```
-The values corresponding to PSM1_base, PSM2_base, PSM3_base and ECM_base must be less than 0.01. Use the flag --type joint_angles to display the errors in the joints.
-<TODO Include about how to correct the errors, less than 0.01 and arm_base points>
+The values corresponding to PSM1_base, PSM2_base, PSM3_base and ECM_base must be less than 0.01. Use the flag --type joint_angles to display the errors in the joints. In a circumstance where the errors of any of the arm base is not less than 0.01, the SUJs have to be manually moved to the saved initial pose in 3D space, a couple of tools were developed to help with this. The details are inside the `data_collection` package.
+
 #### Step 4: Specify the Logging Folder (done only once per session)
 Open the file `/data_collection/scripts/csv_generator.py` and specify the `LOGGING_FOLDER`. This needs to be done only once per session unless different kinds of experiments are done in the same sessions.
 
