@@ -167,10 +167,14 @@ rosrun teleop phantom_teleop.py -a PSM3
 ```
 The `LOGGING_DESCRIPTION` will be passed in command line in the next step
 
-#### Step 3: Activate conda environment and make AdaptACT recognisable
-```
+#### Step 3: Activate conda environment and make AdaptACT recognisable (Should be done only once in a new terminal)
+```bash
 conda activate aloha
 ```
+```bash
+export PYTHONPATH=$PYTHONPATH:/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot/Models/Adapt-ACT
+```
+The second command adds the `Adapt-ACT` package to the `PYTHONPATH` so that the package can be imported in the script i.e `import AdaptACT` works.
 
 #### Step 4: Launch rollout.launch and specify the arms to be automated
 ```bash
