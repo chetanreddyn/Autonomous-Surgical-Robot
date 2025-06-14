@@ -184,6 +184,9 @@ conda activate aloha
 export PYTHONPATH=$PYTHONPATH:/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot/Models/Adapt-ACT
 ```
 The second command adds the `Adapt-ACT` package to the `PYTHONPATH`, allowing it to be imported in scripts. In other words, `import AdaptACT` will work as expected.
+
+#### Step 4: Specify if Temporal Aggregation is required
+Open the `train_cfg.yaml` file inside the `TRAIN_DIR` and specify `ROLLOUT.TEMPORAL_AGG` to `true` or `false`.
 #### Step 4: Initialize the Experiment
 ```bash
 rosrun data_collection initialize_exp.py
