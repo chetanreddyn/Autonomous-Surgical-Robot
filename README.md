@@ -81,6 +81,8 @@ and re launch the `phantom_real.launch`
 ```bash
 rosrun teleop phantom_teleop.py -a PSM3 # Specify the appropriate PSM
 ```
+You should see the message: `Detected Phantom Pose! Hold the Pen in Position, Hold the Grey Button Once to Start
+`
 The -a flag is used to specify the arm to teleoperate. The `phantom_teleop` script performs the required transformation to ensure the pose of the PSM tool tip with respect to the camera matches that of the stylus with respect to the eyes. It also has the logic to process the button clicks into a continuous jaw angle. 
 
 ## Data Collection 
