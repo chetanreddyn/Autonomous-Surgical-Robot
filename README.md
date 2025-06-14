@@ -54,15 +54,17 @@ roslaunch teleop arms_real.launch
 ```
 The `arms_real.launch` launch files will run the `dvrk_console_json` node from the dVRK package and other static coordinate transformations that are required for the teleoperation.
 
-<INCLUDE ABOUT arms_real.launch, console power on and home button, SUJ lighting up green>
-#### Step 2: Launch the vision pipeline
+#### Step 2: Click the Power On button followed by the Home button in the console
+Clicking the power on button turns the LED on the arms to Blue. Clicking the Home button turns them green and you will notice the MTMs moving towards their home position. If you want to switch on the MTM-PSM teleoperation connection at this point, click on the checkbox under `Tele operation` and it should go from red higlighed disabled to green highlighted enabled and the MTMs will start aligning their orientation with that of the PSMs.
+
+#### Step 3: Launch the vision pipeline
 ```bash
 roslaunch teleop vision_cart.launch console:=true
 ```
 Set `console:=false` to suppress surgeon console GUI windows.
 The `vision_cart.launch` file will run the nodes required to process the video stream from the camera and publish them into ROS topics. 
 
-#### Step 3: Launching the Phantom Omni device
+#### Step 4: Launching the Phantom Omni device
 ```bash
 roslaunch teleop phantom_real.launch
 ```
@@ -72,14 +74,14 @@ sudo chmod 777 /dev/ttvACM0
 ```
 and re launch the `phantom_real.launch`
 
-#### Step 4: Run the script to launch phantom omni teleoperation
+#### Step 5: Run the script to launch phantom omni teleoperation
 ```bash
 rosrun teleop phantom_teleop.py -a PSM1
 ```
 The -a flag is used to specify the arm to teleoperate. The `phantom_teleop` script performs the required transformation to ensure the pose of the PSM tool tip with respect to the camera matches that of the stylus with respect to the eyes. It also has the logic to process the button clicks into a continuous jaw angle. 
 
 ## Data Collection 
-The `data_collection` ROS package has the scripts/nodes to record the data during an experiment, initialize and replay experiments and also save and check the initial poses of the SUJs and tool tips. Follow these steps to log an experimental run (after completing the teleoperation commands above):
+The `data_collection` ROS package has the scripts/nodes to record the data during an experiment, initialize and replay experiments and also save and check the initial poses of the SUJs and tool tips. Follow these steps to log an experimental run (the step 1 commands below are explained in detail above):
 
 #### Step 1: Teleoperation Steps (in different terminals)
 ```bash
@@ -92,7 +94,7 @@ roslaunch teleop vision_cart.launch console:=true
 roslaunch teleop phantom_real.launch 
 ```
 ```bash
-rosrun teleop phantom_teleop.py -a PSM3 
+rosrun teleop phantom_teleop.py -a PSM3 # Specify the appropriate PSM 
 ```
 
 #### Step 2: Run the launch file that loads and publishes the saved initial pose 
