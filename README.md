@@ -112,7 +112,7 @@ The values corresponding to PSM1_base, PSM2_base, PSM3_base and ECM_base must be
 #### Step 4: Specify the Logging Folder (done only once per session)
 Open the files `ROS Packages/data_collection/scripts/csv_generator.py` and `ROS Packages/data_collection/scripts/replay_exp.py` and specify the `LOGGING_FOLDER`. This needs to be done only once per session unless different kinds of experiments are done in the same sessions.
 
-#### Step 5: Initialise the Experiment
+#### Step 5: Initialize the Experiment
 ```bash
 rosrun data_collection initialize_exp.py
 ```
@@ -131,6 +131,19 @@ Specify the demonstration name in the -d flag and the -T flag is used to specify
 rosrun data_collection replay_exp.py -d Test
 ```
 This replays the experimental run saved in LOGGING_FOLDER/Test. The script internally calls `initialize_exp.py` and the experiment is first initialized followed by the replay.
+
+#### Sequence of Events to follow during data collection (Only Step 5 and Step 6 are repeated in a loop)
+- Switch off MTM teleoperation in the Console
+- Initialize the Experiment (Step 5)
+- Place the objects
+- Switch On MTM teleoperation in the Console
+- Run the csv_generator script with the appropriate demo name in -d flag (Step 6). A prompt will be made. Answering y will start the logging (do not enter y yet)
+- Tell "Mono" to suggest the person on the surgeon console to be ready and confirm
+- Answering `y` in the csv_generator script will start the logging after 1 second delay. Therefore, start a countdown from 3 as you press enter.
+- Perform the task and let the logging finish
+- Terminate the logging script
+- Repeat
+
 
 ## Rollout 
 The `rollout` package is responsible for loading the trained model from a specified folder and using it to control the robot. It also has a logging script to save the generated actions. Run the following steps in a rollout session:
