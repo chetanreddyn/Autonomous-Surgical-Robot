@@ -180,7 +180,7 @@ The second command adds the `Adapt-ACT` package to the `PYTHONPATH`, allowing it
 ```bash
 roslaunch rollout rollout.launch a1:=PSM1 a2:=PSM2 a3:=None d:=Test
 ```
-This will automate the arms PSM1 and PSM2 while PSM3 will not receive commands from the model. The `phantom_teleop.py` script running from a different terminal will control PSM3. The `d` argument specifies the logging description. The rollout run will be saved in `LOGGING_FOLDER/Test`.
+The arguments a1,a2 and a3 specify the arms to be automated. Specify `None` if an arm needs to be teleoperated. The above command will automate the arms PSM1 and PSM2 while PSM3 will not receive commands from the model. The `phantom_teleop.py` script running from a different terminal will control PSM3. The `d` argument specifies the logging description. The rollout run will be saved in `LOGGING_FOLDER/Test`.
 
 #### Step 5: Run process_logged_folder.py to create videos and the visualizations
 ```bash
