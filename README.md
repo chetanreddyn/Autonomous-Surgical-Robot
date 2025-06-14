@@ -55,7 +55,7 @@ roslaunch teleop arms_real.launch
 The `arms_real.launch` launch files will run the `dvrk_console_json` node from the dVRK package and other static coordinate transformations that are required for the teleoperation.
 
 #### Step 2: Click the Power On button followed by the Home button in the console
-Clicking the power on button turns the LED on the arms to Blue. Clicking the Home button turns them green and you will notice the MTMs moving towards their home position. If you want to switch on the MTM-PSM teleoperation connection at this point, click on the checkbox under `Tele operation` and it should go from red higlighed disabled to green highlighted enabled and the MTMs will start aligning their orientation with that of the PSMs.
+Clicking the power on button turns the LED on the arms to Blue. Clicking the Home button turns them green and you will notice the MTMs moving towards their home position. If you want to switch on the MTM-PSM teleoperation connection at this point, click on the checkbox under `Tele operation` and it should go from **disabled** (highlighed in red) to **enabled** (highlighted in green) and the MTMs will start aligning their orientation with that of the PSMs.
 
 #### Step 3: Launch the vision pipeline
 ```bash
