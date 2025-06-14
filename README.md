@@ -167,13 +167,18 @@ rosrun teleop phantom_teleop.py -a PSM3
 ```
 The `LOGGING_DESCRIPTION` will be passed in command line in the next step
 
-#### Step 3: Launch rollout.launch and specify the arms to be automated
+#### Step 3: Activate conda environment and make AdaptACT recognisable
+```
+conda activate aloha
+```
+
+#### Step 4: Launch rollout.launch and specify the arms to be automated
 ```bash
 roslaunch rollout rollout.launch a1:=PSM1 a2:=PSM2 a3:=None d:=Test
 ```
 This will automate the arms PSM1 and PSM2 while PSM3 will not receive commands from the model. The `phantom_teleop.py` script running from a different terminal will control PSM3. The `d` argument specifies the logging description. The rollout run will be saved in `LOGGING_FOLDER/Test`.
 
-#### Step 4: Run process_logged_folder.py to create videos and the visualizations
+#### Step 5: Run process_logged_folder.py to create videos and the visualizations
 ```bash
 rosrun data_collection process_logged_folder.py
 ```
