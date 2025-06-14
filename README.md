@@ -110,7 +110,7 @@ rosrun data_collection check_initial_pose.py
 The values corresponding to PSM1_base, PSM2_base, PSM3_base and ECM_base must be less than 0.01. Use the flag --type joint_angles to display the errors in the joints. In a circumstance where the errors of any of the arm base is not less than 0.01, the SUJs have to be manually moved to the saved initial pose in 3D space, a couple of tools were developed to help with this. The details are inside the `data_collection` package.
 
 #### Step 4: Specify the Logging Folder (done only once per session)
-Open the file `/data_collection/scripts/csv_generator.py` and specify the `LOGGING_FOLDER`. This needs to be done only once per session unless different kinds of experiments are done in the same sessions.
+Open the files `ROS Packages/data_collection/scripts/csv_generator.py` and `ROS Packages/data_collection/scripts/replay_exp.py` and specify the `LOGGING_FOLDER`. This needs to be done only once per session unless different kinds of experiments are done in the same sessions.
 
 #### Step 5: Initialise the Experiment
 ```bash
@@ -120,12 +120,18 @@ The initialization should take less than 10 seconds. If it is stuck at a step, t
 
 #### Step 6: Run the csv_generator script to log an experiment
 ```bash
-rosrun data_collection csv_generator.py --loginfo -T 20 -d Demo1
+rosrun data_collection csv_generator.py --loginfo -T 20 -d Test
 ```
 Specify the demonstration name in the -d flag and the -T flag is used to specify the duration of an experiment after which the logging automatically stops (default is 15 seconds). In the above command, the experimental run will be saved in LOGGING_FOLDER/Demo1 and the duration is 20 seconds.
 <TO DO data collection pipeline and mono>
 <TO DO replay script timing, correct the bug>
 <TO DO Replay Script explanation>
+
+#### Step 7: Replaying an Experiment
+```bash
+rosrun data_collection replay_exp.py -d Test
+```
+
 
 ## Rollout 
 The `rollout` package is responsible for loading the trained model from a specified folder and using it to control the robot. It also has a logging script to save the generated actions. Run the following steps in a rollout session:
