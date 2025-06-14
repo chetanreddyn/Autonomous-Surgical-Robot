@@ -40,5 +40,8 @@ To refine further, we can reduce the errors in each of the SUJs. To do this, run
 ```bash
 rosrun data_collection check_initial_pose.py --type joint_angles
 ```
-You should see 4 values corresponding to SUJ joints 1 to 4. Try bringing the errors close to zero (less than 0.01) starting from the prismatic joint closest to the Base. Re-check the errors by executing step 1
+You should see 4 values corresponding to SUJ joints 1 to 4. Try bringing the errors close to zero (less than 0.01) starting from the prismatic joint closest to the Base. 
+
+#### Step 4: Check the errors by executing Step 1
+If any of the values are more than 0.01, repeat step 3
 
