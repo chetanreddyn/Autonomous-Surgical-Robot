@@ -43,6 +43,7 @@ Autonomous-Surgical-Robot/
 ```
 - **Models/**: Contains ACT model and core utilities.
 - **ROS Packages/**: Contains ROS packages for data collection, teleoperation, and rollouts.
+  
 ## Teleoperation
 The `teleop` ROS package has the scripts/nodes to launch the robot and perform teleoperation using the MTMs (Master Tele Manipulator), Phantom Omni and Keyboard.
 #### Step 0: The setup
