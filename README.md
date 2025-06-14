@@ -174,7 +174,7 @@ conda activate aloha
 ```bash
 export PYTHONPATH=$PYTHONPATH:/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot/Models/Adapt-ACT
 ```
-The second command adds the `Adapt-ACT` package to the `PYTHONPATH` so that the package can be imported in the script i.e `import AdaptACT` works.
+The second command adds the `Adapt-ACT` package to the `PYTHONPATH`, allowing it to be imported in scripts. In other words, `import AdaptACT` will work as expected.
 
 #### Step 4: Launch rollout.launch and specify the arms to be automated
 ```bash
