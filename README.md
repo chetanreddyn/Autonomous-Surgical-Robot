@@ -65,7 +65,7 @@ If you want to switch on the MTM-PSM teleoperation connection at this point, cli
 roslaunch teleop vision_cart.launch console:=true
 ```
 Set `console:=false` to suppress surgeon console GUI windows.
-The `vision_cart.launch` file will run the nodes required to process the video stream from the camera and publish them into ROS topics. Two windows will be displayed corresponding to the left and right camera streams. Push these windows into the surgeon console by pressing `Ctrl+Shift+Left Arrow`, press the `Left Arrow` twice for the `camera_left` window and once for the `camera_right` window.
+The `vision_cart.launch` file will run the nodes required to process the video stream from the camera and publish them into ROS topics. Two windows will be displayed corresponding to the left and right camera streams. Maximise the windows and push them into the surgeon console by pressing `Ctrl+Shift+Left Arrow`, press the `Left Arrow` twice for the `camera_left` window and once for the `camera_right` window.
 
 #### Step 4: Launching the Phantom Omni device
 ```bash
