@@ -53,7 +53,7 @@ Ensure the vision cart is switched on along with the light at 100%. Create a new
 ```bash
 roslaunch teleop arms_real.launch
 ```
-The `arms_real.launch` launch files will run the `dvrk_console_json` node from the dVRK package and other static coordinate transformations that are required for the teleoperation.
+You should see two windows appearing one after another. The first one is an RViz window and the second one is the console. The `arms_real.launch` launch files will run the `dvrk_console_json` node from the dVRK package and other static coordinate transformations that are required for the teleoperation. 
 
 #### Step 2: Click the Power On button followed by the Home button in the console
 Clicking the `Power On` button turns the LED on the arms to blue. Clicking the `Home` button turns them green and you will notice the MTMs moving towards their home position. Wait for all the arms to turn green, sometimes it takes longer for SUJ to turn green. 
