@@ -30,10 +30,10 @@ If the SUJ base has be moved somehow, we have to correct it manually. Follow the
 ```bash 
 rosrun data_collection check_initial_pose.py
 ```
-Check the errors corresponding to PSM1_base, PSM2_base, PSM3_base and ECM_base. All the values must be less than 0.01, if any of the values are too high, proceed to the next step.
+Check the errors corresponding to `PSM1_base`, `PSM2_base`, `PSM3_base` and `ECM_base`. All the values must be less than 0.01, if any of the values are too high, proceed to the next step.
 
 #### Step 2: Manual Movement using Visualization in RViz
-In RViz, under Frames, enable only PSM1_base and PSM1_base_ref (Assuming the error is in PSM1). You should see only two coordinate frames. Try moving the PSM1_base towards PSM1_base_ref. 
+In RViz, under Frames, enable only `PSM1_base` and `PSM1_base_ref` (Assuming the error is in `PSM1`). You should see only two coordinate frames. Try moving the `PSM1_base` towards `PSM1_base_ref`. 
 
 #### Step 3: Manual Movement using SUJ joint value errors
 To refine further, we can reduce the errors in each of the SUJs. To do this, run the following command:
