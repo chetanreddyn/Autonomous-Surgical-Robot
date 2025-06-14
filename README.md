@@ -131,7 +131,7 @@ The initialization should take less than 10 seconds. If it is stuck at a step, t
 ```bash
 rosrun data_collection csv_generator.py --loginfo -T 20 -d Test
 ```
-Specify the demonstration name in the -d flag and the -T flag is used to specify the duration of an experiment after which the logging automatically stops (default is 15 seconds). In the above command, the experimental run will be saved in LOGGING_FOLDER/Demo1 and the duration is 20 seconds.
+Specify the demonstration name in the -d flag and the -T flag is used to specify the duration of an experiment after which the logging automatically stops (default is 15 seconds). In the above command, the experimental run will be saved in LOGGING_FOLDER/Test and the duration is 20 seconds.
 
 #### Step 7: Replaying an Experiment
 ```bash
