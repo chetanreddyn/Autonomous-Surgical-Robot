@@ -37,7 +37,7 @@ class MimicPose:
         
         self.open_jaw = False
         self.was_in_open_jaw = False
-        self.jaw_angle = 0
+        self.jaw_angle = self.arm.jaw.setpoint_js()[0][0]
         self.jaw_step_size = config_dict["jaw_step_size_per_second"]/self.ros_frequency
         self.jaw_control_active = False
 
@@ -62,9 +62,9 @@ class MimicPose:
 
             if self.mono:
                 rospy.loginfo("Phantom Teleop Switched On")
-                # self.open_jaw = False
-                # self.was_in_open_jaw = False
-                # self.jaw_angle = 0
+                self.open_jaw = False
+                self.was_in_open_jaw = False
+                self.jaw_angle = self.arm.jaw.setpoint_js()[0][0]
 
             else:
                 rospy.loginfo("Phantom Teleop Switched Off")

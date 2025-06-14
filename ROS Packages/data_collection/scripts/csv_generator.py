@@ -87,16 +87,23 @@ class MessageSynchronizer:
         # self.csv_save_folder = os.path.join(self.final_logging_folder, "csv")
        
         if os.path.exists(self.final_logging_folder):
-            overwrite = input("Logging file already exists. Do you want to overwrite it? (y/n): ")
+            overwrite = input("Logging Folder for the demonstration already exists. Overwrite it? (y/n): ")
             if overwrite.lower() == 'y':
                 print("Deleting the folder now")
                 shutil.rmtree(self.final_logging_folder)
                 rospy.loginfo(f"Logging folder {self.final_logging_folder} deleted")
-                rospy.sleep(2)
+                rospy.sleep(1)
             else:
                 rospy.loginfo("rerun the script with a different logging description")
                 sys.exit(0)
-
+        
+        else:
+            proceed = input("Creating a new Logging Folder for the Demonstration, Proceed? (y/n)")
+            if proceed.lower() != 'y':
+                rospy.loginfo("Not Creating a New Logging Folder. Terminating")
+                sys.exit(0)
+            else:
+                rospy.sleep(1)
 
         os.makedirs(self.image_save_folder, exist_ok=True)
         self.csv_file = os.path.join(self.final_logging_folder, "data.csv")
@@ -127,7 +134,7 @@ class MessageSynchronizer:
         else:  # If not in rollout mode, check the duration 
             if self.time_sec>self.duration:
                 if not self.exp_done:
-                    rospy.loginfo("Experiment Duration Completed. Stopping the logging, restart the launch file to start a new experiment")
+                    rospy.loginfo("Experiment Duration Completed. Stopping the logging, Ctrl+C and restart this script to start a new experiment")
                     self.exp_done = True
                 # rospy.signal_shutdown("Duration exceeded")
                 return
