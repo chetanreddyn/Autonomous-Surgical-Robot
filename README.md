@@ -123,8 +123,6 @@ The initialization should take less than 10 seconds. If it is stuck at a step, t
 rosrun data_collection csv_generator.py --loginfo -T 20 -d Test
 ```
 Specify the demonstration name in the -d flag and the -T flag is used to specify the duration of an experiment after which the logging automatically stops (default is 15 seconds). In the above command, the experimental run will be saved in LOGGING_FOLDER/Demo1 and the duration is 20 seconds.
-<TO DO data collection pipeline and mono>
-<TO DO Replay Script explanation>
 
 #### Step 7: Replaying an Experiment
 ```bash
@@ -137,7 +135,7 @@ This replays the experimental run saved in LOGGING_FOLDER/Test. The script inter
 - Initialize the Experiment (Step 5)
 - Place the objects
 - Switch On MTM teleoperation in the Console
-- Run the csv_generator script with the appropriate demo name in -d flag (Step 6). A prompt will be made. Answering y will start the logging (do not enter y yet)
+- Run the csv_generator script with the appropriate demo name in -d flag (Step 6). A prompt will be made. Answering `y` will start the logging (do not enter `y` yet)
 - Tell "Mono" to suggest the person on the surgeon console to be ready and confirm
 - Answering `y` in the csv_generator script will start the logging after 1 second delay. Therefore, start a countdown from 3 as you press enter.
 - Perform the task and let the logging finish
