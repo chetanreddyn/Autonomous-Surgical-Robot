@@ -124,14 +124,13 @@ rosrun data_collection csv_generator.py --loginfo -T 20 -d Test
 ```
 Specify the demonstration name in the -d flag and the -T flag is used to specify the duration of an experiment after which the logging automatically stops (default is 15 seconds). In the above command, the experimental run will be saved in LOGGING_FOLDER/Demo1 and the duration is 20 seconds.
 <TO DO data collection pipeline and mono>
-<TO DO replay script timing, correct the bug>
 <TO DO Replay Script explanation>
 
 #### Step 7: Replaying an Experiment
 ```bash
 rosrun data_collection replay_exp.py -d Test
 ```
-
+This replays the experimental run saved in LOGGING_FOLDER/Test. The script internally calls `initialize_exp.py` and the experiment is first initialized followed by the replay.
 
 ## Rollout 
 The `rollout` package is responsible for loading the trained model from a specified folder and using it to control the robot. It also has a logging script to save the generated actions. Run the following steps in a rollout session:
