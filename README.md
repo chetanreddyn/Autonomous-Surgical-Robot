@@ -214,7 +214,7 @@ https://github.com/user-attachments/assets/b8fad08e-2f3c-4888-b93d-a9336c0b85df
 ## Known Issues
 
 #### Jaw Angle Command
-The jaw angle can take negative values when using the MTMs but using the dvrk/crtk API functions, we were unable to pass negative values. The stable function used to control the robot is `move_cp` or `move_jp`. When passing a negative jaw angle, the jaws stop at 0 degrees and do not go below. We need to explore other API functions like servo_jp or interpolate_jp to be able to pass negative jaw values.
+The jaw angle can take negative values when using the MTMs but using the dvrk/crtk API functions, we were unable to pass negative values. The stable function used to control the robot is `move_cp` or `move_jp`. When passing a negative jaw angle, the jaws stop at 0 degrees and does not go below that. We need to explore other API functions like servo_jp or interpolate_jp to be able to pass negative jaw values.
 
 **Teleoperation Demo**
 
