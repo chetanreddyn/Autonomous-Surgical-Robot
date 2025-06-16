@@ -124,8 +124,6 @@ rosrun data_collection check_initial_pose.py
 ```
 The values corresponding to `PSM1_base`, `PSM2_base`, `PSM3_base` and `ECM_base` must be less than 0.01. Use the flag --type joint_angles to display the errors in the joints. In a circumstance where the errors of any of the arm base is not less than 0.01, the SUJs have to be manually moved to the saved initial pose in 3D space, a couple of tools were developed to help with this. The details are under **"Correcting the Initial Pose"** inside the `data_collection` package [Link](https://github.com/chetanreddyn/Autonomous-Surgical-Robot/tree/main/ROS%20Packages/data_collection)
 
-.
-
 #### Step 4: Specify the Logging Folder (done only once per session)
 Open the files `ROS Packages/data_collection/scripts/csv_generator.py` and `ROS Packages/data_collection/scripts/replay_exp.py` and specify the `LOGGING_FOLDER`. This needs to be done only once per session unless different kinds of experiments are done in the same sessions. The files can be opened using the command.
 ```bash
@@ -152,6 +150,7 @@ rosrun data_collection replay_exp.py -d Test
 This replays the experimental run saved in LOGGING_FOLDER/Test. The script internally calls `initialize_exp.py` and the experiment is first initialized followed by the replay.
 
 #### Step 8: Postprocessing the Data
+As noted in the Issues section below, it is not possible to pass achieve negative jaw angles on the robot using the API functions. Therefore, there is an additional step that needs to be done to clip the negative jaw angles (of the arms controlled by MTMs) to zero in the dataset.
 
 
 #### Sequence of Events to follow during data collection (Only Step 5 and Step 6 are repeated in a loop)
