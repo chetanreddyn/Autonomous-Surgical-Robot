@@ -200,12 +200,13 @@ rosrun teleop phantom_teleop.py -a PSM3
 ```bash
 code '/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot/ROS Packages/rollout/launch/rollout.launch'
 ```
-##### Step 2.2: Search "specify paths here" by using Ctrl+F
+##### Step 2.2: Search "specify paths here" by using Ctrl+F and speci
 ```
 <param name = "TRAIN_DIR" value="INSERT trained model path HERE" type="str"/>
 <param name = "LOGGING_FOLDER" value="INSERT logging_folder_path HERE" type="str"/>
 ```
-(The `LOGGING_DESCRIPTION` ROS argument will be passed in command line in the next step)
+`TRAIN_DIR` is represents the trained imitation learning model folder
+`LOGGING_FOLDER` represents the folder where we want to saved the logs of the rollouts.
 
 #### Step 3: Activate conda environment and make AdaptACT recognisable (Should be done only once in a new terminal)
 ```bash
