@@ -45,3 +45,5 @@ You should see 4 values corresponding to SUJ joints 1 to 4. Try bringing the err
 #### Step 4: Check the errors by executing Step 1
 If any of the values are more than 0.01, repeat step 3
 
+#### Step 5: Terminate the scripts 
+
