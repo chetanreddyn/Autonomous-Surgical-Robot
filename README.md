@@ -144,6 +144,7 @@ Ctrl F the following: `Change logging folder here` in both the files. The `LOGGI
 - Tell "Mono" to suggest the person on the surgeon console to be ready and confirm
 - Answering `y` in the csv_generator script will start the logging after 1 second delay. Therefore, start a countdown from 3 as you press enter.
 - Perform the task and let the logging finish
+- Switch off the phantom omni (click grey button once) and place it in the inkwell.
 - Terminate the logging script
 - Repeat
 
@@ -161,13 +162,17 @@ rosrun data_collection csv_generator.py --loginfo -T 20 -d Test
 ```
 Specify the demonstration name in the -d flag and the -T flag is used to specify the duration of an experiment after which the logging automatically stops (default is 15 seconds). In the above command, the experimental run will be saved in LOGGING_FOLDER/Test and the duration is 20 seconds.
 
-#### Step 7: Replaying an Experiment
+#### Step 7: Optional Step (Replaying an Experiment)
+##### Step 7.1
+Make sure to Switch off the phantom omni (click grey button once) and the the MTM teleoperation.
+
+##### Step 7.2
 ```bash
 rosrun data_collection replay_exp.py -d Test
 ```
 This replays the experimental run saved in LOGGING_FOLDER/Test. The script internally calls `initialize_exp.py` and the experiment is first initialized followed by the replay.
 
-#### Step 8: Postprocessing the Data
+#### Step 8: Postprocessing the Data (Done only once per session in the end)
 As noted in the Issues section below, it is not possible to pass achieve negative jaw angles on the robot using the API functions. Therefore, there is an additional step that needs to be done to clip the negative jaw angles (of the arms controlled by MTMs) to zero in the dataset.
 
 ## Rollout 
