@@ -198,7 +198,7 @@ rosrun teleop phantom_teleop.py -a PSM3
 #### Step 2: Specify the trained model folder path and logging folder path in rollout/launch/rollout.launch
 ##### Step 2.1: Open the file rollout.launch
 ```bash
-
+code '/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot/ROS Packages/rollout/launch/rollout.launch'
 ```
 ##### Step 2.2: Search "specify paths here" by using Ctrl+F
 ```
