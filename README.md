@@ -205,7 +205,7 @@ code '/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot/ROS Packages/rollou
 <param name = "TRAIN_DIR" value="INSERT trained model path HERE" type="str"/>
 <param name = "LOGGING_FOLDER" value="INSERT logging_folder_path HERE" type="str"/>
 ```
-(The `LOGGING_DESCRIPTION` will be passed in command line in the next step)
+(The `LOGGING_DESCRIPTION` ROS argument will be passed in command line in the next step)
 
 #### Step 3: Activate conda environment and make AdaptACT recognisable (Should be done only once in a new terminal)
 ```bash
@@ -216,14 +216,14 @@ export PYTHONPATH=$PYTHONPATH:/home/stanford/catkin_ws/src/Autonomous-Surgical-R
 ```
 The second command adds the `Adapt-ACT` package to the `PYTHONPATH`, allowing it to be imported in scripts. In other words, `import AdaptACT` will work as expected.
 
-#### Step 4: Specify if Temporal Aggregation is required
+#### Step 5: Specify if Temporal Aggregation is required
 Open the `train_cfg.yaml` file inside the `TRAIN_DIR` and specify `ROLLOUT.TEMPORAL_AGG` to `true` or `false`.
-#### Step 4: Initialize the Experiment
+
+#### Step 6: Initialize the Experiment
 ```bash
 rosrun data_collection initialize_exp.py
 ```
-
-#### Step 5: Launch rollout.launch and specify the arms to be automated
+#### Step 7: Launch rollout.launch and specify the arms to be automated
 ```bash
 roslaunch rollout rollout.launch a1:=PSM1 a2:=PSM2 a3:=None d:=Test
 ```
@@ -241,7 +241,7 @@ The arguments a1,a2 and a3 specify the arms to be automated. Specify `None` if a
 - Specify `a1:=None a2:=None a3:=PSM3`
 - Make sure to switch on MTM teleop and switch off Phantom Omni
 
-#### Step 6: Run process_logged_folder.py to create videos and the visualizations
+#### Step 8: Run process_logged_folder.py to create videos and the visualizations
 ```bash
 rosrun data_collection process_logged_folder.py
 ```
