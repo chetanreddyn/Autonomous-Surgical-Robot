@@ -178,6 +178,12 @@ This replays the experimental run saved in LOGGING_FOLDER/Test. The script inter
 #### Step 8: Postprocessing the Data (Done only once per session in the end)
 As noted in the Issues section below, it is not possible to pass achieve negative jaw angles on the robot using the API functions. Therefore, there is an additional step that needs to be done to clip the negative jaw angles (of the arms controlled by MTMs) to zero in the dataset.
 
+##### Step 8.1
+Open the post_processing
+
+##### Step 8.2
+Run the 
+
 ## Rollout 
 The `rollout` package is responsible for loading the trained model from a specified folder and using it to control the robot. It also has a logging script to save the generated actions. Run the following steps in a rollout session:
 
@@ -249,6 +255,8 @@ rosrun data_collection process_logged_folder.py
 ```
 This should be run in a different terminal immediately after the rollout is completed. This is because the script relies on reading from the `LOGGING_FOLDER/Test` which is published as a ROS parameter. 
 
+The plot.html 
+
 
 ## Results
 **Demo of the Two handed and Three Handed Tasks Semi and Fully Automated (Play it with the Music!)**
@@ -261,7 +269,7 @@ https://github.com/user-attachments/assets/b8fad08e-2f3c-4888-b93d-a9336c0b85df
 The jaw angle can take negative values when using the MTMs but using the dvrk/crtk API functions, we were unable to pass negative values. The stable function used to control the robot is `move_cp` or `move_jp`. When passing a negative jaw angle, the jaws stop at 0 degrees and does not go below that. We need to explore other API functions like servo_jp or interpolate_jp to be able to pass negative jaw values.
 
 #### Unable to Get Setpoint
-Sometimes, we get a runtime warning `unable to get setpoint_cp (/PSM3/setpoint_cp)`, Restart the system when this happens. Could not figure out the root cause. 
+Sometimes, we get a runtime warning `unable to get setpoint_cp (/PSM3/setpoint_cp)`, Rerun the four Teleoperation Steps when this happens.
 
 **Teleoperation Demo**
 
