@@ -199,6 +199,8 @@ roslaunch rollout rollout.launch a1:=PSM1 a2:=PSM2 a3:=None d:=Test
 ```
 The arguments a1,a2 and a3 specify the arms to be automated. Specify `None` if an arm needs to be teleoperated. The above command will automate the arms PSM1 and PSM2 while PSM3 will not receive commands from the model. The `phantom_teleop.py` script running from a different terminal will control PSM3. The `d` argument specifies the logging description. The rollout run will be saved in `LOGGING_FOLDER/Test`.
 
+To enable temporal aggregation. Go to the `TRAIN_DIR/train_cfg.yaml` and set `ROLLOUT.TEMPORAL_AGG` to true.
+
 #### Step 6: Run process_logged_folder.py to create videos and the visualizations
 ```bash
 rosrun data_collection process_logged_folder.py
