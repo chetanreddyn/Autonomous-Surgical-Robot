@@ -90,6 +90,7 @@ You should see the message: `Detected Phantom Pose! Hold the Pen in Position, Ho
 
 Some pointers:
 - The -a flag is used to specify the arm to teleoperate.
+- Controlling the Jaw: The white button is used to open and close the jaw.
 - When using the phantom omni, make the initial position of the stylus roughly align with the PSM's tool tip from the video stream
 - Always switch off the connection (by pressing the Grey Button) before placing the stylus into the home position (Ink Well) of the Phantom Omni.
 - The `phantom_teleop` script performs the required transformation to ensure the pose of the PSM tool tip with respect to the camera matches that of the stylus with respect to the eyes. It also has the logic to process the button clicks into a continuous jaw angle. 
@@ -111,17 +112,17 @@ roslaunch teleop phantom_real.launch
 rosrun teleop phantom_teleop.py -a PSM3 # Specify the appropriate PSM 
 ```
 
-#### Step 2: Run the launch file that loads and publishes the saved initial pose 
+#### Step 2: Run the launch file that loads and publishes the saved initial pose (New Terminal)
 ```bash
 roslaunch data_collection data_collection_setup.launch
 ```
-(This launch file can also be edited to include all the steps in Teleoperation if you want everything in a single place but not recommended since you have to relaunch the robot everytime there is a small issue)
+(This launch file can also be edited to include all the steps in Teleoperation (Step 1) if you want everything in a single place but not recommended since you have to relaunch the robot everytime there is a small issue)
 
-#### Step 3: Check the Initialise poses to ensure the SUJs haven't been moved (done only once per session)
+#### Step 3: Check the initial poses to ensure the SUJs haven't been moved (done only once per session) (New Terminal)
 ```bash
 rosrun data_collection check_initial_pose.py
 ```
-The values corresponding to PSM1_base, PSM2_base, PSM3_base and ECM_base must be less than 0.01. Use the flag --type joint_angles to display the errors in the joints. In a circumstance where the errors of any of the arm base is not less than 0.01, the SUJs have to be manually moved to the saved initial pose in 3D space, a couple of tools were developed to help with this. The details are inside the `data_collection` package.
+The values corresponding to `PSM1_base`, `PSM2_base`, `PSM3_base` and `ECM_base` must be less than 0.01. Use the flag --type joint_angles to display the errors in the joints. In a circumstance where the errors of any of the arm base is not less than 0.01, the SUJs have to be manually moved to the saved initial pose in 3D space, a couple of tools were developed to help with this. The details are inside the `data_collection` package.
 
 #### Step 4: Specify the Logging Folder (done only once per session)
 Open the files `ROS Packages/data_collection/scripts/csv_generator.py` and `ROS Packages/data_collection/scripts/replay_exp.py` and specify the `LOGGING_FOLDER`. This needs to be done only once per session unless different kinds of experiments are done in the same sessions. The files can be opened using the command.
