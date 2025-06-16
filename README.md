@@ -50,25 +50,27 @@ The `teleop` ROS package has the scripts/nodes to launch the robot and perform t
 #### Step 0: The setup
 Ensure the vision cart is switched on along with the light at 100%. Create a new terminator window. Use `Ctrl+Shift+O` to split it horizontally and `Ctrl+Shift+E` to split vertically. We would be needing a lot of terminal windows, so terminator is recommended.
 
-#### Step 1: Launch the dvrk console 
+#### Step 1: Launch the dvrk console (New Terminal)
 ```bash
 roslaunch teleop arms_real.launch
 ```
-You should see two windows appearing one after another. The first one is an RViz window and the second one is the console. The `arms_real.launch` launch files will run the `dvrk_console_json` node from the dVRK package and other static coordinate transformations that are required for the teleoperation. 
+You should see two windows appearing one after another. The first one is an RViz window and the second one is the console (the GUI to control the robot). The `arms_real.launch` launch files will run the `dvrk_console_json` node from the dVRK package and other static coordinate transformations that are required for the teleoperation. 
 
 #### Step 2: Click the Power On button followed by the Home button in the console
 Clicking the `Power On` button turns the LED on the arms to blue. Clicking the `Home` button turns them green and you will notice the MTMs moving towards their home position. Wait for all the arms to turn green, sometimes it takes longer for SUJ to turn green. 
 
-If you want to switch on the MTM-PSM teleoperation connection at this point, click on the checkbox under `Tele operation` and it should go from **disabled** (highlighed in red) to **enabled** (highlighted in green) and the MTMs will start aligning their orientation with that of the PSMs.
+If you want to switch on the MTM-PSM teleoperation connection at this point, click on the checkbox under `Tele operation` and it should go from **disabled** (highlighed in red) to **enabled** (highlighted in green) and the MTMs will start aligning their orientation with that of the PSMs. 
 
-#### Step 3: Launch the vision pipeline
+#### Step 3: Launch the vision pipeline (New Terminal)
 ```bash
 roslaunch teleop vision_cart.launch console:=true
 ```
-Set `console:=false` to suppress surgeon console GUI windows.
-The `vision_cart.launch` file will run the nodes required to process the video stream from the camera and publish them into ROS topics. Two windows will be displayed corresponding to the left and right camera streams. Maximise the windows and push them into the surgeon console by pressing `Ctrl+Shift+Left Arrow`, press the `Left Arrow` twice for the `camera_left` window and once for the `camera_right` window.
+The `vision_cart.launch` file will run the nodes required to process the video stream from the camera and publish them into ROS topics. Two windows will be displayed corresponding to the left and right camera streams. There will be another window in RViz corresponding to the left camera stream. 
 
-#### Step 4: Launching the Phantom Omni device
+Maximise the windows and push them into the surgeon console by pressing `Win+Shift+Left Arrow`, press the `Left Arrow` twice for the `camera_left` window and once for the `camera_right` window.
+
+(Set `console:=false` to suppress surgeon console GUI windows)
+#### Step 4: Launching the Phantom Omni device (New Terminal) 
 ```bash
 roslaunch teleop phantom_real.launch
 ```
@@ -78,7 +80,7 @@ sudo chmod 777 /dev/ttvACM0
 ```
 and re launch the `phantom_real.launch`
 
-#### Step 5: Run the script to launch phantom omni teleoperation
+#### Step 5: Run the script to launch phantom omni teleoperation (New Terminal)
 ```bash
 rosrun teleop phantom_teleop.py -a PSM3 # Specify the appropriate PSM
 ```
