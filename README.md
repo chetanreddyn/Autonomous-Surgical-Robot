@@ -140,7 +140,7 @@ rosrun data_collection initialize_exp.py
 ```
 The initialization should take less than 10 seconds. If it is stuck at a step, terminate and re-run the script.
 
-The initial poses are saved inside [Link](https://github.com/chetanreddyn/Autonomous-Surgical-Robot/tree/main/ROS%20Packages/data_collection/utils_config). If you want to change the initial pose, follow the steps under **Saving Initial Pose** described here [Link]([url](https://github.com/chetanreddyn/Autonomous-Surgical-Robot/tree/main/ROS%20Packages/data_collection))
+The initial pose is retrieved from a specific file in [Link](https://github.com/chetanreddyn/Autonomous-Surgical-Robot/tree/main/ROS%20Packages/data_collection/utils_config). If you want to change the initial pose, follow the steps under **Saving Initial Pose** described here [Link](https://github.com/chetanreddyn/Autonomous-Surgical-Robot/tree/main/ROS%20Packages/data_collection)
 
 #### Step 6: Run the csv_generator script to log an experiment
 ```bash
