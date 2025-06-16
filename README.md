@@ -78,7 +78,7 @@ The `phantom_real.launch` file contains the nodes required to simulate the digit
 
 Sometimes, this command can throw permission errors (when the phantom omni is re-plugged or the computer is restarted). Run the following command when that happens: 
 ```
-sudo chmod 777 /dev/ttvACM0
+sudo chmod 777 /dev/ttyACM0
 ```
 and re launch the `phantom_real.launch`
 
