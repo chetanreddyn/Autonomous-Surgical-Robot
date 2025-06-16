@@ -178,11 +178,37 @@ This replays the experimental run saved in LOGGING_FOLDER/Test. The script inter
 #### Step 8: Postprocessing the Data (Done only once per session in the end)
 As noted in the Issues section below, it is not possible to pass achieve negative jaw angles on the robot using the API functions. Therefore, there is an additional step that needs to be done to clip the negative jaw angles (of the arms controlled by MTMs) to zero in the dataset.
 
-##### Step 8.1
-Open the post_processing
+##### Step 8.1: Plot the data to check
+```bash
+code `/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot/ROS Packages/data_collection/scripts/utils/plotter.py`
+```
 
-##### Step 8.2
-Run the 
+Open the `plotter.py` script and specify the right `exp_type` and `demo_name` to visualize. You can search for `specify logging folder and demo number here`
+
+Once you have filled it, run the following.
+```bash
+rosrun data_collection plotter.py
+```
+
+This should show the plots in the browser. Is the angles are not clipped yet, you should see negative values in the curves corresponding to the jaw angles
+
+##### Step 8.3: Create a copy of the existing data and save it into a new folder
+
+##### Step 8.2: Run the `jaw_angle_corrector.py` script
+Open the jaw corrector script
+```bash
+code '/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot/ROS Packages/data_collection/scripts/utils/jaw_angle_corrector.py'
+```
+
+Search for `Specify logging folder and demo number here`, specify `LOGGING_FOLDER`, `demo_start` and `demo_end`. 
+
+Once you have filled it, run the script
+```bash
+rosrun data_collection jaw_angle_corrector.py
+```
+
+When you run Step 8.1 again (with the appropriate paths and demo name), the jaw angle curve will now be clipped.
+
 
 ## Rollout 
 The `rollout` package is responsible for loading the trained model from a specified folder and using it to control the robot. It also has a logging script to save the generated actions. Run the following steps in a rollout session:
