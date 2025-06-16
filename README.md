@@ -134,7 +134,20 @@ code '/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot/ROS Packages/data_c
 ##### Step 4.2
 Ctrl F the following: `Change logging folder here` in both the files. The `LOGGING_FOLDER` path must be the same in both the scripts (as the `replay_exp.py` reads from the same folder the recording is saved using `csv_generator.py`)
 
-#### Step 5: Initialize the Experiment
+
+#### Step 5: Sequence of Events to follow during data collection (Only Step 5.1 and Step 5.2 are repeated in a loop)
+- Switch off MTM teleoperation in the Console
+- Step 5.1 (described below) - Initialize the Experiment
+- Place the objects
+- Switch On MTM teleoperation in the Console
+- Step 5.2 (described below) - Run the csv_generator script with the appropriate demo name in -d flag. A prompt will be made. Answering `y` will start the logging (do not enter `y` yet)
+- Tell "Mono" to suggest the person on the surgeon console to be ready and confirm
+- Answering `y` in the csv_generator script will start the logging after 1 second delay. Therefore, start a countdown from 3 as you press enter.
+- Perform the task and let the logging finish
+- Terminate the logging script
+- Repeat
+
+##### Step 5.1: Initialize the Experiment 
 ```bash
 rosrun data_collection initialize_exp.py
 ```
@@ -142,7 +155,7 @@ The initialization should take less than 10 seconds. If it is stuck at a step, t
 
 The initial pose is retrieved from a specific file in [Link](https://github.com/chetanreddyn/Autonomous-Surgical-Robot/tree/main/ROS%20Packages/data_collection/utils_config). If you want to change the initial pose, follow the steps under **Saving Initial Pose** described here [Link](https://github.com/chetanreddyn/Autonomous-Surgical-Robot/tree/main/ROS%20Packages/data_collection)
 
-#### Step 6: Run the csv_generator script to log an experiment
+##### Step 5.2: Run the csv_generator script to log an experiment
 ```bash
 rosrun data_collection csv_generator.py --loginfo -T 20 -d Test
 ```
@@ -156,20 +169,6 @@ This replays the experimental run saved in LOGGING_FOLDER/Test. The script inter
 
 #### Step 8: Postprocessing the Data
 As noted in the Issues section below, it is not possible to pass achieve negative jaw angles on the robot using the API functions. Therefore, there is an additional step that needs to be done to clip the negative jaw angles (of the arms controlled by MTMs) to zero in the dataset.
-
-
-#### Sequence of Events to follow during data collection (Only Step 5 and Step 6 are repeated in a loop)
-- Switch off MTM teleoperation in the Console
-- Initialize the Experiment (Step 5)
-- Place the objects
-- Switch On MTM teleoperation in the Console
-- Run the csv_generator script with the appropriate demo name in -d flag (Step 6). A prompt will be made. Answering `y` will start the logging (do not enter `y` yet)
-- Tell "Mono" to suggest the person on the surgeon console to be ready and confirm
-- Answering `y` in the csv_generator script will start the logging after 1 second delay. Therefore, start a countdown from 3 as you press enter.
-- Perform the task and let the logging finish
-- Terminate the logging script
-- Repeat
-
 
 ## Rollout 
 The `rollout` package is responsible for loading the trained model from a specified folder and using it to control the robot. It also has a logging script to save the generated actions. Run the following steps in a rollout session:
