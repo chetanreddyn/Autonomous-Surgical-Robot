@@ -180,7 +180,7 @@ As noted in the Issues section below, it is not possible to pass achieve negativ
 
 ##### Step 8.1: Plot the data to check
 ```bash
-code `/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot/ROS Packages/data_collection/scripts/utils/plotter.py`
+code '/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot/ROS Packages/data_collection/scripts/utils/plotter.py'
 ```
 
 Open the `plotter.py` script and specify the right `exp_type` and `demo_name` to visualize. You can search for `specify logging folder and demo number here`
