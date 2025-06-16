@@ -135,7 +135,7 @@ code '/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot/ROS Packages/data_c
 Ctrl F the following: `Change logging folder here` in both the files. The `LOGGING_FOLDER` path must be the same in both the scripts (as the `replay_exp.py` reads from the same folder the recording is saved using `csv_generator.py`)
 
 
-#### Step 5: Sequence of Events to follow during data collection (Only Step 5.1 and Step 5.2 are repeated in a loop)
+#### Step 5: Data Collection - Sequence of Events to follow
 - Switch off MTM teleoperation in the Console
 - Step 5.1 (described below) - Initialize the Experiment
 - Place the objects
