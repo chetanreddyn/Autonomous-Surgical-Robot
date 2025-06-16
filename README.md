@@ -228,7 +228,7 @@ rosrun data_collection initialize_exp.py
 ```bash
 roslaunch rollout rollout.launch a1:=PSM1 a2:=PSM2 a3:=None d:=Test
 ```
-The arguments a1,a2 and a3 specify the arms to be automated. Specify `None` if an arm needs to be teleoperated. The `d` argument specifies the logging description. The rollout run will be saved in `LOGGING_FOLDER/Test`. To enable temporal aggregation. Go to the `TRAIN_DIR/train_cfg.yaml` and set `ROLLOUT.TEMPORAL_AGG` to true.
+The arguments a1,a2 and a3 specify the arms to be automated. Specify `None` if an arm needs to be teleoperated. The `d` argument specifies the name of the specific experimental rollout. The rollout run will be saved in `LOGGING_FOLDER/Test`. To enable temporal aggregation. Go to the `TRAIN_DIR/train_cfg.yaml` and set `ROLLOUT.TEMPORAL_AGG` to true.
 
 ##### Fully Automated Case
 - Specify `a1:=PSM1 a2:=PSM2 a3:=PSM3`
