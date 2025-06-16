@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import pandas as pd
 import plotly.graph_objs as go
 import plotly.io as pio
@@ -232,10 +234,15 @@ def plot_arm_joints_and_xyz(data_csv=None, actions_csv=None, x_axis="Frame Numbe
 
 if __name__ == "__main__":
     root_folder = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data"
-    exp_type = "Collaborative Three Handed"
+
+    # Specify logging folder and demo number here
+    exp_type = "Collaborative Three Handed Clipped Jaw Angle"
     # exp_type = "Collaborative Expert Two Handed Object Transfer"
-    demo_name = "Demo7"
+    demo_name = "Demo121"
+
     LOGGING_FOLDER = os.path.join(root_folder, exp_type, demo_name)
+
+
     data_csv = os.path.join(LOGGING_FOLDER, "data.csv")
     actions_csv = os.path.join(LOGGING_FOLDER, "rollout_actions.csv")
     # plot_arm_joints(data_csv=data_csv, actions_csv=actions_csv, x_axis="Frame Number", title=f"{exp_type}/{demo_name}")

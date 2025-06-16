@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import pandas as pd
 import sys
 import os
@@ -15,10 +17,16 @@ def correct_jaw_angles(csv_path):
 
 if __name__ == "__main__":
     # Specify the path to the CSV file and the output folder
-    root_folder = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/"
-    exp_type = "Collaborative Three Handed Clipped Jaw Angle"
 
-    LOGGING_FOLDER = os.path.join(root_folder, exp_type)
+    # Specify logging folder and demo number here
+    LOGGING_FOLDER = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Collaborative Three Handed Clipped Jaw Angle"
+    demo_start = 1
+    demo_end = 10
+
+    # root_folder = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/"
+    # exp_type = "Collaborative Three Handed Clipped Jaw Angle"
+
+    # LOGGING_FOLDER = os.path.join(root_folder, exp_type)
 
     if not os.path.exists(LOGGING_FOLDER):
         print("Enter Correct Logging Folder")
@@ -26,7 +34,7 @@ if __name__ == "__main__":
     else:
         t0 = time.time()
         t_prev = t0
-        for i in range(1, 71):
+        for i in range(demo_start,demo_end):
             logging_description = "Demo" + str(i)
             csv_path = os.path.join(LOGGING_FOLDER, logging_description, "data.csv")
 

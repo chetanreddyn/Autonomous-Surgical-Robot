@@ -367,6 +367,7 @@ if __name__ == '__main__':
 
     # LOGGING_FOLDER = rospy.get_param("LOGGING_FOLDER")
     # specify the right LOGGING_FOLDER here:
+    # Change logging folder here
     LOGGING_FOLDER = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Collaborative Three Handed"
     LOGGING_FOLDER = rospy.get_param("LOGGING_FOLDER", LOGGING_FOLDER) # This reads the logging_folder from a ros parameter if available
     # List of topics and their message types

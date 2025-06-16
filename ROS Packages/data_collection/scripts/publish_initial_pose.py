@@ -129,7 +129,7 @@ class TransformPublisher:
 if __name__ == "__main__":
     rospy.init_node("static_transform_publisher", anonymous=True)
 
-    initial_pose_json = rospy.get_param("initial_pose_json",  "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot/ROS Packages/data_collection/utils_config/initial_pose_with_suj.json")
+    initial_pose_json = rospy.get_param("initial_pose_json")
     # Path to the JSON file
     config_dict = {
         'json_file': initial_pose_json, 

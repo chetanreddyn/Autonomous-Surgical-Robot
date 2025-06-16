@@ -189,23 +189,18 @@ if __name__ == "__main__":
     argv = crtk.ral.parse_argv(sys.argv[1:])  # Skip argv[0], script name
     parser = argparse.ArgumentParser(description="Replay Experiment")
 
-    # PARENT_FOLDER = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Collaborative Expert Two Handed Object Transfer"
-    # exp_type = "Rollouts/Rollouts 150 Demo Model/Autonomous"
-    # exp_type = "Collaborative Expert Two Handed Object Transfer"
-    exp_type = "Collaborative Three Handed"
-
-    root_folder = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/"
+    # Change logging folder here
+    LOGGING_FOLDER = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Collaborative Three Handed"
 
     parser.add_argument('-d', '--demo_name', type=str, required=True, help="Demo name to replay")
     parser.add_argument('-r', '--reposition_ecm', action='store_true', help="Reposition ECM if this flag is provided")
     parser.add_argument('-n', '--num_arms', type=int, default=2, help="Number of arms to replay (default: 3)")
     parser.add_argument('-D', '--debug_mode', action='store_true', help="Enable debug mode (default: False)")
-    parser.add_argument('-e', '--exp_type', type=str, default=exp_type, help="Parent folder for the demo data (default: /home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Collaborative Expert Two Handed Object Transfer)")
+    # parser.add_argument('-e', '--exp_type', type=str, default=exp_type, help="Parent folder for the demo data (default: /home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Collaborative Expert Two Handed Object Transfer)")
 
     args = parser.parse_args(argv)
     demo_name = args.demo_name
     reposition_ecm = args.reposition_ecm
-    PARENT_FOLDER = root_folder + args.exp_type
 
     # Configuration dictionary
     exp_initialiser_config_dict = {
@@ -221,10 +216,10 @@ if __name__ == "__main__":
     # Create ExperimentInitializer object and run the initialization
     rospy.loginfo("INITIALIZING EXPERIMENT BEFORE REPLAYING")
 
-    if os.path.exists(f"{PARENT_FOLDER}/{demo_name}/data.csv"):
+    if os.path.exists(f"{LOGGING_FOLDER}/{demo_name}/data.csv"):
         pass
     else:
-        rospy.logfatal(f"CSV file not found at {PARENT_FOLDER}/{demo_name}/data.csv")
+        rospy.logfatal(f"CSV file not found at {LOGGING_FOLDER}/{demo_name}/data.csv")
         sys.exit(1)
 
     initializer = ExperimentInitializer(ral,exp_initialiser_config_dict)
@@ -235,7 +230,7 @@ if __name__ == "__main__":
 
         print_replay_starting_text()
 
-        csv_file = f"{PARENT_FOLDER}/{demo_name}/data.csv"
+        csv_file = f"{LOGGING_FOLDER}/{demo_name}/data.csv"
 
         replay_exp_config_dict = {"csv_file": csv_file,
                                   "arm_names": ["PSM1", "PSM2", "PSM3"],

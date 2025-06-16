@@ -214,7 +214,7 @@ class MimicPose:
             rospy.loginfo("Waiting for Phantom Omni Pose")
             rospy.sleep(0.1)
 
-        rospy.loginfo("Received! Hold the Pen in Position, Hold the Grey Button Once to Start")
+        rospy.loginfo("Detected Phantom Pose! Hold the Pen in Position, Hold the Grey Button Once to Start")
         while not rospy.is_shutdown():
             
             # When mono is pressed
@@ -267,4 +267,6 @@ if __name__ == '__main__':
     
     ral = crtk.ral('mimic_pose')
     mimic_pose = MimicPose(ral, args.arm,config_dict)
+    rospy.loginfo("Initializing")
+    rospy.sleep(1)
     ral.spin_and_execute(mimic_pose.run)
