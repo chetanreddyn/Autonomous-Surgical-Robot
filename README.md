@@ -132,7 +132,7 @@ code '/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot/ROS Packages/data_c
 code '/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot/ROS Packages/data_collection/scripts/replay_exp.py'
 ```
 ##### Step 4.2
-Ctrl F the following: `Change logging folder here`
+Ctrl F the following: `Change logging folder here` in both the files. The `LOGGING_FOLDER` path must be the same in both the scripts (as the `replay_exp.py` reads from the same folder the recording is saved using `csv_generator.py`)
 
 #### Step 5: Initialize the Experiment
 ```bash
