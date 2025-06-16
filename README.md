@@ -124,7 +124,7 @@ rosrun data_collection check_initial_pose.py
 ```
 The values corresponding to `PSM1_base`, `PSM2_base`, `PSM3_base` and `ECM_base` must be less than 0.01. Use the flag --type joint_angles to display the errors in the joints. In a circumstance where the errors of any of the arm base is not less than 0.01, the SUJs have to be manually moved to the saved initial pose in 3D space, a couple of tools were developed to help with this. The details are under **"Correcting the Initial Pose"** inside the `data_collection` package [Link](https://github.com/chetanreddyn/Autonomous-Surgical-Robot/tree/main/ROS%20Packages/data_collection)
 
-#### Step 4: Specify the Logging Folder (done only once per session)
+#### Step 4: Specify the Logging Folder and the meta file details(done only once per session)
 Open the files `ROS Packages/data_collection/scripts/csv_generator.py` and `ROS Packages/data_collection/scripts/replay_exp.py` and specify the `LOGGING_FOLDER`. This needs to be done only once per session unless different kinds of experiments are done in the same sessions. The files can be opened using the command.
 ##### Step 4.1
 ```bash
@@ -133,6 +133,9 @@ code '/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot/ROS Packages/data_c
 ```
 ##### Step 4.2
 Ctrl F the following: `Change logging folder here` in both the files. The `LOGGING_FOLDER` path must be the same in both the scripts (as the `replay_exp.py` reads from the same folder the recording is saved using `csv_generator.py`)
+
+##### Step 4.3
+
 
 
 #### Step 5: Data Collection - Sequence of Events to follow
@@ -178,7 +181,7 @@ As noted in the Issues section below, it is not possible to pass achieve negativ
 ## Rollout 
 The `rollout` package is responsible for loading the trained model from a specified folder and using it to control the robot. It also has a logging script to save the generated actions. Run the following steps in a rollout session:
 
-#### Step 1: Teleoperation Steps (in different terminals)
+#### Step 1: Teleoperation Steps (in different terminals, skip this step if done earlier)
 ```bash
 roslaunch teleop arms_real.launch
 ```
@@ -193,11 +196,16 @@ rosrun teleop phantom_teleop.py -a PSM3
 ```
 
 #### Step 2: Specify the trained model folder path and logging folder path in rollout/launch/rollout.launch
+##### Step 2.1: Open the file rollout.launch
+```bash
+
+```
+##### Step 2.2: Search "specify paths here" by using Ctrl+F
 ```
 <param name = "TRAIN_DIR" value="INSERT trained model path HERE" type="str"/>
 <param name = "LOGGING_FOLDER" value="INSERT logging_folder_path HERE" type="str"/>
 ```
-The `LOGGING_DESCRIPTION` will be passed in command line in the next step
+(The `LOGGING_DESCRIPTION` will be passed in command line in the next step)
 
 #### Step 3: Activate conda environment and make AdaptACT recognisable (Should be done only once in a new terminal)
 ```bash
@@ -219,9 +227,19 @@ rosrun data_collection initialize_exp.py
 ```bash
 roslaunch rollout rollout.launch a1:=PSM1 a2:=PSM2 a3:=None d:=Test
 ```
-The arguments a1,a2 and a3 specify the arms to be automated. Specify `None` if an arm needs to be teleoperated. The above command will automate the arms PSM1 and PSM2 while PSM3 will not receive commands from the model. The `phantom_teleop.py` script running from a different terminal will control PSM3. The `d` argument specifies the logging description. The rollout run will be saved in `LOGGING_FOLDER/Test`.
+The arguments a1,a2 and a3 specify the arms to be automated. Specify `None` if an arm needs to be teleoperated. The `d` argument specifies the logging description. The rollout run will be saved in `LOGGING_FOLDER/Test`. To enable temporal aggregation. Go to the `TRAIN_DIR/train_cfg.yaml` and set `ROLLOUT.TEMPORAL_AGG` to true.
 
-To enable temporal aggregation. Go to the `TRAIN_DIR/train_cfg.yaml` and set `ROLLOUT.TEMPORAL_AGG` to true.
+##### Fully Automated Case
+- Specify `a1:=PSM1 a2:=PSM2 a3:=PSM3`
+- Make sure to switch off MTM teleop and Phantom Omni
+
+##### Semi-Automated (PSM3 - Teleoperated with Phantom Omni)
+- Specify `a1:=PSM1 a2:=PSM2 a3:=None`
+- Make sure to switch off MTM teleop and switch on Phantom Omni
+
+##### Semi-Automated (PSM1, PSM2 - Teleoperated with MTMs)
+- Specify `a1:=None a2:=None a3:=PSM3`
+- Make sure to switch on MTM teleop and switch off Phantom Omni
 
 #### Step 6: Run process_logged_folder.py to create videos and the visualizations
 ```bash
