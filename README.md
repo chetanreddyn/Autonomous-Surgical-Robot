@@ -126,10 +126,13 @@ The values corresponding to `PSM1_base`, `PSM2_base`, `PSM3_base` and `ECM_base`
 
 #### Step 4: Specify the Logging Folder (done only once per session)
 Open the files `ROS Packages/data_collection/scripts/csv_generator.py` and `ROS Packages/data_collection/scripts/replay_exp.py` and specify the `LOGGING_FOLDER`. This needs to be done only once per session unless different kinds of experiments are done in the same sessions. The files can be opened using the command.
+##### Step 4.1
 ```bash
 code '/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot/ROS Packages/data_collection/scripts/csv_generator.py'
 code '/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot/ROS Packages/data_collection/scripts/replay_exp.py'
 ```
+##### Step 4.2
+Ctrl F the following: `Change logging folder here`
 
 #### Step 5: Initialize the Experiment
 ```bash
