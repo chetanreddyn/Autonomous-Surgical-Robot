@@ -80,7 +80,7 @@ Sometimes, this command can throw permission errors (when the phantom omni is re
 ```
 sudo chmod 777 /dev/ttyACM0
 ```
-and re launch the `phantom_real.launch`
+and re launch the `phantom_real.launch` using the command above
 
 #### Step 5: Run the script to launch phantom omni teleoperation (New Terminal)
 ```bash
@@ -93,7 +93,7 @@ The -a flag is used to specify the arm to teleoperate. The `phantom_teleop` scri
 ## Data Collection 
 The `data_collection` ROS package has the scripts/nodes to record the data during an experiment, initialize and replay experiments and also save and check the initial poses of the SUJs and tool tips. Follow these steps to log an experimental run (the step 1 commands below are explained in detail above):
 
-#### Step 1: Teleoperation Steps (in different terminals)
+#### Step 1: Teleoperation Steps (in different terminals, skip this step if you finished it above)
 ```bash
 roslaunch teleop arms_real.launch
 ```
