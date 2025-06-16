@@ -88,7 +88,11 @@ rosrun teleop phantom_teleop.py -a PSM3 # Specify the appropriate PSM
 ```
 You should see the message: `Detected Phantom Pose! Hold the Pen in Position, Hold the Grey Button Once to Start`
 
-The -a flag is used to specify the arm to teleoperate. The `phantom_teleop` script performs the required transformation to ensure the pose of the PSM tool tip with respect to the camera matches that of the stylus with respect to the eyes. It also has the logic to process the button clicks into a continuous jaw angle. 
+Some pointers:
+- The -a flag is used to specify the arm to teleoperate.
+- When using the phantom omni, make the initial position of the stylus roughly align with the PSM's tool tip from the video stream
+- Always switch off the connection (by pressing the Grey Button) before placing the stylus into the home position (Ink Well) of the Phantom Omni.
+- The `phantom_teleop` script performs the required transformation to ensure the pose of the PSM tool tip with respect to the camera matches that of the stylus with respect to the eyes. It also has the logic to process the button clicks into a continuous jaw angle. 
 
 ## Data Collection 
 The `data_collection` ROS package has the scripts/nodes to record the data during an experiment, initialize and replay experiments and also save and check the initial poses of the SUJs and tool tips. Follow these steps to log an experimental run (the step 1 commands below are explained in detail above):
@@ -143,6 +147,9 @@ Specify the demonstration name in the -d flag and the -T flag is used to specify
 rosrun data_collection replay_exp.py -d Test
 ```
 This replays the experimental run saved in LOGGING_FOLDER/Test. The script internally calls `initialize_exp.py` and the experiment is first initialized followed by the replay.
+
+#### Step 8: Postprocessing the Data
+
 
 #### Sequence of Events to follow during data collection (Only Step 5 and Step 6 are repeated in a loop)
 - Switch off MTM teleoperation in the Console
