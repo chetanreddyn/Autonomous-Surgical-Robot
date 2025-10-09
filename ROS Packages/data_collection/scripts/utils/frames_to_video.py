@@ -87,7 +87,7 @@ class VideoCreator:
 
 if __name__ == "__main__":
     # Specify the path to the CSV file and the output folder
-    root_folder = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data"
+    root_folder = "/home/stanford/OS_Teleop_Extension"
     # exp_type = "Rollouts/Rollouts 150 Demo Model/Autonomous"
     exp_type = "Collaborative Three Handed"
     LOGGING_FOLDER = os.path.join(root_folder, exp_type)
