@@ -11,7 +11,7 @@
       </include> -->
       <param 
       name="initial_pose_json" 
-      value="/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot/ROS Packages/data_collection/utils_config/initial_pose_with_suj_3_arms.json"
+      value="/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot/ROS Packages/data_collection/utils_config/NVIDIA_data_collection.json"
       type="str"/>
 
       <node pkg="data_collection" type="publish_initial_pose.py" name="publish_initial_pose"/>
