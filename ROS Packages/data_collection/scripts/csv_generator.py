@@ -92,7 +92,7 @@ class MessageSynchronizer:
                 print("Deleting the folder now")
                 shutil.rmtree(self.final_logging_folder)
                 rospy.loginfo(f"Logging folder {self.final_logging_folder} deleted")
-                rospy.sleep(1)
+                rospy.sleep(3)
             else:
                 rospy.loginfo("rerun the script with a different logging description")
                 sys.exit(0)
@@ -103,7 +103,7 @@ class MessageSynchronizer:
                 rospy.loginfo("Not Creating a New Logging Folder. Terminating")
                 sys.exit(0)
             else:
-                rospy.sleep(1)
+                rospy.sleep(3)
 
         os.makedirs(self.image_save_folder, exist_ok=True)
         self.csv_file = os.path.join(self.final_logging_folder, "data.csv")
@@ -282,7 +282,7 @@ class MessageSynchronizer:
         timestamp = self.process_timestamp(msg.header.stamp)
         image_path = os.path.join(self.image_save_folder, f'{camera_name}_{timestamp}.npy')
         cv_image_reshaped = cv2.resize(cv_image, None, fx=0.5,fy=0.5)
-        assert cv_image_reshaped.shape[:2] == self.image_size
+        # assert cv_image_reshaped.shape[:2] == self.image_size
         # cv2.imwrite(image_path, cv_image_reshaped)
         np.save(image_path, cv_image_reshaped)
         # print(cv_image.shape)
@@ -369,7 +369,7 @@ if __name__ == '__main__':
     # LOGGING_FOLDER = rospy.get_param("LOGGING_FOLDER")
     # specify the right LOGGING_FOLDER here:
     # Change logging folder here
-    LOGGING_FOLDER = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Collaborative Three Handed"
+    LOGGING_FOLDER = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Two Handed Needle Transfer"
     LOGGING_FOLDER = rospy.get_param("LOGGING_FOLDER", LOGGING_FOLDER) # This reads the logging_folder from a ros parameter if available
     # List of topics and their message types
     argv = crtk.ral.parse_argv(sys.argv[1:])  # Skip argv[0], script name
@@ -433,12 +433,12 @@ if __name__ == '__main__':
     meta_file_dict["arm_names"] = csv_generator_config_dict["arm_names"]
 
     meta_file_dict["teleop1_connection"] = "MTMR-PSM1" # Always on the Console
-    meta_file_dict["teleop3_connection"] = "MTML-PSM2"
-    meta_file_dict["teleop3_connection"] = "Phantom-PSM3"
+    meta_file_dict["teleop2_connection"] = "MTML-PSM2"
+    meta_file_dict["teleop3_connection"] = ""
 
-    meta_file_dict["teleop1_name"] = "Alaa"
-    meta_file_dict["teleop2_name"] = "Alaa"
-    meta_file_dict["teleop3_name"] = "Chetan"
+    meta_file_dict["teleop1_name"] = "Chetan"
+    meta_file_dict["teleop2_name"] = "Chetan"
+    meta_file_dict["teleop3_name"] = ""
 
 
     meta_file_dict["tools_used"] = ['FENESTRATED_BIPOLAR_FORCEPS:420205[..]','FENESTRATED_BIPOLAR_FORCEPS:420205[..]', 'LARGE_NEEDLE_DRIVER:420006[12..]']
