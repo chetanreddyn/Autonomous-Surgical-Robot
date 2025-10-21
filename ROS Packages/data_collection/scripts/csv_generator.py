@@ -280,10 +280,11 @@ class MessageSynchronizer:
 
         cv_image = self.bridge.imgmsg_to_cv2(msg, desired_encoding='bgr8')
         timestamp = self.process_timestamp(msg.header.stamp)
-        image_path = os.path.join(self.image_save_folder, f'{camera_name}_{timestamp}.png')
-        cv_image_reshaped = cv2.resize(cv_image, None, fx=0.3,fy=0.3)
+        image_path = os.path.join(self.image_save_folder, f'{camera_name}_{timestamp}.npy')
+        cv_image_reshaped = cv2.resize(cv_image, None, fx=0.5,fy=0.5)
         assert cv_image_reshaped.shape[:2] == self.image_size
-        cv2.imwrite(image_path, cv_image_reshaped)
+        # cv2.imwrite(image_path, cv_image_reshaped)
+        np.save(image_path, cv_image_reshaped)
         # print(cv_image.shape)
         # rospy.loginfo("Saved image to %s", image_path)
         return [image_path]
@@ -419,7 +420,7 @@ if __name__ == '__main__':
         "logging_description":args.logging_description,
         "logging_folder":LOGGING_FOLDER,
         "arm_names": ["PSM1", "PSM2", "PSM3"],
-        "image_size": (324,576),
+        "image_size": (540,960),
         "duration": args.duration,
         "total_num_steps": args.total_num_steps,
         "loginfo": args.loginfo,
