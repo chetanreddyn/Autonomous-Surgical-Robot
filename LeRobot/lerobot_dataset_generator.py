@@ -1,6 +1,7 @@
 import os
 import shutil
 import pdb
+
 class DummyObjectTransferVideoGenerator:
     """
     Generates a new dataset with the same structure as dummy_lerobot_dataset,

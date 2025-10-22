@@ -1,98 +1,115 @@
-
+#!/usr/bin/env python3
 import cv2
 import os
-from glob import glob
 import re
+import argparse
+import logging
+from glob import glob
 from datetime import datetime
+from typing import List, Sequence, Tuple, Optional
 
-def get_image_filenames(images_dir, camera_name):
-    """
-    Returns a list of image files for a camera, sorted by timestamp in filename.
+logging.basicConfig(level=logging.INFO, format="%(message)s")
+logger = logging.getLogger("VideoGen")
 
-    Args:
-        images_dir (str): Path to the images directory.
-        camera_name (str): Camera prefix (e.g., 'camera_left').
 
-    Returns:
-        list: Sorted list of image file paths.
-    """
-    pattern = os.path.join(images_dir, f"{camera_name}_*.png")
-    filenames = glob(pattern)
-    def extract_timestamp(f):
-        match = re.search(rf"{camera_name}_(\d{{4}}-\d{{2}}-\d{{2}} \d{{2}}:\d{{2}}:\d{{2}}\.\d+)", os.path.basename(f))
-        if match:
-            return datetime.strptime(match.group(1), "%Y-%m-%d %H:%M:%S.%f")
-        else:
-            raise Exception("regex pattern for images inside the images folder did not match | check extract_timestamp(f) function")
-    filenames.sort(key=extract_timestamp)
+class VideoGenerator:
+    def __init__(self, fps: int = 30, codec: str = "mp4v"):
+        """
+        Args:
+            fps: frames per second for output videos
+            codec: fourcc string for cv2.VideoWriter (e.g., 'mp4v', 'XVID')
+        """
+        self.fps = fps
+        self.codec = codec
 
-    return filenames
+    @staticmethod
+    def _extract_timestamp_from_name(filename: str, camera_name: str) -> datetime:
+        """Extracts timestamp from filename like camera_left_YYYY-MM-DD HH:MM:SS.sss.png"""
+        base = os.path.basename(filename)
+        pattern = rf"{re.escape(camera_name)}_(\d{{4}}-\d{{2}}-\d{{2}} \d{{2}}:\d{{2}}:\d{{2}}\.\d+)"
+        m = re.search(pattern, base)
+        if not m:
+            raise ValueError(f"Timestamp parse failed for file: {base}")
+        return datetime.strptime(m.group(1), "%Y-%m-%d %H:%M:%S.%f")
 
-def create_video_from_images(image_files, output_path, fps=30):
-    """
-    Creates and saves an MP4 video from a sorted list of image files.
+    def get_image_filenames(self, images_dir: str, camera_name: str) -> List[str]:
+        """Return sorted list of image file paths for camera_name."""
+        pattern = os.path.join(images_dir, f"{camera_name}_*.png")
+        files = glob(pattern)
+        if not files:
+            logger.warning("No images found for pattern: %s", pattern)
+            return []
+        try:
+            files.sort(key=lambda f: self._extract_timestamp_from_name(f, camera_name))
+        except ValueError as e:
+            logger.error("Error parsing timestamps: %s", e)
+            # fallback to lexical sort
+            files.sort()
+        return files
 
-    Args:
-        image_files (list): List of image file paths.
-        output_path (str): Path to save the output video.
-        fps (int): Frames per second for the video.
-    """
-    if not image_files:
-        print(f"No images found for {output_path}")
-        return
+    def create_video_from_images(self, image_files: Sequence[str], output_path: str) -> bool:
+        """Create MP4 video from ordered image list. Returns True on success."""
+        if not image_files:
+            logger.warning("No image files provided for %s", output_path)
+            return False
 
-    # Read first image to get frame size
-    frame = cv2.imread(image_files[0])
-    height, width, layers = frame.shape
+        first = cv2.imread(image_files[0])
+        if first is None:
+            logger.error("Could not read first image: %s", image_files[0])
+            return False
+        height, width = first.shape[:2]
 
-    fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # MPEG-4 codec
-    video = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
+        fourcc = cv2.VideoWriter_fourcc(*self.codec)
+        writer = cv2.VideoWriter(output_path, fourcc, self.fps, (width, height))
+        if not writer.isOpened():
+            logger.error("VideoWriter failed to open for %s (codec=%s)", output_path, self.codec)
+            return False
 
-    for img_file in image_files:
-        frame = cv2.imread(img_file)
-        video.write(frame)
+        for img_path in image_files:
+            img = cv2.imread(img_path)
+            if img is None:
+                logger.warning("Skipping unreadable image: %s", img_path)
+                continue
+            if (img.shape[1], img.shape[0]) != (width, height):
+                img = cv2.resize(img, (width, height))
+            writer.write(img)
 
-    video.release()
-    print(f"Video saved to {output_path}")
+        writer.release()
+        logger.info("Saved video: %s", output_path)
+        return True
 
-def generate_videos(demo_dir, cameras=['camera_left', 'camera_right'], fps=30):
-    """
-    Generates and saves MP4 videos for each camera in a demo directory.
+    def generate_videos(self, demo_dir: str, cameras: Sequence[str] = ("camera_left", "camera_right")) -> None:
+        """Generate videos for a single demo directory."""
+        images_dir = os.path.join(demo_dir, "images")
+        output_videos_dir = os.path.join(demo_dir, "videos")
+        os.makedirs(output_videos_dir, exist_ok=True)
+        for camera in cameras:
+            files = self.get_image_filenames(images_dir, camera)
+            if not files:
+                logger.info("No files for %s in %s", camera, demo_dir)
+                continue
+            out_path = os.path.join(output_videos_dir, f"{camera}.mp4")
+            self.create_video_from_images(files, out_path)
 
-    Args:
-        demo_dir (str): Path to the demo directory.
-        cameras (list): List of camera names.
-        fps (int): Frames per second for the video.
-    """
-    images_dir = os.path.join(demo_dir, "images")
-    output_videos_dir = os.path.join(demo_dir, "videos")
-    os.makedirs(output_videos_dir, exist_ok=True)
-    for camera in cameras:
-        image_filenames = get_image_filenames(images_dir, camera)
-        output_path = os.path.join(output_videos_dir, f"{camera}.mp4")
-        create_video_from_images(image_filenames, output_path, fps)
+    def generate_videos_for_all_demos(
+        self, exp_dir: str, demo_start: int, demo_end: int, cameras: Sequence[str] = ("camera_left", "camera_right")
+    ) -> None:
+        """Generate videos for Demo{N} directories within exp_dir inclusive."""
+        for i in range(demo_start, demo_end + 1):
+            demo_dir = os.path.join(exp_dir, f"Demo{i}")
+            if not os.path.isdir(demo_dir):
+                logger.warning("Demo directory not found: %s", demo_dir)
+                continue
+            logger.info("Processing %s", demo_dir)
+            self.generate_videos(demo_dir, cameras=cameras)
 
-def generate_videos_for_all_demos(exp_dir, demo_start, demo_end, cameras=['camera_left', 'camera_right'], fps=30):
-    """
-    Generates videos for all demos in the experiment directory at the specified demo indices
 
-    Args:
-        exp_dir (str): Path to the experiment directory.
-        demo_start (int): Starting demo index.
-        demo_end (int): Ending demo index.
-        cameras (list): List of camera names.
-        fps (int): Frames per second for the video.
-    """
-    for i in range(demo_start, demo_end + 1):
-        demo_dir = os.path.join(exp_dir, f"Demo{i}")
-        if not os.path.exists(demo_dir):
-            print(f"Demo directory not found: {demo_dir}")
-            continue
-        print(f"Generating videos for Demo{i}")
-        generate_videos(demo_dir, cameras=cameras, fps=fps)
-
-if __name__ == "__main__":   
+if __name__ == "__main__":
+    # args = parse_args()
     exp_dir = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Two Handed Needle Transfer"
-    demo_start = 6
-    demo_end = 10
-    generate_videos_for_all_demos(exp_dir, demo_start=demo_start, demo_end=demo_end)
+    demo_start = 11
+    demo_end = 15
+    fps = 30
+    codec = "mp4v"
+    vg = VideoGenerator(fps, codec)
+    vg.generate_videos_for_all_demos(exp_dir, demo_start=demo_start, demo_end=demo_end)
