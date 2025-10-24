@@ -3,6 +3,7 @@ Project with CHARM and IPRL on the Da Vinci Surgical Robot. The project aims to 
 
 ## Table of Contents
 - [Overview](#overview)
+- [NVIDIA Data Collection Drive](#NVIDIA-Data-Collection)
 - [File Structure](#File-Structure)
 - [Teleoperation](#Teleoperation)
 - [Data Collection](#Data-Collection)
@@ -13,6 +14,39 @@ Project with CHARM and IPRL on the Da Vinci Surgical Robot. The project aims to 
 
 ## Overview
 This github repository has the ROS packages for three functionalities - teleoperation, data collection and model rollout. The instructions have been described in detail below. It is assumed that the commands are executed from the SRC (Stanford Robotics Centre) computer in the Medical Bay connected to the Da Vinci Robot (Si Model). 
+
+## NVIDIA Data Collection Drive
+Steps to Follow
+### Step 1: Launch the dVRK
+```bash
+roslaunch teleop arms_real.launch
+```
+
+### Step 2: Launch the vision pipeline (New Terminal)
+```bash
+roslaunch teleop vision_cart.launch console:=true
+```
+The `vision_cart.launch` file will run the nodes required to process the video stream from the camera and publish them into ROS topics. Two windows will be displayed corresponding to the left and right camera streams. There will be another window in RViz corresponding to the left camera stream. 
+
+Maximise the windows and push them into the surgeon console by pressing `Win+Shift+Left Arrow`, press the `Left Arrow` twice for the `camera_left` window and once for the `camera_right` window.
+
+(Set `console:=false` to suppress surgeon console GUI windows)
+
+### Step 3: Save the initial pose before the session
+```bash
+python '/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot/ROS Packages/data_collection/scripts/save_initial_pose.py' --suffix <add_data_and_time like 24_oct_5pm>
+```
+
+### Step 4: Specify the Path to save the experiment logs 
+Open the file csv_generator.py and edit LOGGING_FOLDER and JSON Path
+```bash
+code '/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot/ROS Packages/data_collection/scripts/csv_generator.py'
+```
+
+##### Step 5: Run the csv_generator script to log an experiment
+```bash
+rosrun data_collection csv_generator.py --loginfo -d Test
+```
 
 ## File Structure
 ```
