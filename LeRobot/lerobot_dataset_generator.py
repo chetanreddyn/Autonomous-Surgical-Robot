@@ -2,7 +2,7 @@ import os
 import shutil
 import pdb
 
-class DummyObjectTransferVideoGenerator:
+class LeRobotDatasetGenerator:
     """
     Generates a new dataset with the same structure as dummy_lerobot_dataset,
     copying only parquet files and videos (ignoring images) from the Collaborative folder.
@@ -82,7 +82,7 @@ class DummyObjectTransferVideoGenerator:
 
 # Usage
 if __name__ == "__main__":
-    src_root = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Two Handed Needle Transfer"
-    dst_root = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Two Handed Needle Transfer LeRobot Format"
-    generator = DummyObjectTransferVideoGenerator(src_root, dst_root)
+    src_root = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Needle Transfer Chetan"
+    dst_root = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Needle Transfer Chetan LeRobot"
+    generator = LeRobotDatasetGenerator(src_root, dst_root)
     generator.run()

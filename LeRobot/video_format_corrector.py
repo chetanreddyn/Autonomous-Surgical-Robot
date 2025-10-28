@@ -20,14 +20,14 @@ class VideoConverter:
 
     def convert_all(self):
         """Convert all videos in the demo folders to H.264 format."""
-        print("=== Converting videos to H.264 ===")
+        # print("=== Converting videos to H.264 ===")
         for demo_num in range(self.demo_start, self.demo_end + 1):
             videos_dir = self._get_videos_dir(demo_num)
             if not os.path.exists(videos_dir):
-                print(f"Videos directory not found: {videos_dir}")
+                # print(f"Videos directory not found: {videos_dir}")
                 continue
 
-            print(f"\n--- Processing Demo{demo_num} ---")
+            print(f"--- Processing Demo{demo_num} ---")
             video_files = glob(os.path.join(videos_dir, "*.mp4"))
 
             for video_file in video_files:
@@ -43,16 +43,16 @@ class VideoConverter:
             if not os.path.exists(videos_dir):
                 continue
 
-            print(f"\n--- Replacing videos in Demo{demo_num} ---")
+            # print(f"--- Replacing videos in Demo{demo_num} ---")
             h264_files = glob(os.path.join(videos_dir, "*_h264.mp4"))
 
             for h264_file in h264_files:
                 original_file = h264_file.replace("_h264.mp4", ".mp4")
                 if os.path.exists(original_file):
                     os.remove(original_file)
-                    print(f"Removed: {original_file}")
+                    # print(f"Removed: {original_file}")
                 os.rename(h264_file, original_file)
-                print(f"Renamed: {h264_file} -> {original_file}")
+                # print(f"Renamed: {h264_file} -> {original_file}")
 
     def _convert_to_h264(self, input_path, output_path):
         """Internal method to convert a single video using ffmpeg."""
@@ -66,9 +66,9 @@ class VideoConverter:
             output_path
         ]
         try:
-            print(f"Converting {input_path} -> {output_path}")
+            # print(f"Converting {input_path} -> {output_path}")
             subprocess.run(cmd, check=True, capture_output=True, text=True)
-            print(f"✓ Converted: {output_path}")
+            # print(f"✓ Converted: {output_path}")
         except subprocess.CalledProcessError as e:
             print(f"✗ Error converting {input_path}")
             print(f"  stderr: {e.stderr}")
@@ -80,8 +80,8 @@ class VideoConverter:
 
 if __name__ == "__main__":
     base_dir = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Two Handed Needle Transfer"
-    demo_start = 11
-    demo_end = 18
+    demo_start = 1
+    demo_end = 20
 
     converter = VideoConverter(base_dir, demo_start=demo_start, demo_end=demo_end, crf=30)
     converter.convert_all()

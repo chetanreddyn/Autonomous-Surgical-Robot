@@ -5,8 +5,7 @@ import tf2_ros
 import json
 from geometry_msgs.msg import TransformStamped
 from sensor_msgs.msg import JointState
-
-
+import argparse
 
 class PoseSaver:
     def __init__(self, config_dict):
@@ -205,10 +204,15 @@ if __name__ == "__main__":
     children = ["PSM1", "PSM1_base", "PSM2", "PSM2_base", "PSM3", "PSM3_base",
                 "ECM", "ECM_base"]
 
+    parser = argparse.ArgumentParser(description="Save initial poses and jaw angles.")
+    parser.add_argument("--suffix", type=str, required=True, help="Suffix for the output JSON file name.")
+    args = parser.parse_args()
+    suffix = args.suffix
+
     # Output file path
     output_file = (
         "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot/"
-        "ROS Packages/data_collection/utils_config/test.json"
+        f"ROS Packages/data_collection/utils_config/NVIDIA_data_collection_{suffix}.json"
     ) 
 
     config_dict = {

@@ -2,8 +2,10 @@ import os
 import pandas as pd
 import pyarrow.parquet as pq
 import pyarrow as pa
+from pathlib import Path
+import json
 
-class LeRobotDatasetConverter:
+class CSVtoParquetConverter:
     """
     Converts CSV robot recordings to LeRobot Parquet format.
     Processes multiple demo subfolders under a single experiment directory.
@@ -13,8 +15,8 @@ class LeRobotDatasetConverter:
     def __init__(self, exp_dir, task_index=0, tool_type="FENESTRATED_BIPOLAR_FORCEPS:420205", start_index=0):
         self.exp_dir = exp_dir
         self.task_index = task_index
-        self.tool_type = [tool_type, tool_type]
         self.global_index = start_index
+        self.num_arms = 2  # assuming two arms: PSM1 and PSM2
         self.observation_cols = [
                 'PSM1_joint_1','PSM1_joint_2','PSM1_joint_3','PSM1_joint_4',
                 'PSM1_joint_5','PSM1_joint_6','PSM1_jaw',
@@ -27,6 +29,24 @@ class LeRobotDatasetConverter:
                 'PSM2_joint_1','PSM2_joint_2','PSM2_joint_3','PSM2_joint_4',
                 'PSM2_joint_5','PSM2_joint_6','PSM2_jaw'
             ]
+
+    def _load_tools_for_demo(self, demo_path, config_filename="experiment_config.json"):
+        """
+        Try to load tools_used from demo_path/experiment_config.json first.
+        If not present, try exp_dir/experiment_config.json.
+        Return a list suitable for self.tool_type or None if not found.
+        """
+        p = Path(demo_path) / config_filename
+        try:
+            with open(p, "r") as f:
+                meta = json.load(f)
+            tools = meta.get("tools_used")
+            if tools and isinstance(tools, list):
+                # return as-is; if user expects two entries, caller can handle
+                return tools[:self.num_arms]
+        except Exception as e:
+            print(f"Failed to read meta file {p}: {e}")
+        return None
 
     def _process_episode(self, csv_path, episode_index):
         """
@@ -61,18 +81,17 @@ class LeRobotDatasetConverter:
 
         return rows
 
-    def convert(self):
+    def convert(self, *, demo_start, demo_end):
         """
         Processes CSV files in demo subfolders sequentially (Demo1, Demo2, ...).
         Saves one Parquet file per CSV as episode_0000XX.parquet in the same folder.
         """
-        all_entries = os.listdir(self.exp_dir)
-        demo_folders = sorted([d for d in all_entries if d.startswith("Demo")])
 
         episode_idx = 0
-        for demo in demo_folders:
-            demo_path = os.path.join(self.exp_dir, demo)
+        for demo in range(demo_start, demo_end + 1):
+            demo_path = os.path.join(self.exp_dir, f"Demo{demo}")
             csv_path = os.path.join(demo_path, "data.csv")
+            self.tool_type = self._load_tools_for_demo(demo_path)
 
             if os.path.isfile(csv_path):
                 episode_rows = self._process_episode(csv_path, episode_idx)
@@ -82,14 +101,59 @@ class LeRobotDatasetConverter:
                 table = pa.Table.from_pylist(episode_rows)
                 pq.write_table(table, parquet_file)
 
-                print(f"Saved {len(episode_rows)} steps from {csv_path} → {parquet_file}")
+                print(f"Saved {len(episode_rows)} steps to {parquet_file}")
                 episode_idx += 1
             else:
                 print(f"No data.csv found in {demo_path}, skipping.")
 
+    def clean_dir(self, pattern: str = "*.parquet", do_delete: bool = False):
+        """
+        Find and optionally delete parquet files under exp_dir.
+        
+        Args:
+            pattern: glob pattern for files to find (default: *.parquet)
+            do_delete: if True, actually delete files; otherwise just list them
+        
+        Returns:
+            List of found/deleted Path objects
+        """
+        root = Path(self.exp_dir)
+        files = list(root.rglob(pattern))
+        
+        if not files:
+            print(f"No files found matching pattern: {pattern}")
+            return []
+        
+        if do_delete:
+            deleted = []
+            for f in files:
+                try:
+                    f.unlink()
+                    deleted.append(f)
+                    print(f"Deleted: {f}")
+                except Exception as e:
+                    print(f"Failed to delete {f}: {e}")
+            print(f"Deleted {len(deleted)} parquet files.")
+        else:
+            print(f"Found {len(files)} parquet files (dry-run, not deleting):")
+            # for f in files:
+            #     print(f"  {f}")
 
 # Usage
-converter = LeRobotDatasetConverter(
-    exp_dir="/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Two Handed Needle Transfer",
-)
-converter.convert()
+if __name__ == "__main__":
+    demo_start = 1  # Update as needed
+    demo_end = 20   # Update as needed
+    exp_dir = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Two Handed Needle Transfer"
+    clean_dir = False  # Set to True to delete parquet files
+
+    converter = CSVtoParquetConverter(
+        exp_dir=exp_dir,
+    )
+    # Clean parquet files (dry-run)
+
+    if clean_dir:
+        converter.clean_dir(do_delete=False)
+        input("Press Enter to confirm deletion of these files...")
+        converter.clean_dir(do_delete=True)
+
+    converter.convert(demo_start=demo_start, demo_end=demo_end)

@@ -2,6 +2,7 @@
 import cv2
 import os
 import re
+import numpy as np
 import argparse
 import logging
 from glob import glob
@@ -34,7 +35,7 @@ class VideoGenerator:
 
     def get_image_filenames(self, images_dir: str, camera_name: str) -> List[str]:
         """Return sorted list of image file paths for camera_name."""
-        pattern = os.path.join(images_dir, f"{camera_name}_*.png")
+        pattern = os.path.join(images_dir, f"{camera_name}_*.npy")
         files = glob(pattern)
         if not files:
             logger.warning("No images found for pattern: %s", pattern)
@@ -53,7 +54,7 @@ class VideoGenerator:
             logger.warning("No image files provided for %s", output_path)
             return False
 
-        first = cv2.imread(image_files[0])
+        first = np.load(image_files[0])
         if first is None:
             logger.error("Could not read first image: %s", image_files[0])
             return False
@@ -66,7 +67,7 @@ class VideoGenerator:
             return False
 
         for img_path in image_files:
-            img = cv2.imread(img_path)
+            img = np.load(img_path)
             if img is None:
                 logger.warning("Skipping unreadable image: %s", img_path)
                 continue
@@ -75,7 +76,7 @@ class VideoGenerator:
             writer.write(img)
 
         writer.release()
-        logger.info("Saved video: %s", output_path)
+        # logger.info("Saved video: %s", output_path)
         return True
 
     def generate_videos(self, demo_dir: str, cameras: Sequence[str] = ("camera_left", "camera_right")) -> None:
@@ -100,15 +101,15 @@ class VideoGenerator:
             if not os.path.isdir(demo_dir):
                 logger.warning("Demo directory not found: %s", demo_dir)
                 continue
-            logger.info("Processing %s", demo_dir)
+            logger.info("Processing Demo %s", i)
             self.generate_videos(demo_dir, cameras=cameras)
 
 
 if __name__ == "__main__":
     # args = parse_args()
-    exp_dir = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Two Handed Needle Transfer"
-    demo_start = 11
-    demo_end = 15
+    exp_dir = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Needle Transfer Chetan"
+    demo_start = 1
+    demo_end = 2
     fps = 30
     codec = "mp4v"
     vg = VideoGenerator(fps, codec)

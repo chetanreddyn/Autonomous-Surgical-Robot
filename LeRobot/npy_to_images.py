@@ -12,9 +12,9 @@ class NpyToImageConverter:
       conv = NpyToImageConverter()
       conv.convert_demo_range(root_dir, start, end, prefix="Demo", images_subfolder="images")
     """
-    def __init__(self, normalize: bool = True, ext: str = ".png"):
-        self.normalize = normalize
-        self.ext = ext
+    def __init__(self):
+        self.ext = ".png"
+        pass
 
     def convert_file(self, npy_path: Path, output_dir: Optional[Path] = None) -> None:
         try:
@@ -22,9 +22,6 @@ class NpyToImageConverter:
         except Exception as e:
             print(f"Failed to load {npy_path}: {e}")
             return
-
-        if self.normalize:
-            arr = self._normalize_array(arr)
 
         img = arr.astype(np.uint8)
         out_dir = output_dir or npy_path.parent
@@ -84,5 +81,5 @@ if __name__ == "__main__":
     demo_start = 1
     demo_end = 1
 
-    converter = NpyToImageConverter(normalize=True, ext=".png")
+    converter = NpyToImageConverter()
     converter.convert_demo_range(LOGGING_FOLDER, demo_start, demo_end, prefix="Demo", images_subfolder="images")

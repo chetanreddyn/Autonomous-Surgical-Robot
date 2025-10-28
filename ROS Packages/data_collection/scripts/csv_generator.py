@@ -3,6 +3,7 @@
 import rospy
 from message_filters import Subscriber, ApproximateTimeSynchronizer
 from sensor_msgs.msg import Image,JointState
+from std_msgs.msg import String, Float64
 from geometry_msgs.msg import PoseStamped
 import time
 from datetime import datetime
@@ -142,7 +143,7 @@ class MessageSynchronizer:
         self.time_milli = self.time_sec*1000
         duration = self.time_milli - self.prev_time_milli
         if self.loginfo:
-            rospy.loginfo("RECORDING DATA: Time elapsed (s): {:.3f} /{:2.0f} | Duration: {:.0f}".format(self.time_milli/1000, self.duration, duration))
+            rospy.loginfo("RECORDING DATA: Time elapsed (s): {:.3f} /{:2.0f} | Duration: {:.0f} | Frame Number: {}".format(self.time_milli/1000, self.duration, duration, self.frame_number))
 
         self.prev_time_milli = self.time_sec*1000
 
@@ -338,30 +339,94 @@ class MessageSynchronizer:
     def run(self):
         rospy.spin()
 
-# class MetaFileGenerator:
-#     def __init__(self,csv_generator_config_dict,meta_file_generator_config_dict):
-#         self.meta_file_generator_config_dict = meta_file_generator_config_dict
-#         self.csv_generator_config_dict = csv_generator_config_dict
 
-#     def initialise_meta_file_dict(self):
-#         meta_file_dict = {}
-#         meta_file_dict["logging_description"] = self.csv_generator_config_dict["logging_description"]
-#         meta_file_dict["logging_folder"] = self.csv_generator_config_dict["logging_folder"]
-#         meta_file_dict["arm_names"] = self.csv_generator_config_dict["arm_names"]
-#         meta_file_dict["teleop1_connection"] = self.meta_file_generator_config_dict["teleop1_connection"]
-#         meta_file_dict["teleop2_connection"] = self.meta_file_generator_config_dict["teleop2_connection"]
-#         meta_file_dict["teleop3_connection"] = self.meta_file_generator_config_dict["teleop3_connection"]
-#         meta_file_dict["surgeon_name"] =  self.meta_file_generator_config_dict["surgeon_name"]
-#         meta_file_dict["assistant_name"] = self.meta_file_generator_config_dict["assistant_name"]
-#         meta_file_dict["tools_used"] = self.meta_file_generator_config_dict["tools_used"]
-#         meta_file_dict["mtm_scale"] = self.meta_file_generator_config_dict["mtm_scale"]
-#         meta_file_dict["phantom_omni_scale"] = self.meta_file_generator_config_dict["phantom_omni_scale"]
-#         meta_file_dict["initial_pose_json_path"] = self.meta_file_generator_config_dict["initial_pose_json_path"]
-#         meta_file_dict["Brightness"] = self.meta_file_generator_config_dict["Brightness"]
+class MetaFileGenerator:
+    def __init__(self, csv_generator_config_dict):
+        self.csv_generator_config_dict = csv_generator_config_dict
 
-#     def get_tool_types(self):
-#         pass
+    def initialise_meta_file_dict(self):
+        """
+        Build the meta file dict. tools_used and mtm_scale are derived from ROS topics when available:
+          - /PSM1/tool_type, /PSM2/tool_type, /PSM3/tool_type  (std_msgs/String)
+          - /console/teleop/scale                               (std_msgs/Float32)
+        Falls back to sensible defaults or values present inside csv_generator_config_dict.
+        """
+        meta = {}
+        # core items from csv config
+        meta["logging_description"] = self.csv_generator_config_dict.get("logging_description")
+        meta["logging_folder"] = self.csv_generator_config_dict.get("logging_folder")
+        meta["arm_names"] = self.csv_generator_config_dict.get("arm_names")
 
+        # teleop connections / names (prefer values in csv_generator_config_dict, else defaults)
+        meta["teleop1_connection"] = self.csv_generator_config_dict.get("teleop1_connection", "MTMR-PSM1")
+        meta["teleop2_connection"] = self.csv_generator_config_dict.get("teleop2_connection", "MTML-PSM2")
+        meta["teleop3_connection"] = self.csv_generator_config_dict.get("teleop3_connection", "")
+
+        meta["teleop1_name"] = self.csv_generator_config_dict.get("teleop1_name", "Chetan")
+        meta["teleop2_name"] = self.csv_generator_config_dict.get("teleop2_name", "Chetan")
+        meta["teleop3_name"] = self.csv_generator_config_dict.get("teleop3_name", "")
+
+        # tools_used: try to read from /PSM{1,2,3}/tool_type topics, fall back to provided list inside csv_generator_config_dict or empty list
+        tools_from_topics = self.get_tool_types()
+        if any(tools_from_topics):
+            meta["tools_used"] = tools_from_topics
+        else:
+            meta["tools_used"] = self.csv_generator_config_dict.get("tools_used", [])
+
+        # mtm_scale from /console/teleop/scale topic, fallback to value inside csv_generator_config_dict or default 0.4
+        mtm = self.get_mtm_scale()
+        if mtm is not None:
+            meta["mtm_scale"] = mtm
+        else:
+            meta["mtm_scale"] = self.csv_generator_config_dict.get("mtm_scale", 0.4)
+
+        # phantom omni scale and other fields (take from csv_generator_config_dict when present)
+        meta["phantom_omni_scale"] = self.csv_generator_config_dict.get("phantom_omni_scale",
+                                                                        self.csv_generator_config_dict.get("phantom_omni_scale", 0.4))
+        meta["initial_pose_json_path"] = self.csv_generator_config_dict.get("initial_pose_json_path", "")
+        meta["Brightness"] = self.csv_generator_config_dict.get("Brightness", 100)
+
+        # image size and duration taken from csv config
+        meta["Image Size"] = self.csv_generator_config_dict.get("image_size")
+        meta["duration"] = self.csv_generator_config_dict.get("duration")
+
+        return meta
+
+    def get_tool_types(self):
+        """
+        Read /PSM1/tool_type, /PSM2/tool_type, /PSM3/tool_type using wait_for_message.
+        If a topic is unavailable or times out, return an empty string in that slot.
+        """
+        tool_topics = [f"/PSM{i}/tool_type" for i in [1, 2, 3]]
+        tool_list = []
+        for t in tool_topics:
+            try:
+                msg = rospy.wait_for_message(t, String, timeout=0.5)
+                val = getattr(msg, "data", str(msg))
+                tool_list.append(val)
+            except rospy.ROSException:
+                rospy.logwarn(f"Tool type topic {t} not available (timeout), using empty string")
+                tool_list.append("")
+            except Exception as e:
+                rospy.logwarn(f"Error reading {t}: {e}; using empty string")
+                tool_list.append("")
+        return tool_list
+
+    def get_mtm_scale(self):
+        """
+        Try to read '/console/teleop/scale' (Float32). If unavailable, return None.
+        """
+        topics_to_try = ["/console/teleop/scale", "/console/teleop/mtm_scale"]
+        for t in topics_to_try:
+            try:
+                msg = rospy.wait_for_message(t, Float64, timeout=0.5)
+                return float(getattr(msg, "data", msg))
+            except rospy.ROSException:
+                continue
+            except Exception:
+                continue
+        rospy.logwarn("teleop scale topic not available; falling back to default mtm_scale")
+        return None
 
 if __name__ == '__main__':
     rospy.init_node('csv_generator', anonymous=True)
@@ -369,7 +434,8 @@ if __name__ == '__main__':
     # LOGGING_FOLDER = rospy.get_param("LOGGING_FOLDER")
     # specify the right LOGGING_FOLDER here:
     # Change logging folder here
-    LOGGING_FOLDER = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Two Handed Needle Transfer"
+    LOGGING_FOLDER = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Needle Transfer Chetan"
+    INITIAL_POSE_JSON_PATH = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot/ROS Packages/data_collection/utils_config/NVIDIA_data_collection_oct_27_5pm.json"
     LOGGING_FOLDER = rospy.get_param("LOGGING_FOLDER", LOGGING_FOLDER) # This reads the logging_folder from a ros parameter if available
     # List of topics and their message types
     argv = crtk.ral.parse_argv(sys.argv[1:])  # Skip argv[0], script name
@@ -425,32 +491,15 @@ if __name__ == '__main__':
         "total_num_steps": args.total_num_steps,
         "loginfo": args.loginfo,
         "rollout": args.rollout,
-        "dont_record_images": args.dont_record_images
+        "dont_record_images": args.dont_record_images,
+        "initial_pose_json_path": INITIAL_POSE_JSON_PATH
     }
-    meta_file_dict = {}
-    meta_file_dict["logging_description"] = csv_generator_config_dict["logging_description"]
-    meta_file_dict["logging_folder"] = csv_generator_config_dict["logging_folder"]
-    meta_file_dict["arm_names"] = csv_generator_config_dict["arm_names"]
 
-    meta_file_dict["teleop1_connection"] = "MTMR-PSM1" # Always on the Console
-    meta_file_dict["teleop2_connection"] = "MTML-PSM2"
-    meta_file_dict["teleop3_connection"] = ""
-
-    meta_file_dict["teleop1_name"] = "Chetan"
-    meta_file_dict["teleop2_name"] = "Chetan"
-    meta_file_dict["teleop3_name"] = ""
-
-
-    meta_file_dict["tools_used"] = ['FENESTRATED_BIPOLAR_FORCEPS:420205[..]','FENESTRATED_BIPOLAR_FORCEPS:420205[..]', 'LARGE_NEEDLE_DRIVER:420006[12..]']
-    meta_file_dict["mtm_scale"] = 0.4
-    meta_file_dict["phantom_omni_scale"] = 0.4 
-    meta_file_dict["initial_pose_json_path"] = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot/ROS Packages/data_collection/utils_config/initial_pose_with_suj.json"
-    meta_file_dict["Brightness"] = 100
-    meta_file_dict["Image Size"] = csv_generator_config_dict["image_size"]
-    meta_file_dict["duration"] = csv_generator_config_dict["duration"]
-
+    meta_gen = MetaFileGenerator(csv_generator_config_dict)
+    meta_file_dict = meta_gen.initialise_meta_file_dict()
     
     synchronizer = MessageSynchronizer(csv_generator_config_dict)
     synchronizer.save_dict(meta_file_dict)
+
     synchronizer.prev_time = time.time()
     synchronizer.run()
