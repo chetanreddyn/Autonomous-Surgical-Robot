@@ -1,9 +1,11 @@
 import os
+import pdb
 import pandas as pd
 import pyarrow.parquet as pq
 import pyarrow as pa
 from pathlib import Path
 import json
+import pdb
 
 class CSVtoParquetConverter:
     """
@@ -141,10 +143,10 @@ class CSVtoParquetConverter:
 
 # Usage
 if __name__ == "__main__":
-    demo_start = 1  # Update as needed
-    demo_end = 20   # Update as needed
-    exp_dir = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Two Handed Needle Transfer"
-    clean_dir = False  # Set to True to delete parquet files
+    demo_start = 6  # Update as needed
+    demo_end = 100   # Update as needed
+    exp_dir = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Needle Transfer Chetan"
+    clean_dir = True  # Set to True to delete parquet files
 
     converter = CSVtoParquetConverter(
         exp_dir=exp_dir,

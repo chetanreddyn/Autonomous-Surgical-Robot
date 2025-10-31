@@ -4,8 +4,10 @@ import json
 import logging
 from glob import glob
 from typing import List, Optional, Dict, Sequence, Tuple
+import re
 
 import pandas as pd
+import numpy as np
 import pdb
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
@@ -51,57 +53,155 @@ class MetaFilesGenerator:
         self.splits = splits or {"train": "0:5"}
         # image_shape should be [height, width, channels]
         self.image_shape = tuple(image_shape) if image_shape is not None else (324, 576, 3)
+        self.episode_data = self._read_episode_data()
 
-    def _find_parquet_files(self) -> List[str]:
-        """Return sorted list of parquet files under data/ (search chunk-* recursively)."""
+    def _find_parquet_files(self) -> Dict[int, str]:
+        """
+        Return dict mapping episode_index -> parquet path.
+        Extracts episode_index from filename pattern: episode_{episode_index:06d}.parquet
+        """
         pattern = os.path.join(self.data_dir, "chunk-*", "**", "*.parquet")
         files = glob(pattern, recursive=True)
-        files.sort()
-        return files
+        
+        episode_map = {}
+        for fpath in files:
+            basename = os.path.basename(fpath)
+            # Match pattern: episode_000049.parquet
+            match = re.match(r"episode_(\d+)\.parquet", basename)
+            if match:
+                episode_idx = int(match.group(1))
+                episode_map[episode_idx] = fpath
+        
+        return episode_map
+            
+    def episode_stats_from_df(self, df_raw, episode_index):
+        out = {"episode_index": int(episode_index), "stats": {}}
 
-    def _read_episode_lengths(self) -> List[int]:
-        """
-        Read each parquet file and return a list of frame counts.
-        Each parquet file is treated as one episode (common LeRobot layout).
-        """
-        files = self._find_parquet_files()
-        if not files:
-            raise FileNotFoundError(f"No parquet files found under {self.data_dir}")
-        lengths = []
-        for p in files:
+        if df_raw.empty:
+            print("empty df")
+        if "episode_index" in df_raw.columns:
+            df = df_raw[df_raw["episode_index"] == episode_index]
+            if df.empty:
+                df_episode_index = df_raw["episode_index"].unique()
+                print(f"Episode {episode_index}: empty after filtering, found episodes: {df_episode_index}")
+
+        
+        for col in df.columns:  
+            s = df[col].dropna()
+            if s.empty:
+                continue
+            
+            # numeric scalar column
+            if pd.api.types.is_numeric_dtype(s):
+                vals = s.values.astype(float)
+                out["stats"][col] = {
+                    "min": [float(vals.min())],
+                    "max": [float(vals.max())],
+                    "mean": [float(vals.mean())],
+                    "std": [float(vals.std(ddof=0))],
+                    "count": [len(vals)]
+                }
+                continue
+            
+            # try array-like column (observation.state, action, etc)
             try:
-                df = pd.read_parquet(p)
+                arrs = [np.asarray(v, dtype=float) for v in s]
+                stacked = np.stack(arrs, axis=0)  # shape: (N, ...)
+                
+                out["stats"][col] = {
+                    "min": stacked.min(axis=0).tolist(),
+                    "max": stacked.max(axis=0).tolist(),
+                    "mean": stacked.mean(axis=0).tolist(),
+                    "std": stacked.std(axis=0, ddof=0).tolist(),
+                    "count": [len(stacked)]
+                }
+            except (ValueError, TypeError):
+                # skip non-numeric columns (strings, mixed types, etc)
+                continue
+        
+        return out
+
+    def _read_episode_data(self) -> Dict[int, Tuple[str, int, Dict]]:
+        """
+        Read each parquet file and return dict mapping episode_index -> (path, frame_count, stats_dict).
+        """
+        episode_map = self._find_parquet_files()
+        if not episode_map:
+            raise FileNotFoundError(f"No parquet files found under {self.data_dir}")
+        episode_data = {}
+        for episode_idx in sorted(episode_map.keys()):
+            fpath = episode_map[episode_idx]
+
+            try:
+                df = pd.read_parquet(fpath)
                 n = len(df)
-                lengths.append(n)
-                log.debug("Read %d rows from %s", n, p)
+                stats = self.episode_stats_from_df(df, episode_idx)
+                episode_data[episode_idx] = (fpath, n, stats)
             except Exception as e:
-                log.error("Failed to read parquet %s: %s", p, e)
+                log.error("Failed to read parquet %s: %s", fpath, e)
                 raise
-        return lengths
+        return episode_data
+
+    def generate_tasks_jsonl(self, tasks: Dict[int, str], output_path: Optional[str] = None) -> str:
+        """
+        Generate tasks.jsonl with provided task descriptions.
+        
+        Args:
+            tasks: Dict mapping task_index -> task description string
+            output_path: Optional custom output path
+            
+        Returns:
+            Path to written file
+        """
+        out = output_path or os.path.join(self.meta_dir, "tasks.jsonl")
+        
+        with open(out, "w", encoding="utf-8") as fh:
+            for task_idx in sorted(tasks.keys()):
+                entry = {"task_index": task_idx, "task": tasks[task_idx]}
+                fh.write(json.dumps(entry) + "\n")
+        
+        log.info("Wrote tasks jsonl: %s (%d tasks)", out, len(tasks))
+        return out
+
+    def generate_episodes_stats_jsonl(self, output_path: Optional[str] = None) -> str:
+        """
+        Generate episodes_stats.jsonl with statistics for each episode.
+        Returns path to written file.
+        """
+        out = output_path or os.path.join(self.meta_dir, "episodes_stats.jsonl")
+        
+        with open(out, "w", encoding="utf-8") as fh:
+            for episode_idx in sorted(self.episode_data.keys()):
+                _, _, stats = self.episode_data[episode_idx]
+                fh.write(json.dumps(stats) + "\n")
+
+        log.info("Wrote episodes stats jsonl: %s (%d episodes)", out, len(self.episode_data))
+        return out
 
     def generate_episodes_jsonl(self, output_path: Optional[str] = None) -> str:
         """
         Generate episodes.jsonl. Each parquet file becomes one episode.
         Returns path to written file.
         """
-        lengths = self._read_episode_lengths()
-        total_episodes = len(lengths)
+        # episode_data = self._read_episode_data()
         out = output_path or os.path.join(self.meta_dir, "episodes.jsonl")
 
         with open(out, "w", encoding="utf-8") as fh:
-            for idx, ln in enumerate(lengths):
-                entry = {"episode_index": idx, "tasks": [self.task_name], "length": ln}
+            for episode_idx in sorted(self.episode_data.keys()):
+                _, length, _ = self.episode_data[episode_idx]
+                entry = {"episode_index": episode_idx, "tasks": [self.task_name], "length": length}
                 fh.write(json.dumps(entry) + "\n")
-        log.info("Wrote episodes jsonl: %s (%d episodes)", out, total_episodes)
+        log.info("Wrote episodes jsonl: %s (%d episodes)", out, len(self.episode_data))
+        return out
 
     def generate_info_json(self, output_path: Optional[str] = None) -> str:
         """
         Generate info.json using computed totals from parquet files.
         Returns path to written file.
         """
-        lengths = self._read_episode_lengths()
-        total_frames = int(sum(lengths))
-        total_episodes = len(lengths)
+        # episode_data = self._read_episode_data()
+        total_frames = sum(length for _, length, _ in self.episode_data.values())
+        total_episodes = len(self.episode_data)
         total_tasks = 1 if self.task_name else 0
         total_videos = total_episodes  # convention: one video per episode
 
@@ -206,10 +306,13 @@ class MetaFilesGenerator:
             log.info("Wrote info json: %s", out)
         return out
 
-    def generate_all(self) -> None:
-        """Convenience: generate episodes.jsonl then info.json (uses same scan)."""
+    def generate_all(self, tasks: Optional[Dict[int, str]] = None) -> None:
+        """Convenience: generate all meta files."""
         self.generate_episodes_jsonl()
+        self.generate_episodes_stats_jsonl()
         self.generate_info_json()
+        if tasks:
+            self.generate_tasks_jsonl(tasks)
 
 
 if __name__ == "__main__":
@@ -220,9 +323,10 @@ if __name__ == "__main__":
     task = "Needle Transfer"
     robot = "daVinci Surgical Robot"
     codebase = "v2.1"
-    split_percent = {"train": "1:5", "val": "5:10"}  # format: name:range or just range
+    split_percent = {"train": "0:70", "val": "71:85", "test": "86:94"}  # format: name:range or just range
     image_shape = (540, 960, 3)
     codec = "h264"
+    tasks = {0:"Needle Transfer"}
 
     gen = MetaFilesGenerator(
         dataset_dir,
@@ -234,4 +338,5 @@ if __name__ == "__main__":
         image_shape=image_shape,
         codec=codec
     )
-    gen.generate_all()
+
+    gen.generate_all(tasks)

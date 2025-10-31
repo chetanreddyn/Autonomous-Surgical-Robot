@@ -4,3 +4,6 @@
 [submodule "Models/mlcore"]
 	path = Models/mlcore
 	url = git@github.com:ZooeyHe/mlcore.git
+[submodule "LeRobot/data-collection"]
+	path = LeRobot/data-collection
+	url = https://github.com/open-h-embodiment/data-collection.git
