@@ -9,7 +9,7 @@ from csv_to_parquet import CSVtoParquetConverter
 def main():
     parser = argparse.ArgumentParser(description="LeRobot utilities: images->videos, re-encode videos, CSV->Parquet")
     parser.add_argument("--exp-dir", type=str,
-                        default="/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Tissue Retraction Chetan")
+                        default="/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Needle Transfer Chetan")
     parser.add_argument("--demo-start", type=int, default=1)
     parser.add_argument("--demo-end", type=int, default=20)
     parser.add_argument("--fps", type=int, default=30)

@@ -6,6 +6,7 @@ import pyarrow as pa
 from pathlib import Path
 import json
 import pdb
+import argparse
 
 class CSVtoParquetConverter:
     """
@@ -143,13 +144,23 @@ class CSVtoParquetConverter:
 
 # Usage
 if __name__ == "__main__":
-    demo_start = 6  # Update as needed
-    demo_end = 100   # Update as needed
-    exp_dir = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Needle Transfer Chetan"
-    clean_dir = True  # Set to True to delete parquet files
+    parser = argparse.ArgumentParser(description="Convert CSV robot recordings to Parquet format.")
+    parser.add_argument("--demo_start", type=int, default=1, help="Starting demo number (inclusive).")
+    parser.add_argument("--demo_end", type=int, default=100, help="Ending demo number (inclusive).")
+    parser.add_argument("--exp_dir", type=str, default="/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Tissue Retraction Chetan", help="Experiment directory containing demo subfolders.")
+    parser.add_argument("--clean_dir", action="store_true", help="If set, delete existing parquet files in the experiment directory.")
+    parser.add_argument("--task_index", type=int, default=0, help="Task index (0 for needle transfer, 1 for tissue retraction).")
+    args = parser.parse_args()
+
+    demo_start = args.demo_start
+    demo_end = args.demo_end
+    exp_dir = args.exp_dir
+    clean_dir = args.clean_dir
+    task_index = args.task_index
 
     converter = CSVtoParquetConverter(
         exp_dir=exp_dir,
+        task_index=task_index
     )
     # Clean parquet files (dry-run)
 

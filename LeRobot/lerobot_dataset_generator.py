@@ -85,9 +85,9 @@ class LeRobotDatasetGenerator:
 
 # Usage
 if __name__ == "__main__":
-    # src_root = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Needle Transfer Chetan"
-    # dst_root = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Needle Transfer Chetan LeRobot"
-    src_root = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Tissue Retraction Chetan"
-    dst_root = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Tissue Retraction Chetan LeRobot"
+    src_root = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Needle Transfer Chetan"
+    dst_root = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Needle Transfer Chetan LeRobot"
+    # src_root = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Tissue Retraction Chetan"
+    # dst_root = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Tissue Retraction Chetan LeRobot"
     generator = LeRobotDatasetGenerator(src_root, dst_root)
     generator.run()

@@ -35,10 +35,10 @@ class MetaFilesGenerator:
         fps: int = 30,
         robot_type: str = "daVinci Surgical Robot",
         codebase_version: str = "v2.1",
-        task_name: str = "Task",
         splits: Optional[Dict[str, str]] = None,
         image_shape: Optional[Sequence[int]] = (540, 960, 3),
         codec: str = "h264",
+        tasks_ref: Optional[Dict[int, str]] = None,
     ):
         self.dataset_dir = os.path.abspath(dataset_dir)
         self.data_dir = os.path.join(self.dataset_dir, "data")
@@ -48,7 +48,8 @@ class MetaFilesGenerator:
         self.fps = fps
         self.robot_type = robot_type
         self.codebase_version = codebase_version
-        self.task_name = task_name
+        self.tasks_ref = tasks_ref
+        self.task_indices = {} # Maps episode_index -> task_index
         self.codec = codec
         self.splits = splits or {"train": "0:5"}
         # image_shape should be [height, width, channels]
@@ -137,12 +138,14 @@ class MetaFilesGenerator:
                 n = len(df)
                 stats = self.episode_stats_from_df(df, episode_idx)
                 episode_data[episode_idx] = (fpath, n, stats)
+                # pdb.set_trace()
+                self.task_indices[episode_idx] = int(df["task_index"].iloc[0])
             except Exception as e:
                 log.error("Failed to read parquet %s: %s", fpath, e)
                 raise
         return episode_data
 
-    def generate_tasks_jsonl(self, tasks: Dict[int, str], output_path: Optional[str] = None) -> str:
+    def generate_tasks_jsonl(self, output_path: Optional[str] = None) -> str:
         """
         Generate tasks.jsonl with provided task descriptions.
         
@@ -154,13 +157,14 @@ class MetaFilesGenerator:
             Path to written file
         """
         out = output_path or os.path.join(self.meta_dir, "tasks.jsonl")
+        unique_task_indices = set(self.task_indices.values())
         
         with open(out, "w", encoding="utf-8") as fh:
-            for task_idx in sorted(tasks.keys()):
-                entry = {"task_index": task_idx, "task": tasks[task_idx]}
+            for task_idx in sorted(unique_task_indices):
+                entry = {"task_index": task_idx, "task": self.tasks_ref[task_idx]}
                 fh.write(json.dumps(entry) + "\n")
-        
-        log.info("Wrote tasks jsonl: %s (%d tasks)", out, len(tasks))
+
+        log.info("Wrote tasks jsonl: %s (%d tasks)", out, len(unique_task_indices))
         return out
 
     def generate_episodes_stats_jsonl(self, output_path: Optional[str] = None) -> str:
@@ -186,10 +190,11 @@ class MetaFilesGenerator:
         # episode_data = self._read_episode_data()
         out = output_path or os.path.join(self.meta_dir, "episodes.jsonl")
 
+
         with open(out, "w", encoding="utf-8") as fh:
             for episode_idx in sorted(self.episode_data.keys()):
                 _, length, _ = self.episode_data[episode_idx]
-                entry = {"episode_index": episode_idx, "tasks": [self.task_name], "length": length}
+                entry = {"episode_index": episode_idx, "tasks": [self.tasks_ref[self.task_indices[episode_idx]]], "length": length}
                 fh.write(json.dumps(entry) + "\n")
         log.info("Wrote episodes jsonl: %s (%d episodes)", out, len(self.episode_data))
         return out
@@ -202,7 +207,7 @@ class MetaFilesGenerator:
         # episode_data = self._read_episode_data()
         total_frames = sum(length for _, length, _ in self.episode_data.values())
         total_episodes = len(self.episode_data)
-        total_tasks = 1 if self.task_name else 0
+        total_tasks = len(set(self.task_indices.values()))
         total_videos = total_episodes  # convention: one video per episode
 
         h, w, c = self.image_shape
@@ -306,13 +311,12 @@ class MetaFilesGenerator:
             log.info("Wrote info json: %s", out)
         return out
 
-    def generate_all(self, tasks: Optional[Dict[int, str]] = None) -> None:
+    def generate_all(self) -> None:
         """Convenience: generate all meta files."""
         self.generate_episodes_jsonl()
         self.generate_episodes_stats_jsonl()
         self.generate_info_json()
-        if tasks:
-            self.generate_tasks_jsonl(tasks)
+        self.generate_tasks_jsonl()
 
 
 if __name__ == "__main__":
@@ -320,23 +324,23 @@ if __name__ == "__main__":
     # Update these values as needed:
     dataset_dir = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Needle Transfer Chetan LeRobot"  # root dataset directory containing data/ and meta/
     fps = 30
-    task = "Needle Transfer"
     robot = "daVinci Surgical Robot"
     codebase = "v2.1"
-    split_percent = {"train": "0:70", "val": "71:85", "test": "86:94"}  # format: name:range or just range
+    split_percent = {"train": "0:70", "val": "71:85", "test": "86:100"}  # format: name:range or just range
+    # split_percent = {"train": "0:30", "val": "31:40", "test": "41:51"}
     image_shape = (540, 960, 3)
     codec = "h264"
-    tasks = {0:"Needle Transfer"}
+    tasks_ref = {0:"Needle Transfer", 1:"Tissue Retraction"}
 
     gen = MetaFilesGenerator(
         dataset_dir,
         fps=fps,
         robot_type=robot,
         codebase_version=codebase,
-        task_name=task,
         splits=split_percent,
         image_shape=image_shape,
-        codec=codec
+        codec=codec,
+        tasks_ref=tasks_ref
     )
 
-    gen.generate_all(tasks)
+    gen.generate_all()
