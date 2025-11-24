@@ -320,7 +320,10 @@ The plot.html
 ## Results
 **Demo of the Two handed and Three Handed Tasks Semi and Fully Automated (Play it with the Music!)**
 
-https://github.com/user-attachments/assets/b8fad08e-2f3c-4888-b93d-a9336c0b85df
+
+https://github.com/user-attachments/assets/cc5bd86b-205a-47ba-8e02-fa570e1092c8
+
+
 
 ## Known Issues
 
