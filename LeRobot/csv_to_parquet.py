@@ -7,6 +7,8 @@ from pathlib import Path
 import json
 import pdb
 import argparse
+import numpy as np
+from scipy.spatial.transform import Rotation as R
 
 class CSVtoParquetConverter:
     """
@@ -20,18 +22,25 @@ class CSVtoParquetConverter:
         self.task_index = task_index
         self.global_index = start_index
         self.num_arms = 2  # assuming two arms: PSM1 and PSM2
-        self.observation_cols = [
-                'PSM1_joint_1','PSM1_joint_2','PSM1_joint_3','PSM1_joint_4',
-                'PSM1_joint_5','PSM1_joint_6','PSM1_jaw',
-                'PSM2_joint_1','PSM2_joint_2','PSM2_joint_3','PSM2_joint_4',
-                'PSM2_joint_5','PSM2_joint_6','PSM2_jaw'
-            ]
-        self.action_cols = [
-                'PSM1_joint_1','PSM1_joint_2','PSM1_joint_3','PSM1_joint_4',
-                'PSM1_joint_5','PSM1_joint_6','PSM1_jaw',
-                'PSM2_joint_1','PSM2_joint_2','PSM2_joint_3','PSM2_joint_4',
-                'PSM2_joint_5','PSM2_joint_6','PSM2_jaw'
-            ]
+
+    def _extract_arm_features(self, df, idx, arm_name):
+        # Joints: 1-6 + jaw
+        joints = [df.loc[idx, f'{arm_name}_joint_{j}'] for j in range(1, 7)]
+        jaw = df.loc[idx, f'{arm_name}_jaw']
+        joints.append(jaw)
+
+        # Position: x, y, z
+        pos = [df.loc[idx, f'{arm_name}_ee_{axis}'] for axis in ['x', 'y', 'z']]
+
+        # Orientation: Matrix -> RPY
+        # Extract flattened matrix columns in row-major order
+        matrix_cols = [f'{arm_name}_orientation_matrix_[{r},{c}]' for r in range(1, 4) for c in range(1, 4)]
+        mat = df.loc[idx, matrix_cols].to_numpy(dtype=float).reshape(3, 3)
+        
+        # Use 'XYZ' for extrinsic rotations (standard Roll-Pitch-Yaw)
+        rpy = R.from_matrix(mat).as_euler('XYZ', degrees=False).tolist()
+
+        return joints, pos, rpy, jaw
 
     def _load_tools_for_demo(self, demo_path, config_filename="experiment_config.json"):
         """
@@ -62,15 +71,23 @@ class CSVtoParquetConverter:
         n_steps = len(df)
 
         for i in range(n_steps - 1):
-            # Flattened observation.state: PSM1 joints followed by PSM2 joints (7+7=14)
-            state = df.loc[i, self.observation_cols].tolist()
+            state = []
+            action = []
 
-            # Flattened action: next timestep's same 14 joint values
-            action = df.loc[i+1, self.action_cols].tolist()
+            for arm in ['PSM1', 'PSM2']:
+                # Current timestep (i) for observation
+                joints, pos, rpy, jaw = self._extract_arm_features(df, i, arm)
+                # Observation: joints (7) + pos (3) + rpy (3)
+                state.extend(joints + pos + rpy)
+
+                # Next timestep (i+1) for action
+                next_joints, next_pos, next_rpy, next_jaw = self._extract_arm_features(df, i+1, arm)
+                # Action: jaw (1) + pos (3) + rpy (3)
+                action.extend([next_jaw] + next_pos + next_rpy)
 
             row = {
-                "observation.state": state,  # flattened 14 values
-                "action": action,            # flattened 14 values
+                "observation.state": state, # length 26 = 13 per arm (6 joints + 1 jaw + 3 pos + 3 rpy)
+                "action": action, # length 14 = 7 per arm (1 jaw + 3 pos + 3 rpy)
                 "observation.meta.tool_type": self.tool_type,
                 "timestamp": float(df.loc[i, 'timestamp']),
                 "frame_index": int(df.loc[i, 'Frame Number']),
@@ -89,7 +106,7 @@ class CSVtoParquetConverter:
         Processes CSV files in demo subfolders sequentially (Demo1, Demo2, ...).
         Saves one Parquet file per CSV as episode_0000XX.parquet in the same folder.
         """
-
+        num_skipped_demos = 0
         episode_idx = 0
         for demo in range(demo_start, demo_end + 1):
             demo_path = os.path.join(self.exp_dir, f"Demo{demo}")
@@ -99,6 +116,10 @@ class CSVtoParquetConverter:
             if os.path.isfile(csv_path):
                 episode_rows = self._process_episode(csv_path, episode_idx)
 
+                if len(episode_rows)<445:
+                    print(f"Warning: Demo{demo} produced only {len(episode_rows)} steps, expected more, SKIPPING")
+                    num_skipped_demos += 1
+                    continue
                 # Save Parquet in the same folder with zero-padded episode index
                 parquet_file = os.path.join(demo_path, f"episode_{episode_idx:06d}.parquet")
                 table = pa.Table.from_pylist(episode_rows)
@@ -108,6 +129,9 @@ class CSVtoParquetConverter:
                 episode_idx += 1
             else:
                 print(f"No data.csv found in {demo_path}, skipping.")
+
+        if num_skipped_demos > 0:
+            print(f"Skipped {num_skipped_demos} demos due to insufficient steps.")
 
     def clean_dir(self, pattern: str = "*.parquet", do_delete: bool = False):
         """

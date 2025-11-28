@@ -1,6 +1,7 @@
 import os
 import shutil
 import pdb
+import argparse
 
 class LeRobotDatasetGenerator:
     """
@@ -9,9 +10,26 @@ class LeRobotDatasetGenerator:
     All files are renamed to episode_xxxxxx.*
     """
 
-    def __init__(self, src_root, dst_root):
+    def __init__(self, src_root, dst_root, demo_start, demo_end):
         self.src_root = src_root
         self.dst_root = dst_root
+        self.demo_start = demo_start
+        self.demo_end = demo_end
+
+    def _get_demo_dirs(self):
+        """Returns a list of demo directories to process, filtered by range."""
+        all_demos = sorted([d for d in os.listdir(self.src_root) if d.startswith("Demo")])
+        
+        filtered_demos = []
+        for d in all_demos:
+            try:
+                # Extract number from "Demo123"
+                num = int(d.replace("Demo", ""))
+                if self.demo_start <= num <= self.demo_end:
+                    filtered_demos.append(d)
+            except ValueError:
+                continue
+        return filtered_demos
 
     def create_structure(self):
         """Creates the folder structure for the new dataset."""
@@ -22,7 +40,7 @@ class LeRobotDatasetGenerator:
 
     def copy_parquet_files(self):
         """Copies and renames episode parquet files from each demo to data/chunk-000/ preserving episode index."""
-        demo_dirs = sorted([d for d in os.listdir(self.src_root) if d.startswith("Demo")])
+        demo_dirs = self._get_demo_dirs()
         
         for demo in demo_dirs:
             demo_path = os.path.join(self.src_root, demo)
@@ -39,7 +57,7 @@ class LeRobotDatasetGenerator:
         """
         Copies and renames videos from each demo to videos/chunk-000/camera_key/ preserving episode index.
         """
-        demo_dirs = sorted([d for d in os.listdir(self.src_root) if d.startswith("Demo")])
+        demo_dirs = self._get_demo_dirs()
         
         for demo in demo_dirs:
             videos_dir = os.path.join(self.src_root, demo, "videos")
@@ -85,9 +103,11 @@ class LeRobotDatasetGenerator:
 
 # Usage
 if __name__ == "__main__":
-    src_root = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Needle Transfer Chetan"
-    dst_root = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Needle Transfer Chetan LeRobot"
+    src_root = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Peg Transfer Chetan"
+    dst_root = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Peg Transfer Chetan LeRobot"
     # src_root = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Tissue Retraction Chetan"
     # dst_root = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Tissue Retraction Chetan LeRobot"
-    generator = LeRobotDatasetGenerator(src_root, dst_root)
+    # src_root = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/LeRobot/Data/dummy_peg_transfer"
+    # dst_root = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/LeRobot/Data/dummy_peg_transfer_lerobot"
+    generator = LeRobotDatasetGenerator(src_root, dst_root, demo_start=1, demo_end=250)
     generator.run()

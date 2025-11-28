@@ -226,42 +226,30 @@ class MetaFilesGenerator:
             "features": {
                 "observation.state": {
                     "dtype": "float32",
-                    "shape": [14],
+                    "shape": [26],
                     "names": [
-                        "PSM1_joint_1",
-                        "PSM1_joint_2",
-                        "PSM1_joint_3",
-                        "PSM1_joint_4",
-                        "PSM1_joint_5",
-                        "PSM1_joint_6",
-                        "PSM1_jaw",
-                        "PSM2_joint_1",
-                        "PSM2_joint_2",
-                        "PSM2_joint_3",
-                        "PSM2_joint_4",
-                        "PSM2_joint_5",
-                        "PSM2_joint_6",
-                        "PSM2_jaw",
+                        # PSM1 (13)
+                        "PSM1_joint_1", "PSM1_joint_2", "PSM1_joint_3", "PSM1_joint_4", "PSM1_joint_5", "PSM1_joint_6", "PSM1_jaw",
+                        "PSM1_ee_x", "PSM1_ee_y", "PSM1_ee_z",
+                        "PSM1_ee_roll", "PSM1_ee_pitch", "PSM1_ee_yaw",
+                        # PSM2 (13)
+                        "PSM2_joint_1", "PSM2_joint_2", "PSM2_joint_3", "PSM2_joint_4", "PSM2_joint_5", "PSM2_joint_6", "PSM2_jaw",
+                        "PSM2_ee_x", "PSM2_ee_y", "PSM2_ee_z",
+                        "PSM2_ee_roll", "PSM2_ee_pitch", "PSM2_ee_yaw",
                     ],
                 },
                 "action": {
                     "dtype": "float32",
                     "shape": [14],
                     "names": [
-                        "PSM1_joint_1",
-                        "PSM1_joint_2",
-                        "PSM1_joint_3",
-                        "PSM1_joint_4",
-                        "PSM1_joint_5",
-                        "PSM1_joint_6",
+                        # PSM1 (7)
                         "PSM1_jaw",
-                        "PSM2_joint_1",
-                        "PSM2_joint_2",
-                        "PSM2_joint_3",
-                        "PSM2_joint_4",
-                        "PSM2_joint_5",
-                        "PSM2_joint_6",
+                        "PSM1_ee_x", "PSM1_ee_y", "PSM1_ee_z",
+                        "PSM1_ee_roll", "PSM1_ee_pitch", "PSM1_ee_yaw",
+                        # PSM2 (7)
                         "PSM2_jaw",
+                        "PSM2_ee_x", "PSM2_ee_y", "PSM2_ee_z",
+                        "PSM2_ee_roll", "PSM2_ee_pitch", "PSM2_ee_yaw",
                     ],
                 },
                 "observation.meta.tool_type": {
@@ -322,7 +310,8 @@ class MetaFilesGenerator:
 if __name__ == "__main__":
 
     # Update these values as needed:
-    dataset_dir = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Needle Transfer Chetan LeRobot"  # root dataset directory containing data/ and meta/
+    dataset_dir = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Peg Transfer Chetan LeRobot"  # root dataset directory containing data/ and meta/
+    # dataset_dir = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/LeRobot/Data/dummy_peg_transfer_lerobot"
     fps = 30
     robot = "daVinci Surgical Robot"
     codebase = "v2.1"
@@ -330,7 +319,7 @@ if __name__ == "__main__":
     # split_percent = {"train": "0:30", "val": "31:40", "test": "41:51"}
     image_shape = (540, 960, 3)
     codec = "h264"
-    tasks_ref = {0:"Needle Transfer", 1:"Tissue Retraction"}
+    tasks_ref = {0:"Needle Transfer", 1:"Tissue Retraction", 2:"Peg Transfer"}
 
     gen = MetaFilesGenerator(
         dataset_dir,

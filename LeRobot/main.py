@@ -9,12 +9,13 @@ from csv_to_parquet import CSVtoParquetConverter
 def main():
     parser = argparse.ArgumentParser(description="LeRobot utilities: images->videos, re-encode videos, CSV->Parquet")
     parser.add_argument("--exp-dir", type=str,
-                        default="/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Needle Transfer Chetan")
-    parser.add_argument("--demo-start", type=int, default=1)
-    parser.add_argument("--demo-end", type=int, default=20)
+                        default="/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Peg Transfer Chetan")
+    parser.add_argument("-s", "--demo-start", type=int, default=1)
+    parser.add_argument("-e", "--demo-end", type=int, default=20)
     parser.add_argument("--fps", type=int, default=30)
     parser.add_argument("--video-codec", type=str, default="mp4v") # Initial codec for images->videos step
     parser.add_argument("--crf", type=int, default=30)
+    parser.add_argument("--task-index", type=int, default=0, help="Task index for parquet conversion (0=needle transfer, 1=tissue retraction, 2=Peg Transfer)")
     parser.add_argument("-v", "--videos", action="store_true", help="Only generate and re-encode videos")
     parser.add_argument("-p", "--parquet", action="store_true", help="Only convert CSV to Parquet")
     args = parser.parse_args()
@@ -22,6 +23,7 @@ def main():
     exp_dir = args.exp_dir
     demo_start = args.demo_start
     demo_end = args.demo_end
+    task_index = args.task_index
 
     # Decide which steps to run:
     # If neither -v nor -p passed -> run all steps (legacy behavior).
@@ -49,7 +51,7 @@ def main():
         # 3) Convert CSV -> Parquet
         print("\n=== Converting CSV to Parquet ===")
         try:
-            converter = CSVtoParquetConverter(exp_dir=exp_dir)
+            converter = CSVtoParquetConverter(exp_dir=exp_dir, task_index=task_index)
             converter.convert(demo_start=demo_start, demo_end=demo_end)
         except Exception as e:
             print(f"[main] csv->parquet step failed: {e}", file=sys.stderr)

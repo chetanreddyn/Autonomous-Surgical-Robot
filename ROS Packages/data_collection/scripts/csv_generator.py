@@ -23,8 +23,8 @@ import numpy as np
 class MessageSynchronizer:
     def __init__(self, config_dict):
 
-        self.queue_size = 10
-        self.slop = 0.3
+        self.queue_size = 5
+        self.slop = 0.01
         # self.time_prev = time.time()
         self.topics = config_dict["topics"]
         self.time_format = config_dict["time_format"]
@@ -181,7 +181,7 @@ class MessageSynchronizer:
         Generates a row of the CSV file
         '''
         # rospy.loginfo(len(msgs))
-        time_stamp = msgs[0].header.stamp
+        time_stamp = msgs[-1].header.stamp # -1 because the last message is always an image message
         self.time_sec = time_stamp.to_sec() - self.prev_time
         epoch_time_formatted = self.process_timestamp(time_stamp)
 
@@ -434,8 +434,8 @@ if __name__ == '__main__':
     # LOGGING_FOLDER = rospy.get_param("LOGGING_FOLDER")
     # specify the right LOGGING_FOLDER here:
     # Change logging folder here
-    LOGGING_FOLDER = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Needle Transfer Chetan"
-    INITIAL_POSE_JSON_PATH = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot/ROS Packages/data_collection/utils_config/NVIDIA_data_collection_oct_27_5pm.json"
+    LOGGING_FOLDER = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Peg Transfer Chetan"
+    INITIAL_POSE_JSON_PATH = "/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot/ROS Packages/data_collection/utils_config/NVIDIA_data_collection_nov_24_7pm.json"
     LOGGING_FOLDER = rospy.get_param("LOGGING_FOLDER", LOGGING_FOLDER) # This reads the logging_folder from a ros parameter if available
     # List of topics and their message types
     argv = crtk.ral.parse_argv(sys.argv[1:])  # Skip argv[0], script name
@@ -492,7 +492,9 @@ if __name__ == '__main__':
         "loginfo": args.loginfo,
         "rollout": args.rollout,
         "dont_record_images": args.dont_record_images,
-        "initial_pose_json_path": INITIAL_POSE_JSON_PATH
+        "initial_pose_json_path": INITIAL_POSE_JSON_PATH,
+        "teleop1_name": "Chetan Narayanaswamy",
+        "teleop2_name": "Chetan Narayanaswamy"
     }
 
     meta_gen = MetaFileGenerator(csv_generator_config_dict)
