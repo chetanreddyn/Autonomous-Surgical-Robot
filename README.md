@@ -47,6 +47,10 @@ code '/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot/ROS Packages/data_c
 ```bash
 cd '/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot/ROS Packages/data_collection/scripts'
 ```
+Check the existing list of demos in 
+```bash
+cd '/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot-Data/Tissue Retraction Chetan'
+```
 ```bash
 python csv_generator.py --loginfo -d Test
 ```
