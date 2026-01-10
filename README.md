@@ -45,7 +45,10 @@ code '/home/stanford/catkin_ws/src/Autonomous-Surgical-Robot/ROS Packages/data_c
 
 ##### Step 5: Run the csv_generator script to log an experiment
 ```bash
-rosrun data_collection csv_generator.py --loginfo -d Test
+cd /home/stanford/catkin_ws/src/Autonomous-Surgical-Robot/ROS Packages/data_collection/scripts
+```
+```bash
+python csv_generator.py --loginfo -d Test
 ```
 
 ## File Structure
