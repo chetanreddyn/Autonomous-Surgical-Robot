@@ -10,23 +10,29 @@ This file helps others understand the context and details of your contribution.
 
 ## 📋 At a Glance
 
-*Provide a one-sentence summary of your dataset.*
+*Teleoperated demonstrations of the da Vinci Si robot performing needle transfer with a suturing needle.*
 
+<!--
 **Example:** *Teleoperated demonstrations of a da Vinci robot performing needle passing on a silicone phantom.*
+-->
 
 ---
 
 ## 📖 Dataset Overview
 
+<!--
 *Briefly describe the purpose and content of this dataset. What key skills or scenarios does it demonstrate?*
 
 **Example:** *This dataset contains 2,500 trajectories of expert surgeons using the dVRK to perform surgical suturing tasks. It includes successful trials, failures, and recovery attempts to provide a robust dataset for training imitation learning policies.*
+-->
+The dataset comprises 600 dVRK trajectories of basic surgical tasks performed on a table top phantom, including successful trials, failures, and recovery attempts. It provides synchronized cartesian, joint and video data for training and evaluating robot learning policies.
+
 
 | | |
 | :--- | :--- |
-| **Total Trajectories** | `[Number]` |
-| **Total Hours** | `[Number]` |
-| **Data Type** | `[ ] Clinical` `[ ] Ex-Vivo` `[ ] Table-Top Phantom` `[ ] Digital Simulation` `[ ] Physical Simulation` `[ ] Other (If checked, update "Other")` |
+| **Total Trajectories** | `600` |
+| **Total Hours** | `2.5` |
+| **Data Type** | `[ ] Clinical` `[ ] Ex-Vivo` `[x] Table-Top Phantom` `[ ] Digital Simulation` `[ ] Physical Simulation` `[ ] Other (If checked, update "Other")` |
 | **License** | CC BY 4.0 |
 | **Version** | `[e.g., 1.0]` |
 
@@ -38,19 +44,23 @@ This file helps others understand the context and details of your contribution.
 
 *Select the primary domain for this dataset.*
 
-- [ ] **Surgical Robotics**
+- [x] **Surgical Robotics**
 - [ ] **Ultrasound Robotics**
 - [ ] **Other Healthcare Robotics** (Please specify: `[Your Domain]`)
 
 ### Demonstrated Skills
 
 *List the primary skills or procedures demonstrated in this dataset.*
+- Needle Pickup
+- Needle Passing
+- Needle Collection
 
+<!--
 ***Example:***
 - Needle-passing
 - Suture-tying
 - ...
-
+-->
 ---
 
 ## 🔬 Data Collection Details
@@ -59,7 +69,7 @@ This file helps others understand the context and details of your contribution.
 
 *How was the data collected?*
 
-- [ ] **Human Teleoperation**
+- [x] **Human Teleoperation**
 - [ ] **Programmatic/State-Machine**
 - [ ] **AI Policy / Autonomous**
 - [ ] **Other** (Please specify: `[Your Method]`)
@@ -68,40 +78,44 @@ This file helps others understand the context and details of your contribution.
 
 | | Description |
 | :--- | :--- |
-| **Operator Count** | `[Number of unique people who collected data]` |
-| **Operator Skill Level** | `[ ] Expert (e.g., Surgeon, Sonographer)` <br> `[ ] Intermediate (e.g., Trained Researcher)` <br> `[ ] Novice (e.g., ML Researcher with minimal experience)` <br> `[ ] N/A` |
-| **Collection Period** | From `[YYYY-MM-DD]` to `[YYYY-MM-DD]` |
+| **Operator Count** | `2` |
+| **Operator Skill Level** | `[ ] Expert (e.g., Surgeon, Sonographer)` <br> `[x] Intermediate (e.g., Trained Researcher)` <br> `[ ] Novice (e.g., ML Researcher with minimal experience)` <br> `[ ] N/A` |
+| **Collection Period** | From `[2025-10-01]` to `[2025-01-15]` |
 
 ### Recovery Demonstrations
 
 *Does this dataset include examples of recovering from failure?*
 
-- [ ] **Yes**
+- [x] **Yes**
 - [ ] **No**
 
 **If yes, please briefly describe the recovery process:**
+The dataset includes 50 recovery demonstrations and 50 failure demonstrations. In the failure cases, the robotic arm fails to achieve a grasp or drops while passing. In the recovery cases, the arm grasps the object with an incorrect orientation for passing, after which the operator re-orients the grasp before completing the pass.
 
+<!--
 *Example: For 250 demonstrations, demonstrations are initialized from a failed needle grasp position, the operator re-orients the robotic grippers and attempts to grasp the needle again from a different angle.*
-
+-->
 ---
 
 ## 💡 Diversity Dimensions
 
 *Check all dimensions that were intentionally varied during data collection.*
 
-- [ ] **Camera Position / Angle**
-- [ ] **Lighting Conditions**
-- [ ] **Target Object** (e.g., different phantom models, suture types)
-- [ ] **Spatial Layout** (e.g., placing the target suture needle in various locations)
+- [x] **Camera Position / Angle**
+- [x] **Lighting Conditions**
+- [x] **Target Object** (e.g., different phantom models, suture types)
+- [x] **Spatial Layout** (e.g., placing the target suture needle in various locations)
 - [ ] **Robot Embodiment** (if multiple robots were used)
 - [ ] **Task Execution** (e.g., different techniques for the same task)
 - [ ] **Background / Scene**
 - [ ] **Other** (Please specify: `[Your Dimension]`)
 
 *If you checked any of the above please briefly elaborate below.*
+The camera configuration was adjusted every 50–100 demonstrations by varying the setup height by ±2 cm. In addition, the needle type and phantom base were changed periodically. Lighting conditions were varied between 60% and 100%. Each demonstration also features a slightly different needle pickup location.
+<!--
 
 **Example:** We adjusted the room camera perspective every 100 demonstrations. The camera angle was varied by panning up and down by +/- 10 degrees, as well as manually adjusting the height of the camera mount by +/- 2 cm. Additionally, we varied the needle used by swapping out various curvatures, including 1/4, 3/8, 1/2, and 5/8.
-
+-->
 ---
 
 ## 🛠️ Equipment & Setup
@@ -110,20 +124,16 @@ This file helps others understand the context and details of your contribution.
 
 *List the primary robot(s) used.*
 
-- **Robot 1:** `[e.g., dVRK (da Vinci Research Kit)]`
-- **Robot 2:** `[If applicable]`
+- **Robot 1:** `dVRK (da Vinci Research Kit)`
 
 ### Sensors & Cameras
 
-*List the sensors and cameras used. Specify model names where possible. (Add and remove rows as needed)*
+*List the sensors and cameras used. Specify model names where possible. 
 
 | Type | Model/Details |
 | :--- | :--- |
-| **Primary Camera** | `[e.g., Endoscopic Camera, 1920x1080 @ 30fps]` |
-| **Room/3rd Person Camera** | `[e.g., Logitech C920, 1920x1080 @ 30fps]` |
-| **Force/Torque Sensor** | `[e.g., ATI Nano25]` |
-| **Medical Imager** | `[e.g., GE Voluson E10 Ultrasound, B-Mode]` |
-| **Other** | `[Specify]` |
+| **Primary Camera** | `Endoscopic Camera, 1920x1080 @ 30fps with both left and right video feed` |
+| **Joint/Position Encoders** | |
 
 ---
 
@@ -134,14 +144,14 @@ This file helps others understand the context and details of your contribution.
 ### Action Space Representation
 
 **Primary Action Representation:**
-- [ ] **Absolute Cartesian** (position/orientation relative to robot base)
+- [x] **Absolute Cartesian** (position/orientation relative to camera frame (ECM))
 - [ ] **Relative Cartesian** (delta position/orientation from current pose)
 - [ ] **Joint Space** (direct joint angle commands)
 - [ ] **Other** (Please specify: `[Your Representation]`)
 
 **Orientation Representation:**
 - [ ] **Quaternions** (x, y, z, w)
-- [ ] **Euler Angles** (roll, pitch, yaw)
+- [x] **Euler Angles** (roll, pitch, yaw)
 - [ ] **Axis-Angle** (rotation vector)
 - [ ] **Rotation Matrix** (3x3 matrix)
 - [ ] **Other** (Please specify: `[Your Representation]`)
@@ -150,12 +160,18 @@ This file helps others understand the context and details of your contribution.
 - [ ] **Robot Base Frame**
 - [ ] **Tool/End-Effector Frame**
 - [ ] **World/Global Frame**
-- [ ] **Camera Frame**
+- [x] **Camera Frame**
 - [ ] **Other** (Please specify: `[Your Frame]`)
 
 **Action Dimensions:**
 *List the action space dimensions and their meanings.*
-
+```
+action: [PSM{i}_jaw, PSM{i}_ee_x, PSM{i}_ee_y, PSM{i}_ee_z, PSM{i}_ee_roll, PSM{i}_ee_pitch, PSM{i}_ee_yaw]
+- i represents the arm (Could be PSM1 or PSM2)
+- PSM1_jaw: Jaw angle in radians for PSM1
+- PSM1_ee_x, PSM1_ee_y, PSM1_ee_z: Absolute position in camera frame (ECM frame) for PSM1
+- PSM1_ee_roll, PSM1_ee_pitch, PSM1_ee_yaw: Absolute Orientation as Euler Angles for PSM1
+```
 **Example:**
 ```
 action: [x, y, z, qx, qy, qz, qw, gripper]
