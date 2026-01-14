@@ -4,7 +4,7 @@ Please fill out this template and include it in the ./metadata directory of your
 This file helps others understand the context and details of your contribution.
 -->
 
-# [Dataset Name] - README
+# Needle Transfer - README
 
 ---
 
@@ -167,10 +167,10 @@ The camera configuration was adjusted every 50–100 demonstrations by varying t
 *List the action space dimensions and their meanings.*
 ```
 action: [PSM{i}_jaw, PSM{i}_ee_x, PSM{i}_ee_y, PSM{i}_ee_z, PSM{i}_ee_roll, PSM{i}_ee_pitch, PSM{i}_ee_yaw]
-- i represents the arm (Could be PSM1 or PSM2)
-- PSM1_jaw: Jaw angle in radians for PSM1
-- PSM1_ee_x, PSM1_ee_y, PSM1_ee_z: Absolute position in camera frame (ECM frame) for PSM1
-- PSM1_ee_roll, PSM1_ee_pitch, PSM1_ee_yaw: Absolute Orientation as Euler Angles for PSM1
+- PSM{i} represents the arm (Could be PSM1 or PSM2)
+- PSM{i}_jaw: Jaw angle in radians
+- PSM{i}_ee_x, PSM{i}_ee_y, PSM{i}_ee_z: Absolute position in camera frame (ECM frame)
+- PSM{i}_ee_roll, PSM{i}_ee_pitch, PSM{i}_ee_yaw: Absolute Orientation as Euler Angles
 ```
 **Example:**
 ```
@@ -183,11 +183,11 @@ action: [x, y, z, qx, qy, qz, qw, gripper]
 ### State Space Representation
 
 **State Information Included:**
-- [ ] **Joint Positions** (all articulated joints)
+- [x] **Joint Positions** (all articulated joints)
 - [ ] **Joint Velocities**
-- [ ] **End-Effector Pose** (Cartesian position/orientation)
+- [x] **End-Effector Pose** (Cartesian position/orientation)
 - [ ] **Force/Torque Readings**
-- [ ] **Gripper State** (position, force, etc.)
+- [x] **Gripper State** (position, force, etc.)
 - [ ] **Other** (Please specify: `[Your State Info]`)
 
 **State Dimensions:**
@@ -195,9 +195,13 @@ action: [x, y, z, qx, qy, qz, qw, gripper]
 
 **Example:**
 ```
-observation.state: [j1, j2, j3, j4, j5, j6, j7, gripper_pos]
-- j1-j7: Absolute joint positions for 7-DOF arm (radians)
-- gripper_pos: Current gripper opening (meters)
+observation.state: [PSM{i}_joint_1, PSM{i}_joint_2, PSM{i}_joint_3, PSM{i}_joint_4, PSM{i}_joint_5, PSM{i}_joint_6, PSM{i}_jaw, PSM{i}_ee_x, PSM{i}_ee_y, PSM{i}_ee_z, PSM{i}_ee_roll, PSM{i}_ee_pitch, PSM{i}_ee_yaw]
+- PSM{i} represents the arm (Could be PSM1 or PSM2)
+- PSM{i}_joint_1 to PSM{i}_joint_6: Absolute joint positions for the 7-DOF arm (radians)
+- PSM{i}_jaw: Jaw angle of the gripper (radians)
+- PSM{i}_ee_x, PSM{i}_ee_y, PSM{i}_ee_z: End-effector absolute position in camera (ECM) frame (meters)
+- PSM{i}_ee_roll, PSM{i}_ee_pitch, PSM{i}_ee_yaw: End-effector absolute orientation as Euler angles (radians)
+
 ```
 
 ### 📋 Recommended Additional Representations
@@ -223,8 +227,10 @@ observation.state: [j1, j2, j3, j4, j5, j6, j7, gripper_pos]
 
 *Describe how you achieved proper data synchronization across different sensors, cameras, and robotic systems during data collection. This is crucial for ensuring temporal alignment of all modalities in your dataset.*
 
+We use timesynchroniser from message filters package to synchronise the data. The data is recorded at 30 Hz with the bottleneck topic which is the camera feed. When the data is collected, we record 
+<!--
 **Example:** *We collect joint kinematics from our Franka Research 3 and RGB-D frames from Intel RealSense D435 cameras, all running in ROS 2 Galactic on the same workstation clocked with ROS Time. Both drivers stamp their outgoing messages’ header.stamp fields with the shared system clock, and we record /joint_states, /camera/*/image_raw, and /camera/*/camera_info in a single rosbag2 session. During export to LeRobot, each data point’s ROS header.stamp is written verbatim into the timestamp attribute. Offline checks show inter-sensor skew stays below ±2 ms across a 2-minute capture.*
-
+-->
 ---
 
 ## 👥 Attribution & Contact
