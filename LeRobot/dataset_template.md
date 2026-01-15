@@ -204,30 +204,16 @@ observation.state: [PSM{i}_joint_1, PSM{i}_joint_2, PSM{i}_joint_3, PSM{i}_joint
 
 ```
 
-### 📋 Recommended Additional Representations
-
-*Even if not your primary action/state representation, we strongly encourage including these standardized formats for maximum compatibility:*
-
-**Recommended Action Fields:**
-- **`action.cartesian_absolute`**: Absolute Cartesian pose with absolute quaternions
-  ```
-  [x, y, z, qx, qy, qz, qw, gripper_angle]
-  ```
-
-**Recommended State Fields:**
-- **`observation.state.joint_positions`**: Absolute positions for all articulated joints
-  ```
-  [joint_1, joint_2, ..., joint_n]
-  ```
-
-
 ---
 
 ## ⏱️ Data Synchronization Approach
 
 *Describe how you achieved proper data synchronization across different sensors, cameras, and robotic systems during data collection. This is crucial for ensuring temporal alignment of all modalities in your dataset.*
 
-We use timesynchroniser from message filters package to synchronise the data. The data is recorded at 30 Hz with the bottleneck topic which is the camera feed. When the data is collected, we record 
+We use the ApproximateTimeSynchronizer from the ROS message_filters package to synchronize all data streams. The queue_size parameter controls the number of incoming messages buffered for each topic, while the slop parameter specifies the maximum allowable time difference between messages for them to be considered synchronized. This approach aligns messages based on their timestamps within a defined tolerance rather than requiring exact matches. 
+
+Data is recorded at 30 Hz, with the camera feed acting as the bottleneck. During data collection, we monitor the inter-frame time difference and ensure it remains close to 33 ms, resulting in approximately 450 frames per 15-second episode. In rare cases, message delays lead to significantly fewer frames (fewer than 435); such episodes are discarded and re-recorded.
+
 <!--
 **Example:** *We collect joint kinematics from our Franka Research 3 and RGB-D frames from Intel RealSense D435 cameras, all running in ROS 2 Galactic on the same workstation clocked with ROS Time. Both drivers stamp their outgoing messages’ header.stamp fields with the shared system clock, and we record /joint_states, /camera/*/image_raw, and /camera/*/camera_info in a single rosbag2 session. During export to LeRobot, each data point’s ROS header.stamp is written verbatim into the timestamp attribute. Offline checks show inter-sensor skew stays below ±2 ms across a 2-minute capture.*
 -->
@@ -239,7 +225,6 @@ We use timesynchroniser from message filters package to synchronise the data. Th
 
 | | |
 | :--- | :--- |
-| **Dataset Lead** | `[Name1, Name2, ...]` |
-| **Institution** | `[Your Institution]` |
-| **Contact Email** | `[email1@example.com, email2@example.com, ...]` |
-| **Citation (BibTeX)** | <pre><code>@misc{[your_dataset_name_2025],<br>  author = {[Your Name(s)]},<br>  title = {[Your Dataset Title]},<br>  year = {2025},<br>  publisher = {Open-H-Embodiment},<br>  note = {https://hrpp.research.virginia.edu/teams/irb-sbs/researcher-guide-irb-sbs/identifiers}<br>}</code></pre> |
+| **Dataset Lead** | `Chetan Reddy Narayanaswamy` |
+| **Institution** | `Stanford University` |
+| **Contact Email** | `chetanrn@stanford.edu` |
