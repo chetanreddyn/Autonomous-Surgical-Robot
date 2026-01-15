@@ -10,7 +10,7 @@ This file helps others understand the context and details of your contribution.
 
 ## 📋 At a Glance
 
-*Teleoperated demonstrations of the da Vinci Si robot performing needle transfer with a suturing needle.*
+*Teleoperated demonstrations of the da Vinci Si robot performing peg transfer on a transfer board*
 
 <!--
 **Example:** *Teleoperated demonstrations of a da Vinci robot performing needle passing on a silicone phantom.*
@@ -25,12 +25,12 @@ This file helps others understand the context and details of your contribution.
 
 **Example:** *This dataset contains 2,500 trajectories of expert surgeons using the dVRK to perform surgical suturing tasks. It includes successful trials, failures, and recovery attempts to provide a robust dataset for training imitation learning policies.*
 -->
-The dataset comprises 600 dVRK trajectories of basic surgical tasks performed on a table top phantom, including successful trials, failures, and recovery attempts. It provides synchronized cartesian, joint and video data for training and evaluating robot learning policies.
+The dataset comprises around 600 dVRK trajectories of the peg transfer task including successful trials, failures, and recovery attempts. It provides synchronized cartesian, joint and video data for training and evaluating robot learning policies.
 
 
 | | |
 | :--- | :--- |
-| **Total Trajectories** | `600` |
+| **Total Trajectories** | `598` |
 | **Total Hours** | `2.5` |
 | **Data Type** | `[ ] Clinical` `[ ] Ex-Vivo` `[x] Table-Top Phantom` `[ ] Digital Simulation` `[ ] Physical Simulation` `[ ] Other (If checked, update "Other")` |
 | **License** | CC BY 4.0 |
@@ -51,9 +51,9 @@ The dataset comprises 600 dVRK trajectories of basic surgical tasks performed on
 ### Demonstrated Skills
 
 *List the primary skills or procedures demonstrated in this dataset.*
-- Needle Pickup
-- Needle Passing
-- Needle Collection
+- Peg Pickup
+- Peg Passing
+- Peg Placing
 
 <!--
 ***Example:***
@@ -90,7 +90,7 @@ The dataset comprises 600 dVRK trajectories of basic surgical tasks performed on
 - [ ] **No**
 
 **If yes, please briefly describe the recovery process:**
-The dataset includes 50 recovery demonstrations and 50 failure demonstrations. In the failure cases, the robotic arm fails to achieve a grasp or drops while passing. In the recovery cases, the arm grasps the object with an incorrect orientation for passing, after which the operator re-orients the grasp before completing the pass.
+The dataset includes 50 recovery demonstrations and 50 failure demonstrations. In the failure cases, the robotic arm fails to achieve a grasp or drops while passing. In the recovery cases, the arm fails to pick the peg correctly but picks it up when attempted again. Another type of recovery occurs when the peg is being placed, fails and its orientation is adjusted to keep it upright.
 
 <!--
 *Example: For 250 demonstrations, demonstrations are initialized from a failed needle grasp position, the operator re-orients the robotic grippers and attempts to grasp the needle again from a different angle.*
