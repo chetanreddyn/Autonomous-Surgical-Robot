@@ -25,7 +25,7 @@ This file helps others understand the context and details of your contribution.
 
 **Example:** *This dataset contains 2,500 trajectories of expert surgeons using the dVRK to perform surgical suturing tasks. It includes successful trials, failures, and recovery attempts to provide a robust dataset for training imitation learning policies.*
 -->
-The dataset comprises 600 dVRK trajectories of basic surgical tasks performed on a table top phantom, including successful trials, failures, and recovery attempts. It provides synchronized cartesian, joint and video data for training and evaluating robot learning policies.
+The dataset comprises 600 dVRK trajectories of needle transfer performed on a table top phantom, including successful trials, failures, and recovery attempts. It provides synchronized cartesian, joint and video data for training and evaluating robot learning policies.
 
 
 | | |
