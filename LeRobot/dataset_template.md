@@ -172,6 +172,7 @@ action: [PSM{i}_jaw, PSM{i}_ee_x, PSM{i}_ee_y, PSM{i}_ee_z, PSM{i}_ee_roll, PSM{
 - PSM{i}_ee_x, PSM{i}_ee_y, PSM{i}_ee_z: Absolute position in camera frame (ECM frame)
 - PSM{i}_ee_roll, PSM{i}_ee_pitch, PSM{i}_ee_yaw: Absolute Orientation as Euler Angles
 ```
+<!--
 **Example:**
 ```
 action: [x, y, z, qx, qy, qz, qw, gripper]
@@ -179,7 +180,7 @@ action: [x, y, z, qx, qy, qz, qw, gripper]
 - qx, qy, qz, qw: Absolute orientation as quaternion
 - gripper: Gripper opening angle (radians)
 ```
-
+-->
 ### State Space Representation
 
 **State Information Included:**
@@ -210,7 +211,7 @@ observation.state: [PSM{i}_joint_1, PSM{i}_joint_2, PSM{i}_joint_3, PSM{i}_joint
 
 *Describe how you achieved proper data synchronization across different sensors, cameras, and robotic systems during data collection. This is crucial for ensuring temporal alignment of all modalities in your dataset.*
 
-We use the ApproximateTimeSynchronizer from the ROS message_filters package to synchronize all data streams. The queue_size parameter controls the number of incoming messages buffered for each topic, while the slop parameter specifies the maximum allowable time difference between messages for them to be considered synchronized. This approach aligns messages based on their timestamps within a defined tolerance rather than requiring exact matches. 
+We use the ApproximateTimeSynchronizer [[Link]](https://wiki.ros.org/message_filters/ApproximateTime) from the ROS message_filters package to synchronize all data streams. The queue_size parameter controls the number of incoming messages buffered for each topic, while the slop parameter specifies the maximum allowable time difference between messages for them to be considered synchronized. This approach aligns messages based on their timestamps within a defined tolerance rather than requiring exact matches. 
 
 Data is recorded at 30 Hz, with the camera feed acting as the bottleneck. During data collection, we monitor the inter-frame time difference and ensure it remains close to 33 ms, resulting in approximately 450 frames per 15-second episode. In rare cases, message delays lead to significantly fewer frames (fewer than 435); such episodes are discarded and re-recorded.
 
