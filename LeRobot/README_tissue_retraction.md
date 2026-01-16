@@ -4,13 +4,13 @@ Please fill out this template and include it in the ./metadata directory of your
 This file helps others understand the context and details of your contribution.
 -->
 
-# Needle Transfer - README
+# Tissue Retraction - README
 
 ---
 
 ## 📋 At a Glance
 
-*Teleoperated demonstrations of the da Vinci Si robot performing needle transfer with a suturing needle.*
+*Teleoperated demonstrations of the da Vinci Si robot performing tissue retraction of 2-3 layers (of silicone phantom)*
 
 <!--
 **Example:** *Teleoperated demonstrations of a da Vinci robot performing needle passing on a silicone phantom.*
@@ -25,7 +25,7 @@ This file helps others understand the context and details of your contribution.
 
 **Example:** *This dataset contains 2,500 trajectories of expert surgeons using the dVRK to perform surgical suturing tasks. It includes successful trials, failures, and recovery attempts to provide a robust dataset for training imitation learning policies.*
 -->
-The dataset comprises 700 dVRK trajectories of needle transfer performed on a table top phantom, including successful trials, failures, and recovery attempts. It provides synchronized cartesian, joint and video data for training and evaluating robot learning policies.
+The dataset comprises 700 dVRK trajectories of tissue retraction performed on a table top phantom, including successful trials, failures, and recovery attempts. It provides synchronized cartesian, joint and video data for training and evaluating robot learning policies.
 
 
 | | |
@@ -51,9 +51,9 @@ The dataset comprises 700 dVRK trajectories of needle transfer performed on a ta
 ### Demonstrated Skills
 
 *List the primary skills or procedures demonstrated in this dataset.*
-- Needle Pickup
-- Needle Passing
-- Needle Collection
+- Choosing Right Point to Start Retracting
+- Second Arm Assisting 
+- Retracting Multiple Layers 
 
 <!--
 ***Example:***
@@ -86,11 +86,8 @@ The dataset comprises 700 dVRK trajectories of needle transfer performed on a ta
 
 *Does this dataset include examples of recovering from failure?*
 
-- [x] **Yes**
-- [ ] **No**
-
-**If yes, please briefly describe the recovery process:**
-The dataset includes 25 recovery demonstrations and 75 failure demonstrations. In the failure cases, the robotic arm fails to achieve a grasp or drops while passing. In the recovery cases, the arm grasps the object with an incorrect orientation for passing, after which the operator re-orients the grasp before completing the pass. 
+- [ ] **Yes**
+- [x] **No**
 
 <!--
 *Example: For 250 demonstrations, demonstrations are initialized from a failed needle grasp position, the operator re-orients the robotic grippers and attempts to grasp the needle again from a different angle.*
@@ -111,7 +108,7 @@ The dataset includes 25 recovery demonstrations and 75 failure demonstrations. I
 - [ ] **Other** (Please specify: `[Your Dimension]`)
 
 *If you checked any of the above please briefly elaborate below.*
-The camera configuration was adjusted every 50–100 demonstrations by varying the setup height by ±2 cm. In addition, the needle type and phantom base were changed periodically. Lighting conditions were varied between 60% and 100%. Each demonstration also features a slightly different needle pickup location.
+The camera configuration was adjusted every 50–100 demonstrations by varying the setup height by ±2 cm. In addition, the needle type and phantom base were changed periodically. Lighting conditions were varied between 60% and 100%. Some demonstrations had 2 layers and some had 3 layers.
 <!--
 
 **Example:** We adjusted the room camera perspective every 100 demonstrations. The camera angle was varied by panning up and down by +/- 10 degrees, as well as manually adjusting the height of the camera mount by +/- 2 cm. Additionally, we varied the needle used by swapping out various curvatures, including 1/4, 3/8, 1/2, and 5/8.
