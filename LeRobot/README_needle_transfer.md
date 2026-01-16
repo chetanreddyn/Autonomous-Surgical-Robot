@@ -25,13 +25,13 @@ This file helps others understand the context and details of your contribution.
 
 **Example:** *This dataset contains 2,500 trajectories of expert surgeons using the dVRK to perform surgical suturing tasks. It includes successful trials, failures, and recovery attempts to provide a robust dataset for training imitation learning policies.*
 -->
-The dataset comprises 600 dVRK trajectories of needle transfer performed on a table top phantom, including successful trials, failures, and recovery attempts. It provides synchronized cartesian, joint and video data for training and evaluating robot learning policies.
+The dataset comprises 700 dVRK trajectories of needle transfer performed on a table top phantom, including successful trials, failures, and recovery attempts. It provides synchronized cartesian, joint and video data for training and evaluating robot learning policies.
 
 
 | | |
 | :--- | :--- |
-| **Total Trajectories** | `600` |
-| **Total Hours** | `2.5` |
+| **Total Trajectories** | `700` |
+| **Total Hours** | `2.9` |
 | **Data Type** | `[ ] Clinical` `[ ] Ex-Vivo` `[x] Table-Top Phantom` `[ ] Digital Simulation` `[ ] Physical Simulation` `[ ] Other (If checked, update "Other")` |
 | **License** | CC BY 4.0 |
 | **Version** | `[e.g., 1.0]` |
@@ -78,7 +78,7 @@ The dataset comprises 600 dVRK trajectories of needle transfer performed on a ta
 
 | | Description |
 | :--- | :--- |
-| **Operator Count** | `2` |
+| **Operator Count** | `1` |
 | **Operator Skill Level** | `[ ] Expert (e.g., Surgeon, Sonographer)` <br> `[x] Intermediate (e.g., Trained Researcher)` <br> `[ ] Novice (e.g., ML Researcher with minimal experience)` <br> `[ ] N/A` |
 | **Collection Period** | From `[2025-10-01]` to `[2025-01-15]` |
 
@@ -90,7 +90,7 @@ The dataset comprises 600 dVRK trajectories of needle transfer performed on a ta
 - [ ] **No**
 
 **If yes, please briefly describe the recovery process:**
-The dataset includes 50 recovery demonstrations and 50 failure demonstrations. In the failure cases, the robotic arm fails to achieve a grasp or drops while passing. In the recovery cases, the arm grasps the object with an incorrect orientation for passing, after which the operator re-orients the grasp before completing the pass.
+The dataset includes 25 recovery demonstrations and 75 failure demonstrations. In the failure cases, the robotic arm fails to achieve a grasp or drops while passing. In the recovery cases, the arm grasps the object with an incorrect orientation for passing, after which the operator re-orients the grasp before completing the pass. 
 
 <!--
 *Example: For 250 demonstrations, demonstrations are initialized from a failed needle grasp position, the operator re-orients the robotic grippers and attempts to grasp the needle again from a different angle.*
