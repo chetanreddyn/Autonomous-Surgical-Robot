@@ -229,3 +229,4 @@ Data is recorded at 30 Hz, with the camera feed acting as the bottleneck. During
 | **Dataset Lead** | `Chetan Reddy Narayanaswamy` |
 | **Institution** | `Stanford University` |
 | **Contact Email** | `chetanrn@stanford.edu` |
+| **Personal Website** | [`https://chetanreddyn.github.io/`](https://chetanreddyn.github.io/)|
